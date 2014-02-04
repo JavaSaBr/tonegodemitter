@@ -33,7 +33,6 @@ import emitter.influencers.GravityInfluencer;
 import emitter.influencers.ImpulseInfluencer;
 import emitter.influencers.ParticleInfluencer;
 import emitter.influencers.DestinationInfluencer;
-import emitter.influencers.DirectionInfluencer;
 import emitter.influencers.PhysicsInfluencer;
 import emitter.influencers.RotationInfluencer;
 import emitter.influencers.SizeInfluencer;
@@ -449,7 +448,6 @@ public class Emitter implements Control {
 		addInfluencer(new SizeInfluencer());
 		addInfluencer(new RotationInfluencer());
 		addInfluencer(new SpriteInfluencer());
-		addInfluencer(new DirectionInfluencer());
 		addInfluencer(new DestinationInfluencer());
 		addInfluencer(new PhysicsInfluencer());
 		addInfluencer(new ImpulseInfluencer());
