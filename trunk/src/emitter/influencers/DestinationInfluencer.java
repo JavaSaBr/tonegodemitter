@@ -1,34 +1,3 @@
-/*
- * Copyright (c) 2009-2012 jMonkeyEngine
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * * Neither the name of 'jMonkeyEngine' nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package emitter.influencers;
 
 import com.jme3.export.InputCapsule;
@@ -55,13 +24,13 @@ public class DestinationInfluencer implements ParticleInfluencer {
 	private boolean initialized = false;
 	private float blend;
 	private boolean useRandomStartDestination = false;
-//	private boolean particleMovesTowardsDestination = true;
 	private float weight = 1f;
 	private boolean cycle = false;;
 	private float fixedDuration = 0f;
 	private Vector3f destinationDir = new Vector3f();
 	private float dist;
 	
+	@Override
 	public void update(ParticleData p, float tpf) {
 		if (enabled) {
 			p.destinationInterval += tpf;
@@ -84,11 +53,11 @@ public class DestinationInfluencer implements ParticleInfluencer {
 		p.destinationIndex++;
 		if (p.destinationIndex == destinations.size())
 			p.destinationIndex = 0;
-		
 		p.destinationInterpolation = interpolations.getArray()[p.destinationIndex];
 		p.destinationInterval -= p.destinationDuration;
 	}
 	
+	@Override
 	public void initialize(ParticleData p) {
 		if (!initialized) {
 			if (destinations.isEmpty()) {
@@ -107,42 +76,79 @@ public class DestinationInfluencer implements ParticleInfluencer {
 		p.destinationInterpolation = interpolations.getArray()[p.destinationIndex];
 	}
 
+	@Override
 	public void reset(ParticleData p) {
 		
 	}
 	
+	/**
+	 * When enabled, the initial step the particle will start at will be randomly selected from the defined list of directions
+	 * @param useRandomStartDestination 
+	 */
 	public void setUseRandomStartDestination(boolean useRandomStartDestination) {
 		this.useRandomStartDestination = useRandomStartDestination;
 	}
 	
+	/**
+	 * Returns if the influencer will start a newly emitted particle at a random step in the provided list of directions
+	 * @return 
+	 */
 	public boolean getUseRandomStartDestination() { return this.useRandomStartDestination; }
 	
+	/**
+	 * Adds a destination using linear interpolation to the list of destinations used during the life cycle of the particle
+	 * @param destination The destination the particle will move towards
+	 * @param weight How strong the pull towards the destination should be
+	 */
 	public void addDestination(Vector3f destination, float weight) {
 		addDestination(destination, weight, Interpolation.linear);
 	}
 	
+	/**
+	 * Adds a destination using the defined interpolation to the list of destinations used during the life cycle of the particle
+	 * @param destination The destination the particle will move towards
+	 * @param weight How strong the pull towards the destination should be
+	 * @interpolation The interpolation method used to blend from the this step value to the next
+	 */
 	public void addDestination(Vector3f destination, float weight, Interpolation interpolation) {
 		this.destinations.add(destination.clone());
 		this.weights.add(weight);
 		this.interpolations.add(interpolation);
 	}
-	
+	/**
+	 * Removes the destination step value at the supplied index
+	 * @param index 
+	 */
 	public void removeDestination(int index) {
 		this.destinations.remove(index);
 		this.weights.remove(index);
 		this.interpolations.remove(index);
 	}
-	
+	/**
+	 * Removes all destination step values
+	 */
 	public void removeAll() {
 		this.destinations.clear();
 		this.weights.clear();
 		this.interpolations.clear();
 	}
-	
+	/**
+	 * Returns an array containing all destination step values
+	 * @return 
+	 */
 	public Vector3f[] getDestinations() { return this.destinations.getArray(); }
+	/**
+	 * Returns an array containing all step value weights
+	 * @return 
+	 */
 	public Interpolation[] getInterpolations() { return this.interpolations.getArray(); }
+	/**
+	 * Returns an array containing all step value interpolations
+	 * @return 
+	 */
 	public Float[] getWeights() { return this.weights.getArray(); }
 	
+	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
 		oc.writeSavableArrayList(new ArrayList(destinations), "destinations", null);
@@ -150,11 +156,11 @@ public class DestinationInfluencer implements ParticleInfluencer {
 		oc.writeSavableArrayList(new ArrayList(interpolations), "interpolations", null);
 		oc.write(enabled, "enabled", true);
 		oc.write(useRandomStartDestination, "useRandomStartDestination", false);
-	//	oc.write(particleMovesTowardsDestination, "particleMovesTowardsDestination", true);
 		oc.write(cycle, "cycle", false);
 		oc.write(fixedDuration, "fixedDuration", 0.125f);
 	}
 
+	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
 		destinations = new SafeArrayList<Vector3f>(Vector3f.class, ic.readSavableArrayList("destinations", null));
@@ -162,7 +168,6 @@ public class DestinationInfluencer implements ParticleInfluencer {
 		interpolations = new SafeArrayList<Interpolation>(Interpolation.class, ic.readSavableArrayList("interpolations", null));
 		enabled = ic.readBoolean("enabled", true);
 		useRandomStartDestination = ic.readBoolean("useRandomStartDestination", false);
-	//	particleMovesTowardsDestination = ic.readBoolean("particleMovesTowardsDestination", true);
 		cycle = ic.readBoolean("cycle", false);
 		fixedDuration = ic.readFloat("fixedDuration", 0.125f);
 	}
@@ -179,8 +184,8 @@ public class DestinationInfluencer implements ParticleInfluencer {
 	}
 	
 	/**
-	 * Animated texture should cycle and use the provided duration between frames (0 diables cycling)
-	 * @param fixedDuration duration between frame updates
+	 * Each step value should last the specified duration, cycling once reaching the end of the defined list (A value of 0 disables cycling)
+	 * @param fixedDuration duration between step value updates
 	 */
 	public void setFixedDuration(float fixedDuration) {
 		if (fixedDuration != 0) {
@@ -192,19 +197,22 @@ public class DestinationInfluencer implements ParticleInfluencer {
 		}
 	}
 	/**
-	 * Returns the current duration used between frames for cycled animation
+	 * Returns the current duration used between steps for cycling
 	 * @return 
 	 */
 	public float getFixedDuration() { return this.fixedDuration; }
 
+	@Override
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
+	@Override
 	public boolean isEnabled() {
 		return this.enabled;
 	}
 
+	@Override
 	public Class getInfluencerClass() {
 		return DestinationInfluencer.class;
 	}
