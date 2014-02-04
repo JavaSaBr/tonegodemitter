@@ -1,34 +1,3 @@
-/*
- * Copyright (c) 2009-2012 jMonkeyEngine
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * * Neither the name of 'jMonkeyEngine' nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package emitter.influencers;
 
 import com.jme3.export.InputCapsule;
@@ -60,6 +29,7 @@ public class ColorInfluencer implements ParticleInfluencer {
 	private float blend;
 	private float fixedDuration = 0f;
 	
+	@Override
 	public void update(ParticleData p, float tpf) {
 		if (enabled) {
 			p.colorInterval += tpf;
@@ -81,17 +51,13 @@ public class ColorInfluencer implements ParticleInfluencer {
 	
 	private void updateColor(ParticleData p) {
 		p.colorIndex++;
-	//	if (!cycle) {
-			if (p.colorIndex >= colors.size())
-				p.colorIndex = 0;
-	//	} else {
-	//		if (p.colorIndex >= colors.size()-1)
-	//			p.colorIndex = 0;
-	//	}
+		if (p.colorIndex >= colors.size())
+			p.colorIndex = 0;
 		p.colorInterpolation = interpolations.getArray()[p.colorIndex];
 		p.colorInterval -= p.colorDuration;
 	}
 	
+	@Override
 	public void initialize(ParticleData p) {
 		if (!initialized) {
 			if (colors.isEmpty()) {
@@ -114,6 +80,7 @@ public class ColorInfluencer implements ParticleInfluencer {
 		p.colorInterpolation = interpolations.getArray()[p.colorIndex];
 	}
 
+	@Override
 	public void reset(ParticleData p) {
 		p.color.set(resetColor);
 		p.colorIndex = 0;
@@ -195,7 +162,7 @@ public class ColorInfluencer implements ParticleInfluencer {
 	
 	/**
 	 * Animated texture should cycle and use the provided duration between frames (0 diables cycling)
-	 * @param fixedDuration duration between frame updates
+	 * @param fixedDuration duration between step updates
 	 */
 	public void setFixedDuration(float fixedDuration) {
 		if (fixedDuration != 0) {
@@ -207,7 +174,7 @@ public class ColorInfluencer implements ParticleInfluencer {
 		}
 	}
 	/**
-	 * Returns the current duration used between frames for cycled animation
+	 * Returns the current duration used between steps for cycled animation
 	 * @return 
 	 */
 	public float getFixedDuration() { return this.fixedDuration; }
