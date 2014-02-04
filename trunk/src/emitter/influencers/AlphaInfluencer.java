@@ -1,34 +1,3 @@
-/*
- * Copyright (c) 2009-2012 jMonkeyEngine
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * * Neither the name of 'jMonkeyEngine' nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package emitter.influencers;
 
 import com.jme3.export.InputCapsule;
@@ -58,6 +27,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
 	private float blend;
 	private float fixedDuration = 0f;
 	
+	@Override
 	public void update(ParticleData p, float tpf) {
 		if (enabled) {
 			p.alphaInterval += tpf;
@@ -79,17 +49,13 @@ public class AlphaInfluencer implements ParticleInfluencer {
 	
 	private void updateAlpha(ParticleData p) {
 		p.alphaIndex++;
-	//	if (!cycle) {
-			if (p.alphaIndex >= alphas.size())
-				p.alphaIndex = 0;
-	//	} else {
-	//		if (p.alphaIndex >= alphas.size()-1)
-	//			p.alphaIndex = 0;
-	//	}
+		if (p.alphaIndex >= alphas.size())
+			p.alphaIndex = 0;
 		p.alphaInterpolation = interpolations.getArray()[p.alphaIndex];
 		p.alphaInterval -= p.alphaDuration;
 	}
 	
+	@Override
 	public void initialize(ParticleData p) {
 		if (!initialized) {
 			if (alphas.isEmpty()) {
@@ -112,33 +78,59 @@ public class AlphaInfluencer implements ParticleInfluencer {
 		p.alphaInterpolation = interpolations.getArray()[p.alphaIndex];
 	}
 
+	@Override
 	public void reset(ParticleData p) {
 		p.alpha = 0;
 	}
 	
+	/**
+	 * Adds a alpha step value using linear interpolation to the chain of values used throughout the particles life span
+	 * @param alpha 
+	 */
 	public void addAlpha(float alpha) {
 		addAlpha(alpha, Interpolation.linear);
 	}
 	
+	/**
+	 * Adds a alpha step value to the chain of values used throughout the particles life span
+	 * @param alpha
+	 * @param interpolation 
+	 */
 	public void addAlpha(float alpha, Interpolation interpolation) {
 		this.alphas.add(alpha);
 		this.interpolations.add(interpolation);
 	}
 	
+	/**
+	 * Returns an array containing all alpha step values
+	 * @return 
+	 */
 	public Float[] getAlphas() { return this.alphas.getArray(); }
 	
+	/**
+	 * Returns an array containing all interpolation step values
+	 * @return 
+	 */
 	public Interpolation[] getInterpolations() { return this.interpolations.getArray(); }
 	
+	/**
+	 * Removes the alpha step value at the given index
+	 * @param index 
+	 */
 	public void removeAlpha(int index) {
 		this.alphas.remove(index);
 		this.interpolations.remove(index);
 	}
 	
+	/**
+	 * Removes all added alpha step values
+	 */
 	public void removeAll() {
 		this.alphas.clear();
 		this.interpolations.clear();
 	}
 	
+	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
 		oc.writeSavableArrayList(new ArrayList(alphas), "alphas", null);
@@ -149,6 +141,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
 		oc.write(fixedDuration, "fixedDuration", 0.125f);
 	}
 
+	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
 		alphas = new SafeArrayList<Float>(Float.class, ic.readSavableArrayList("alphas", null));
@@ -194,14 +187,17 @@ public class AlphaInfluencer implements ParticleInfluencer {
 	 */
 	public float getFixedDuration() { return this.fixedDuration; }
 
+	@Override
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
+	@Override
 	public boolean isEnabled() {
 		return this.enabled;
 	}
 
+	@Override
 	public Class getInfluencerClass() {
 		return AlphaInfluencer.class;
 	}
