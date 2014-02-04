@@ -1,34 +1,3 @@
-/*
- * Copyright (c) 2009-2012 jMonkeyEngine
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * * Neither the name of 'jMonkeyEngine' nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package emitter.influencers;
 
 import com.jme3.export.InputCapsule;
@@ -37,7 +6,6 @@ import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.Vector3f;
 import java.io.IOException;
-import emitter.Interpolation;
 import emitter.particle.ParticleData;
 
 /**
@@ -58,6 +26,7 @@ public class GravityInfluencer implements ParticleInfluencer {
 	private float magnitude = 1;
 	private GravityAlignment alignment = GravityAlignment.World;
 	
+	@Override
 	public void update(ParticleData p, float tpf) {
 		if (enabled) {
 			if (!p.emitter.getUseStaticParticles()) {
@@ -89,26 +58,44 @@ public class GravityInfluencer implements ParticleInfluencer {
 		}
 	}
 	
+	@Override
 	public void initialize(ParticleData p) {
 		p.reverseVelocity.set(p.velocity.negate().mult(magnitude));
 	}
 
+	@Override
 	public void reset(ParticleData p) {
 		
 	}
 
+	/**
+	 * Aligns the gravity to the specified GravityAlignment
+	 * @param alignment 
+	 */
 	public void setAlignment(GravityAlignment alignment) {
 		this.alignment = alignment;
 	}
 	
+	/**
+	 * Returns the specified GravityAlignment
+	 * @return 
+	 */
 	public GravityAlignment getAlignment() {
 		return this.alignment;
 	}
 	
+	/**
+	 * Gravity multiplier
+	 * @param magnitude 
+	 */
 	public void setMagnitude(float magnitude) {
 		this.magnitude = magnitude;
 	}
 	
+	/**
+	 * Returns the current magnitude
+	 * @return 
+	 */
 	public float getMagnitude() {
 		return this.magnitude;
 	}
@@ -130,21 +117,32 @@ public class GravityInfluencer implements ParticleInfluencer {
 		this.gravity.set(x, y, z);
 	}
 	
+	/**
+	 * Returns the current gravity as a Vector3f
+	 * @return 
+	 */
 	public Vector3f getGravity() {
 		return this.gravity;
 	}
 	
+	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
         oc.write(gravity, "gravity", new Vector3f(0,1,0));
 		oc.write(enabled, "enabled" ,true);
 		oc.write(useNegativeVelocity, "useNegativeVelocity", false);
 		oc.write(magnitude, "magnitude", 1f);
+		oc.write(alignment.name(), "alignment", GravityAlignment.World.name());
 	}
 
+	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
 		gravity = (Vector3f) ic.readSavable("gravity", new Vector3f(0,1,0));
+		enabled = ic.readBoolean("enabled", true);
+		useNegativeVelocity = ic.readBoolean("useNegativeVelocity", false);
+		magnitude = ic.readFloat("magnitude", 1);
+		alignment = GravityAlignment.valueOf(ic.readString("alignment", GravityAlignment.World.name()));
 	}
 	
 	@Override
@@ -162,14 +160,17 @@ public class GravityInfluencer implements ParticleInfluencer {
 		}
 	}
 
+	@Override
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
+	@Override
 	public boolean isEnabled() {
 		return this.enabled;
 	}
 
+	@Override
 	public Class getInfluencerClass() {
 		return GravityInfluencer.class;
 	}
