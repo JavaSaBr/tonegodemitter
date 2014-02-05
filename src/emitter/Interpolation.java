@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package emitter;
 
 import com.jme3.math.FastMath;
@@ -11,21 +7,23 @@ import com.jme3.math.FastMath;
  * @author t0neg0d
  */
 public abstract class Interpolation {
-	/** @param a Alpha value between 0 and 1. */
+	/** @param a blend value between 0 and 1. */
 	abstract public float apply (float a);
 
-	/** @param a Alpha value between 0 and 1. */
+	/** @param a blend value between 0 and 1. */
 	public float apply (float start, float end, float a) {
 		return start + (end - start) * apply(a);
 	}
 
 	static public final Interpolation linear = new Interpolation() {
+		@Override
 		public float apply (float a) {
 			return a;
 		}
 	};
 
 	static public final Interpolation fade = new Interpolation() {
+		@Override
 		public float apply (float a) {
 			return FastMath.clamp(a * a * a * (a * (a * 6 - 15) + 10), 0, 1);
 		}
@@ -48,18 +46,21 @@ public abstract class Interpolation {
 	static public final PowOut pow5Out = new PowOut(5);
 
 	static public final Interpolation sine = new Interpolation() {
+		@Override
 		public float apply (float a) {
 			return (1 - FastMath.cos(a * FastMath.PI)) / 2;
 		}
 	};
 
 	static public final Interpolation sineIn = new Interpolation() {
+		@Override
 		public float apply (float a) {
 			return 1 - FastMath.cos(a * FastMath.PI / 2);
 		}
 	};
 
 	static public final Interpolation sineOut = new Interpolation() {
+		@Override
 		public float apply (float a) {
 			return FastMath.sin(a * FastMath.PI / 2);
 		}
@@ -74,6 +75,7 @@ public abstract class Interpolation {
 	static public final Interpolation exp5Out = new ExpOut(2, 5);
 
 	static public final Interpolation circle = new Interpolation() {
+		@Override
 		public float apply (float a) {
 			if (a <= 0.5f) {
 				a *= 2;
@@ -86,12 +88,14 @@ public abstract class Interpolation {
 	};
 
 	static public final Interpolation circleIn = new Interpolation() {
+		@Override
 		public float apply (float a) {
 			return 1 - (float)Math.sqrt(1 - a * a);
 		}
 	};
 
 	static public final Interpolation circleOut = new Interpolation() {
+		@Override
 		public float apply (float a) {
 			a--;
 			return (float)Math.sqrt(1 - a * a);
@@ -119,6 +123,7 @@ public abstract class Interpolation {
 			this.power = power;
 		}
 
+		@Override
 		public float apply (float a) {
 			if (a <= 0.5f) return (float)Math.pow(a * 2, power) / 2;
 			return (float)Math.pow((a - 1) * 2, power) / (power % 2 == 0 ? -2 : 2) + 1;
@@ -159,6 +164,7 @@ public abstract class Interpolation {
 			scale = 1 / (1 - min);
 		}
 
+		@Override
 		public float apply (float a) {
 			if (a <= 0.5f) return ((float)Math.pow(value, power * (a * 2 - 1)) - min) * scale / 2;
 			return (2 - ((float)Math.pow(value, -power * (a * 2 - 1)) - min) * scale) / 2;
@@ -197,6 +203,7 @@ public abstract class Interpolation {
 			this.power = power;
 		}
 
+		@Override
 		public float apply (float a) {
 			if (a <= 0.5f) {
 				a *= 2;
@@ -305,6 +312,7 @@ public abstract class Interpolation {
 			widths[0] *= 2;
 		}
 
+		@Override
 		public float apply (float a) {
 			a += widths[0] / 2;
 			float width = 0, height = 0;
@@ -344,6 +352,7 @@ public abstract class Interpolation {
 			this.scale = scale * 2;
 		}
 
+		@Override
 		public float apply (float a) {
 			if (a <= 0.5f) {
 				a *= 2;
@@ -362,6 +371,7 @@ public abstract class Interpolation {
 			this.scale = scale;
 		}
 
+		@Override
 		public float apply (float a) {
 			a--;
 			return a * a * ((scale + 1) * a + scale) + 1;
@@ -375,6 +385,7 @@ public abstract class Interpolation {
 			this.scale = scale;
 		}
 
+		@Override
 		public float apply (float a) {
 			return a * a * ((scale + 1) * a - scale);
 		}

@@ -40,6 +40,7 @@ import emitter.particle.ParticleData;
 import emitter.particle.ParticleDataMesh;
 import emitter.particle.ParticleDataPointMesh;
 import emitter.shapes.TriangleEmitterShape;
+import java.util.ArrayList;
 
 /**
  *
@@ -84,9 +85,13 @@ public class Emitter implements Control {
 		 */
 		UNIT_Z
 	}
-	
 	public static enum ForcedStretchAxis {
 		X, Y, Z
+	}
+	public static enum ParticleEmissionPoint {
+		Particle_Center,
+		Particle_Edge_Top,
+		Particle_Edge_Bottom
 	}
 	
 	private Spatial spatial;
@@ -114,13 +119,13 @@ public class Emitter implements Control {
 	private float tpfThreshold = 1f/400f;
 	private Matrix3f inverseRotation = Matrix3f.IDENTITY.clone();
 	private boolean useStaticParticles = false;
-	private boolean disableUpdate = false;
 	private boolean useRandomEmissionPoint = false;
 	private boolean useSequentialEmissionFace = false;
 	private boolean useSequentialSkipPattern = false;
 	private boolean useVelocityStretching = false;
 	private float velocityStretchFactor = 0.35f;
 	private ForcedStretchAxis stretchAxis = ForcedStretchAxis.Y;
+	private ParticleEmissionPoint particleEmissionPoint = ParticleEmissionPoint.Particle_Center;
 	
 	// Material information
 	private AssetManager assetManager;
@@ -133,9 +138,9 @@ public class Emitter implements Control {
 	private BillboardMode billboardMode = BillboardMode.Camera;
 	private boolean particlesFollowEmitter = false;
 	
-//	private EmitterShapeType shapeType = EmitterShapeType.Simple;
-	
 	private boolean enabled = false;
+	private boolean requiresUpdate = false;
+	private boolean postRequiresUpdate = false;
 	
 	private boolean TEST_EMITTER = false;
 	private boolean TEST_PARTICLES = false;
@@ -213,6 +218,7 @@ public class Emitter implements Control {
 	 */
 	public void setShapeSimpleEmitter() {
 		setShape(new TriangleEmitterShape(1));
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -228,6 +234,7 @@ public class Emitter implements Control {
 			emitterTestNode.attachChild(testGeom);
 			emitterTestNode.setMaterial(testMat);
 		}
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -245,6 +252,7 @@ public class Emitter implements Control {
 	public void setEmissionsPerSecond(int emissionsPerSecond) {
 		this.emissionsPerSecond = emissionsPerSecond;
 		targetInterval = 1f/emissionsPerSecond;
+		requiresUpdate = true;
 	}
 	
 	public int getEmissionsPerSecond() { return this.emissionsPerSecond; }
@@ -255,6 +263,7 @@ public class Emitter implements Control {
 	 */
 	public void setParticlesPerEmission(int particlesPerEmission) {
 		this.particlesPerEmission = particlesPerEmission;
+		requiresUpdate = true;
 	}
 	
 	public int getParticlesPerEmission() { return this.particlesPerEmission; }
@@ -269,6 +278,7 @@ public class Emitter implements Control {
 	 */
 	public void setUseStaticParticles(boolean useStaticParticles) {
 		this.useStaticParticles = useStaticParticles;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -281,21 +291,33 @@ public class Emitter implements Control {
 	
 	public void setUseVelocityStretching(boolean useVelocityStretching) {
 		this.useVelocityStretching = useVelocityStretching;
+		requiresUpdate = true;
 	}
 	
 	public boolean getUseVelocityStretching() { return this.useVelocityStretching; }
 	
 	public void setVelocityStretchFactor(float velocityStretchFactor) {
 		this.velocityStretchFactor = velocityStretchFactor;
+		requiresUpdate = true;
 	}
 	
 	public float getVelocityStretchFactor() { return this.velocityStretchFactor; }
 	
 	public void setForcedStretchAxis(ForcedStretchAxis axis) {
 		this.stretchAxis = axis;
+		requiresUpdate = true;
 	}
 	
 	public ForcedStretchAxis getForcedStretchAxis() { return this.stretchAxis; }
+	
+	public void setParticleEmissionPoint(ParticleEmissionPoint particleEmissionPoint) {
+		this.particleEmissionPoint = particleEmissionPoint;
+		requiresUpdate = true;
+	}
+	
+	public ParticleEmissionPoint getParticleEmissionPoint() {
+		return this.particleEmissionPoint;
+	}
 	
 	/**
 	 * Particles are effected by updates to the translation of the emitter node.  This option is set to false by default
@@ -303,6 +325,7 @@ public class Emitter implements Control {
 	 */
 	public void setParticlesFollowEmitter(boolean particlesFollowEmitter) {
 		this.particlesFollowEmitter = particlesFollowEmitter;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -313,18 +336,21 @@ public class Emitter implements Control {
 	
 	public void setUseRandomEmissionPoint(boolean useRandomEmissionPoint) {
 		this.useRandomEmissionPoint = useRandomEmissionPoint;
+		requiresUpdate = true;
 	}
 	
 	public boolean getUseRandomEmissionPoint() { return this.useRandomEmissionPoint; }
 	
 	public void setUseSequentialEmissionFace(boolean useSequentialEmissionFace) {
 		this.useSequentialEmissionFace = useSequentialEmissionFace;
+		requiresUpdate = true;
 	}
 	
 	public boolean getUseSequentialEmissionFace() { return this.useSequentialEmissionFace; }
 	
 	public void setUseSequentialSkipPattern(boolean useSequentialSkipPattern) {
 		this.useSequentialSkipPattern = useSequentialSkipPattern;
+		requiresUpdate = true;
 	}
 	
 	public boolean getUseSequentialSkipPattern() {
@@ -340,6 +366,7 @@ public class Emitter implements Control {
 	public void setLifeMinMax(float lifeMin, float lifeMax) {
 		this.lifeMin = lifeMin;
 		this.lifeMax = lifeMax;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -349,6 +376,7 @@ public class Emitter implements Control {
 	public void setLife(float life) {
 		this.lifeMin = life;
 		this.lifeMax = life;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -357,6 +385,7 @@ public class Emitter implements Control {
 	 */
 	public void setLifeMax(float lifeMax) {
 		this.lifeMax = lifeMax;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -371,6 +400,7 @@ public class Emitter implements Control {
 	 */
 	public void setLifeMin(float lifeMin) {
 		this.lifeMin = lifeMin;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -381,6 +411,7 @@ public class Emitter implements Control {
 	
 	public void setInterpolation(Interpolation interpolation) {
 		this.interpolation = interpolation;
+		requiresUpdate = true;
 	}
 	
 	public Interpolation getInterpolation() {
@@ -396,6 +427,7 @@ public class Emitter implements Control {
 	public void setForceMinMax(float forceMin, float forceMax) {
 		this.forceMin = forceMin;
 		this.forceMax = forceMax;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -405,6 +437,7 @@ public class Emitter implements Control {
 	public void setForce(float force) {
 		this.forceMin = force;
 		this.forceMax = force;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -413,6 +446,7 @@ public class Emitter implements Control {
 	 */
 	public void setForceMin(float forceMin) {
 		this.forceMin = forceMin;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -421,6 +455,7 @@ public class Emitter implements Control {
 	 */
 	public void setForceMax(float forceMax) {
 		this.forceMax = forceMax;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -466,12 +501,14 @@ public class Emitter implements Control {
 	public final void addInfluencer(ParticleInfluencer influencer) {
 	//	influencers.put(influencer.getInfluencerClass().getName(), influencer);
 		influencers.add(influencer);
+		requiresUpdate = true;
 	}
 	
 	@Deprecated
 	public final void addInfluencer(String key, ParticleInfluencer influencer) {
 	//	influencers.put(key, influencer);
 		influencers.add(influencer);
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -523,10 +560,12 @@ public class Emitter implements Control {
 				break;
 			}
 		}
+		requiresUpdate = true;
 	}
 	
 	public void removeAllInfluencers() {
 		influencers.clear();
+		requiresUpdate = true;
 	}
 	// Material
 	/**
@@ -558,6 +597,7 @@ public class Emitter implements Control {
 		spriteRows = (int)(height/spriteFrameHeight);
 		
 		mesh.setImagesXY(spriteCols,spriteRows);
+		requiresUpdate = true;
 		
 		return tex;
 	}
@@ -600,6 +640,7 @@ public class Emitter implements Control {
 		this.spriteHeight = height/numRows;
 		
 		mesh.setImagesXY(spriteCols,spriteRows);
+		requiresUpdate = true;
 		
 		return tex;
 	}
@@ -615,8 +656,10 @@ public class Emitter implements Control {
 		tex.setMagFilter(Texture.MagFilter.Bilinear);
 		mat.setTexture("Texture", tex);
 		
-		if (particleNode != null)
-			particleNode.setMaterial(mat);;
+		if (particleNode != null) {
+			particleNode.setMaterial(mat);
+			requiresUpdate = true;
+		}
 	}
 	
 	@SuppressWarnings("empty-statement")
@@ -630,8 +673,10 @@ public class Emitter implements Control {
 		tex.setMagFilter(Texture.MagFilter.Bilinear);
 		mat.setTexture("Texture", tex);
 		
-		if (particleNode != null)
-			particleNode.setMaterial(mat);;
+		if (particleNode != null) {
+			particleNode.setMaterial(mat);
+			requiresUpdate = true;
+		}
 	}
 	
 	/**
@@ -652,6 +697,7 @@ public class Emitter implements Control {
 	 */
 	public void setBillboardMode(BillboardMode billboardMode) {
 		this.billboardMode = billboardMode;
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -706,6 +752,7 @@ public class Emitter implements Control {
 			emitterTestNode.removeFromParent();
 			particleTestNode.removeFromParent();
 		}
+		requiresUpdate = true;
 		this.spatial = spatial;
 	}
 	
@@ -726,6 +773,7 @@ public class Emitter implements Control {
 			else
 				particleTestNode.removeFromParent();
 		}
+		requiresUpdate = true;
 	}
 	
 	public boolean getEmitterTestModeShape() {
@@ -755,38 +803,26 @@ public class Emitter implements Control {
 	@Override
 	public void update(float tpf) {
 		if (enabled) {
-			if (!disableUpdate) {
-			//	particleNode.setLocalTranslation(emitterNode.getLocalTranslation());
-			//	particleTestNode.setLocalTranslation(emitterNode.getLocalTranslation());
-				
-				for (ParticleData p : particles) {
-					if (p.active) p.update(tpf);
-				}
-
-				currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
-
-				if (currentInterval >= targetInterval) {
-					totalParticlesThisEmission = this.particlesPerEmission;
-					for (int i = 0; i < totalParticlesThisEmission; i++) {
-						emitNextParticle();
-					}
-					currentInterval -= targetInterval;
-				}
-				/*
-				currentInterval += (tpf <= tpfThreshold) ? tpf : tpfThreshold;
-
-				if (currentInterval >= targetInterval) {
-					totalParticlesThisEmission = calcParticlesPerEmission();
-					for (int i = 0; i < totalParticlesThisEmission; i++) {
-						emitNextParticle();
-					}
-					currentInterval -= targetInterval;
-				}
-				*/
-				((Geometry)particleNode.getChild(0)).updateModelBound();
+			for (ParticleData p : particles) {
+				if (p.active) p.update(tpf);
 			}
+
+			currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
+
+			if (currentInterval >= targetInterval) {
+				totalParticlesThisEmission = this.particlesPerEmission;
+				for (int i = 0; i < totalParticlesThisEmission; i++) {
+					emitNextParticle();
+				}
+				currentInterval -= targetInterval;
+			}
+		//	((Geometry)particleNode.getChild(0)).updateModelBound();
 		} else {
 			currentInterval = 0;
+		}
+		if (enabled || postRequiresUpdate) {
+			((Geometry)particleNode.getChild(0)).updateModelBound();
+			postRequiresUpdate = false;
 		}
 	}
 	
@@ -840,6 +876,7 @@ public class Emitter implements Control {
 			if (!p.active)
 				p.initialize();
 		}
+		requiresUpdate = true;
 	}
 	
 	public void emitNumParticles(int count) {
@@ -852,12 +889,14 @@ public class Emitter implements Control {
 			if (counter > count)
 				break;
 		}
+		requiresUpdate = true;
 	}
 	
 	public void killAllParticles() {
 		for (ParticleData p : particles) {
 			p.reset();
 		}
+		requiresUpdate = true;
 	}
 	
 	/**
@@ -869,6 +908,7 @@ public class Emitter implements Control {
 			if (particle == p)
 				p.reset();
 		}
+		requiresUpdate = true;
 	}
 	
 	public int getActiveParticleCount() {
@@ -889,11 +929,13 @@ public class Emitter implements Control {
 	 */
 	public void killParticle(int index) {
 		particles[index].reset();
+		requiresUpdate = true;
 	}
 	
 	public void reset() {
 		killAllParticles();
 		currentInterval = 0;
+		requiresUpdate = true;
 	}
 	/**
 	 * This method should not be called.  Particles call this method to help track the next available particle index
@@ -906,23 +948,29 @@ public class Emitter implements Control {
 	
 	@Override
 	public void render(RenderManager rm, ViewPort vp) {
-		Camera cam = vp.getCamera();
+		if (enabled || (!enabled && requiresUpdate)) {
+			Camera cam = vp.getCamera();
 
-		if (mesh.getClass() == ParticleDataPointMesh.class) {
-			float C = cam.getProjectionMatrix().m00;
-			C *= cam.getWidth() * 0.5f;
+			if (mesh.getClass() == ParticleDataPointMesh.class) {
+				float C = cam.getProjectionMatrix().m00;
+				C *= cam.getWidth() * 0.5f;
 
-			// send attenuation params
-			mat.setFloat("Quadratic", C);
-		}		
-		mesh.updateParticleData(particles, cam, inverseRotation);
+				// send attenuation params
+				mat.setFloat("Quadratic", C);
+			}
+			mesh.updateParticleData(particles, cam, inverseRotation);
+			if (requiresUpdate) {
+				requiresUpdate = false;
+				postRequiresUpdate = true;
+			}
+		}
 	}
 
 	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
 		oc.write(name, "name", null);
-		oc.write((ParticleInfluencer[])influencers.getArray(), "influencers", null);
+		oc.writeSavableArrayList(new ArrayList(influencers), "influencers", null);
 		oc.write(maxParticles, "maxParticles", 30);
 		oc.write(forceMin, "forceMin", .15f);
 		oc.write(forceMax, "forceMax", .5f);
@@ -949,7 +997,7 @@ public class Emitter implements Control {
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
 		name = ic.readString("name", null);
-	//	influencers = (SafeArrayList<ParticleInfluencer>)ic.readEnum("influencers", new SafeArrayList(ParticleInfluencer.class));
+		influencers = new SafeArrayList<ParticleInfluencer>(ParticleInfluencer.class, ic.readSavableArrayList("influencers", null));
 		maxParticles = ic.readInt("maxParticles", 30);
 		forceMin = ic.readFloat("forceMin", .15f);
 		forceMax = ic.readFloat("forceMax", .5f);
@@ -996,6 +1044,7 @@ public class Emitter implements Control {
 		emitterTestNode.setLocalTranslation(translation);
 		particleNode.setLocalTranslation(translation);
 		particleTestNode.setLocalTranslation(translation);
+		requiresUpdate = true;
 	}
 	
 	public void setLocalTranslation(float x, float y, float z) {
@@ -1003,31 +1052,37 @@ public class Emitter implements Control {
 		emitterTestNode.setLocalTranslation(x, y, z);
 		particleNode.setLocalTranslation(x, y, z);
 		particleTestNode.setLocalTranslation(x, y, z);
+		requiresUpdate = true;
 	}
 	
 	public void setLocalRotation(Quaternion q) {
 		emitterNode.setLocalRotation(q);
 		emitterTestNode.setLocalRotation(q);
+		requiresUpdate = true;
 	}
 	
 	public void setLocalRotation(Matrix3f m) {
 		emitterNode.setLocalRotation(m);
 		emitterTestNode.setLocalRotation(m);
+		requiresUpdate = true;
 	}
 	
 	public void setLocalScale(Vector3f scale) {
 		emitterNode.setLocalScale(scale);
 		emitterTestNode.setLocalScale(scale);
+		requiresUpdate = true;
 	}
 	
 	public void setLocalScale(float scale) {
 		emitterNode.setLocalScale(scale);
 		emitterTestNode.setLocalScale(scale);
+		requiresUpdate = true;
 	}
 	
 	public void setLocalScale(float x, float y, float z) {
 		emitterNode.setLocalScale(x, y, z);
 		emitterTestNode.setLocalScale(x, y, z);
+		requiresUpdate = true;
 	}
 	
 	public Quaternion getLocalRotation() {
