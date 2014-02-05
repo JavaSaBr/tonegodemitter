@@ -1,38 +1,6 @@
-/*
- * Copyright (c) 2009-2012 jMonkeyEngine
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * * Neither the name of 'jMonkeyEngine' nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package emitter.influencers;
 
 import com.jme3.export.Savable;
-import emitter.Interpolation;
 import emitter.particle.ParticleData;
 
 /**
@@ -40,33 +8,47 @@ import emitter.particle.ParticleData;
  * @author t0neg0d
  */
 public interface ParticleInfluencer extends Savable, Cloneable {
-	public static enum InfluencerType {
-		Gravity,
-		Impulse,
-		Color,
-		Size,
-		Rotation,
-		Sprite,
-		Billboard,
-		PreferredDirection,
-		PreferredDestination
-	}
-	
-    /**
+	/**
      * This method clones the influencer instance.
      * @return cloned instance
      */
     public ParticleInfluencer clone();
 
+	/**
+	 * Update loop for the particle influencer
+	 * @param p The particle to update
+	 * @param tpf The time since last frame
+	 */
     void update(ParticleData p, float tpf);
 	
+	/**
+	 * Called when a particle is emitted.
+	 * @param p The particle being emitted
+	 */
 	void initialize(ParticleData p);
 	
+	/**
+	 * Called once the life span of the particle has been reached.
+	 * @param p The particle that was removed
+	 */
 	void reset(ParticleData p);
 	
+	/**
+	 * Enables/disables the influencer without removing it from the chain.
+	 * It is worth noting that initialize can still be used whether or not the influencer has been disabled.
+	 * @param enabled 
+	 */
 	void setEnabled(boolean enabled);
 	
+	/**
+	 * Returns if the influencer is currently enabled
+	 * @return 
+	 */
 	boolean isEnabled();
 	
+	/**
+	 * Returns the influencer's class
+	 * @return 
+	 */
 	Class getInfluencerClass();
 }
