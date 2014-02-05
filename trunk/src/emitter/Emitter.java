@@ -20,8 +20,6 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.Control;
-import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Sphere;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.util.SafeArrayList;
@@ -114,8 +112,9 @@ public class Emitter implements Control {
 	private float targetInterval = .00015f, currentInterval = 0;
 	private int emissionsPerSecond, totalParticlesThisEmission, particlesPerEmission;
 	private float tpfThreshold = 1f/400f;
-	private Matrix3f inverseRotation;
+	private Matrix3f inverseRotation = Matrix3f.IDENTITY.clone();
 	private boolean useStaticParticles = false;
+	private boolean disableUpdate = false;
 	private boolean useRandomEmissionPoint = false;
 	private boolean useSequentialEmissionFace = false;
 	private boolean useSequentialSkipPattern = false;
@@ -186,9 +185,7 @@ public class Emitter implements Control {
 			if (template != null)
 				this.mesh.extractTemplateFromMesh(template);
 			initParticles();
-		} catch (InstantiationException ex) {
-			Logger.getLogger(Emitter.class.getName()).log(Level.SEVERE, null, ex);
-		} catch (IllegalAccessException ex) {
+		} catch (InstantiationException | IllegalAccessException ex) {
 			Logger.getLogger(Emitter.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
@@ -609,6 +606,7 @@ public class Emitter implements Control {
 	
 	public Material getMaterial() { return this.mat; }
 	
+	@SuppressWarnings("empty-statement")
 	public void setMaterial(Material mat) {
 		this.mat = mat;
 		
@@ -621,6 +619,7 @@ public class Emitter implements Control {
 			particleNode.setMaterial(mat);;
 	}
 	
+	@SuppressWarnings("empty-statement")
 	public void setMaterialUnshaded() {
 		mat = new Material(assetManager, "emitter/shaders/Particle.j3md");
 		mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
@@ -673,7 +672,7 @@ public class Emitter implements Control {
 	
 	public boolean isEnabled() { return this.enabled; }
 	
-	// Control specific methods
+	@Override
 	public void setSpatial(Spatial spatial) {
 		if (spatial != null) {
 			if (particleNode.getChildren().isEmpty()) {
@@ -753,36 +752,39 @@ public class Emitter implements Control {
 		return this.emitterNode;
 	}
 	
+	@Override
 	public void update(float tpf) {
 		if (enabled) {
-			particleNode.setLocalTranslation(emitterNode.getLocalTranslation());
-			particleTestNode.setLocalTranslation(emitterNode.getLocalTranslation());
-			
-			for (ParticleData p : particles) {
-				if (p.active) p.update(tpf);
-			}
+			if (!disableUpdate) {
+			//	particleNode.setLocalTranslation(emitterNode.getLocalTranslation());
+			//	particleTestNode.setLocalTranslation(emitterNode.getLocalTranslation());
+				
+				for (ParticleData p : particles) {
+					if (p.active) p.update(tpf);
+				}
 
-			currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
-			
-			if (currentInterval >= targetInterval) {
-				totalParticlesThisEmission = this.particlesPerEmission;
-				for (int i = 0; i < totalParticlesThisEmission; i++) {
-					emitNextParticle();
+				currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
+
+				if (currentInterval >= targetInterval) {
+					totalParticlesThisEmission = this.particlesPerEmission;
+					for (int i = 0; i < totalParticlesThisEmission; i++) {
+						emitNextParticle();
+					}
+					currentInterval -= targetInterval;
 				}
-				currentInterval -= targetInterval;
-			}
-			/*
-			currentInterval += (tpf <= tpfThreshold) ? tpf : tpfThreshold;
-			
-			if (currentInterval >= targetInterval) {
-				totalParticlesThisEmission = calcParticlesPerEmission();
-				for (int i = 0; i < totalParticlesThisEmission; i++) {
-					emitNextParticle();
+				/*
+				currentInterval += (tpf <= tpfThreshold) ? tpf : tpfThreshold;
+
+				if (currentInterval >= targetInterval) {
+					totalParticlesThisEmission = calcParticlesPerEmission();
+					for (int i = 0; i < totalParticlesThisEmission; i++) {
+						emitNextParticle();
+					}
+					currentInterval -= targetInterval;
 				}
-				currentInterval -= targetInterval;
+				*/
+				((Geometry)particleNode.getChild(0)).updateModelBound();
 			}
-			*/
-			((Geometry)particleNode.getChild(0)).updateModelBound();
 		} else {
 			currentInterval = 0;
 		}
@@ -840,6 +842,18 @@ public class Emitter implements Control {
 		}
 	}
 	
+	public void emitNumParticles(int count) {
+		int counter = 0;
+		for (ParticleData p : particles) {
+			if (!p.active && counter < count) {
+				p.initialize();
+				counter++;
+			}
+			if (counter > count)
+				break;
+		}
+	}
+	
 	public void killAllParticles() {
 		for (ParticleData p : particles) {
 			p.reset();
@@ -890,6 +904,7 @@ public class Emitter implements Control {
 			nextIndex = index;
 	}
 	
+	@Override
 	public void render(RenderManager rm, ViewPort vp) {
 		Camera cam = vp.getCamera();
 
@@ -899,13 +914,11 @@ public class Emitter implements Control {
 
 			// send attenuation params
 			mat.setFloat("Quadratic", C);
-		}
-		
-		Matrix3f inverseRotation = Matrix3f.IDENTITY;
+		}		
 		mesh.updateParticleData(particles, cam, inverseRotation);
-		
 	}
 
+	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
 		oc.write(name, "name", null);
@@ -932,6 +945,7 @@ public class Emitter implements Control {
 		oc.write(enabled, "enabled", false);
 	}
 
+	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
 		name = ic.readString("name", null);
@@ -958,6 +972,7 @@ public class Emitter implements Control {
 		enabled = ic.readBoolean("enabled", false);
 	}
 
+	@Override
 	public Control cloneForSpatial(Spatial spatial) {
 		Emitter clone = new Emitter(name, assetManager, maxParticles);
 		
@@ -979,11 +994,15 @@ public class Emitter implements Control {
 	public void setLocalTranslation(Vector3f translation) {
 		emitterNode.setLocalTranslation(translation);
 		emitterTestNode.setLocalTranslation(translation);
+		particleNode.setLocalTranslation(translation);
+		particleTestNode.setLocalTranslation(translation);
 	}
 	
 	public void setLocalTranslation(float x, float y, float z) {
 		emitterNode.setLocalTranslation(x, y, z);
 		emitterTestNode.setLocalTranslation(x, y, z);
+		particleNode.setLocalTranslation(x, y, z);
+		particleTestNode.setLocalTranslation(x, y, z);
 	}
 	
 	public void setLocalRotation(Quaternion q) {
