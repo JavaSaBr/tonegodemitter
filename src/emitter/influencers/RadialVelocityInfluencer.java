@@ -1,34 +1,3 @@
-/*
- * Copyright (c) 2009-2012 jMonkeyEngine
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * * Neither the name of 'jMonkeyEngine' nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package emitter.influencers;
 
 import com.jme3.export.InputCapsule;
@@ -74,6 +43,7 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
 	private RadialUpAlignment upAlignment = RadialUpAlignment.UNIT_Y;
 	private Quaternion q = new Quaternion();
 	
+	@Override
 	public void update(ParticleData p, float tpf) {
 		if (enabled) {
 			switch (alignment) {
@@ -130,6 +100,7 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
 		}
 	}
 	
+	@Override
 	public void initialize(ParticleData p) {
 		if (useRandomDirection) {
 			if (FastMath.rand.nextBoolean())
@@ -140,82 +111,154 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
 			p.tangentForce = tangentForce;
 	}
 
+	@Override
 	public void reset(ParticleData p) {
 		
 	}
 	
+	/**
+	 * The tangent force to apply when updating the particles trajectory
+	 * @param force 
+	 */
 	public void setTangentForce(float force) {
 		this.tangentForce = force;
 	}
 	
+	/**
+	 * Returns the defined tangent force used when calculating the particles trajectory
+	 * @return 
+	 */
 	public float getTangentForce() {
 		return this.tangentForce;
 	}
 	
+	/**
+	 * Defines the point of origin that the particle will use in calculating it's trajectory
+	 * @param alignment \
+	 */
 	public void setRadialPullAlignment(RadialPullAlignment alignment) {
 		this.alignment = alignment;
 	}
 	
+	/**
+	 * Returns the defined point of origin parameter
+	 * @return 
+	 */
 	public RadialPullAlignment getRadialPullAlignment() {
 		return this.alignment;
 	}
 	
+	/**
+	 * Alters how the particle will orbit it's radial pull alignment.  For example, Variable_Y, will use the X/Z components of the point of origin vector, 
+	 * but use the individual particles Y component when calculating the updated trajectory.
+	 * @param center 
+	 */
 	public void setRadialPullCenter(RadialPullCenter center) {
 		this.center = center;
 	}
 	
+	/**
+	 * Returns the defined varient for the point of origin vector
+	 * @return 
+	 */
 	public RadialPullCenter getRadialPullCenter() {
 		return this.center;
 	}
 	
+	/**
+	 * Defines the gravitational force pulling against the tangent force - Or, how the orbit will tighten or decay over time
+	 * @param radialPull 
+	 */
 	public void setRadialPull(float radialPull) {
 		this.radialPull = radialPull;
 	}
 	
+	/**
+	 * Returns the defined radial pull used when calculating the particles trajectory
+	 * @return 
+	 */
 	public float getRadialPull() {
 		return this.radialPull;
 	}
 	
+	/**
+	 * Defines the up vector used to calculate rotation around a center point
+	 * @return 
+	 */
 	public void setRadialUpAlignment(RadialUpAlignment upAlignment) {
 		this.upAlignment = upAlignment;
 	}
 	
+	/**
+	 * Returns the defined up vector parameter
+	 * @return 
+	 */
 	public RadialUpAlignment getRadialUpAlignment() {
 		return this.upAlignment;
 	}
 	
+	/**
+	 * Allows the influencer to randomly select the negative of the defined tangentForce to reverse the direction of rotation
+	 */
 	public void setUseRandomDirection(boolean useRandomDirection) {
 		this.useRandomDirection = useRandomDirection;
 	}
 	
+	/**
+	 * Returns if the influencer allows random reverse rotation
+	 * @return 
+	 */
 	public boolean getUseRandomDirection() { return this.useRandomDirection; }
 	
+	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
+		oc.write(enabled, "enabled", true);
+		oc.write(radialPull, "radialPull", 1.0f);
+		oc.write(tangentForce, "tangentForce", 1.0f);
+		oc.write(alignment.name(), "alignment", RadialPullAlignment.Emission_Point.name());
+		oc.write(center.name(), "center", RadialPullCenter.Absolute.name());
+		oc.write(upAlignment.name(), "upAlignment", RadialUpAlignment.UNIT_Y.name());
 	}
 
+	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
+		enabled = ic.readBoolean("enabled", true);
+		radialPull = ic.readFloat("radialPull", 1.0f);
+		tangentForce = ic.readFloat("tangentForce", 1.0f);
+		alignment = RadialPullAlignment.valueOf(ic.readString("alignment",RadialPullAlignment.Emission_Point.name()));
+		center = RadialPullCenter.valueOf(ic.readString("center",RadialPullCenter.Absolute.name()));
+		upAlignment = RadialUpAlignment.valueOf(ic.readString("upAlignment",RadialUpAlignment.UNIT_Y.name()));
 	}
 
 	@Override
 	public ParticleInfluencer clone() {
 		try {
 			RadialVelocityInfluencer clone = (RadialVelocityInfluencer) super.clone();
+			clone.setEnabled(enabled);
+			clone.setRadialPull(radialPull);
+			clone.setTangentForce(tangentForce);
+			clone.setRadialPullAlignment(alignment);
+			clone.setRadialPullCenter(center);
+			clone.setRadialUpAlignment(upAlignment);
 			return clone;
 		} catch (CloneNotSupportedException e) {
 			throw new AssertionError();
 		}
 	}
 	
+	@Override
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
+	@Override
 	public boolean isEnabled() {
 		return this.enabled;
 	}
 
+	@Override
 	public Class getInfluencerClass() {
 		return RadialVelocityInfluencer.class;
 	}
