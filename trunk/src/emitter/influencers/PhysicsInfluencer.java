@@ -53,6 +53,7 @@ public class PhysicsInfluencer implements ParticleInfluencer {
 		geom.updateModelBound();
 	}
 	
+	@Override
 	public void update(ParticleData p, float tpf) {
 		if (enabled) {
 			if (p.collision == false) {
