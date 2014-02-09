@@ -155,7 +155,6 @@ public class Emitter implements Control {
 	 */
 	public Emitter(String name, AssetManager assetManager, int maxParticles, ParticleInfluencer... influencers) {
 		this(name, assetManager, null, maxParticles, influencers);
-		initMaterials();
 	}
 	
 	public Emitter(String name, AssetManager assetManager, Material mat, int maxParticles, ParticleInfluencer... influencers) {
@@ -172,6 +171,8 @@ public class Emitter implements Control {
 		for (ParticleInfluencer pi : influencers) {
 			addInfluencer(pi);
 		}
+		
+		initMaterials();
 	}
 	
 	private void initMaterials() {
@@ -937,6 +938,11 @@ public class Emitter implements Control {
 		currentInterval = 0;
 		requiresUpdate = true;
 	}
+	
+	public void resetInterval() {
+		currentInterval = 0;
+	}
+	
 	/**
 	 * This method should not be called.  Particles call this method to help track the next available particle index
 	 * @param index The index of the particle that was just reset
