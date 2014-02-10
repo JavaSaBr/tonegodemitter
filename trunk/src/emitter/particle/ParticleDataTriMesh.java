@@ -16,7 +16,6 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import emitter.Emitter;
 import static emitter.Emitter.BillboardMode.Velocity_Z_Up;
-import static emitter.Emitter.ForcedStretchAxis.Y;
 
 /**
  *
