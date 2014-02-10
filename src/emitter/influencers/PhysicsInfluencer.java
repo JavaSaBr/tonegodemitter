@@ -131,12 +131,20 @@ public class PhysicsInfluencer implements ParticleInfluencer {
 		this.enabled = wasEnabled;
 	}
 	
+	public GeometryList getGeometries() {
+		return this.geoms;
+	}
+	
 	/**
 	 * How "bouncy" the particle is (a value between 0.0f and 1.0f).  The default value is 0.5f.
 	 * @param restitution The bounciness of the particle
 	 */
 	public void setRestitution(float restitution) {
 		this.restitution = restitution;
+	}
+	
+	public float getRestitution() {
+		return this.restitution;
 	}
 	
 	@Override
@@ -156,6 +164,10 @@ public class PhysicsInfluencer implements ParticleInfluencer {
 	 */
 	public void setCollisionReaction(CollisionReaction collisionReaction) {
 		this.collisionReaction = collisionReaction;
+	}
+	
+	public CollisionReaction getCollisionReaction() {
+		return this.collisionReaction;
 	}
 	
 	@Override
