@@ -1,34 +1,3 @@
-/*
- * Copyright (c) 2009-2012 jMonkeyEngine
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * * Neither the name of 'jMonkeyEngine' nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package emitter.particle;
 
 import com.jme3.math.FastMath;
@@ -46,6 +15,15 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import emitter.Emitter;
+import static emitter.Emitter.BillboardMode.Camera;
+import static emitter.Emitter.BillboardMode.Normal;
+import static emitter.Emitter.BillboardMode.Normal_Y_Up;
+import static emitter.Emitter.BillboardMode.UNIT_X;
+import static emitter.Emitter.BillboardMode.UNIT_Y;
+import static emitter.Emitter.BillboardMode.UNIT_Z;
+import static emitter.Emitter.BillboardMode.Velocity;
+import static emitter.Emitter.BillboardMode.Velocity_Z_Up;
+import static emitter.Emitter.BillboardMode.Velocity_Z_Up_Y_Left;
 
 /**
  *
@@ -78,6 +56,8 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
 	private Node tempN = new Node();
 	private int imgX, imgY;
 	private float startX, startY, endX, endY;
+	private Vector3f lock = new Vector3f(0,0.99f,0.01f);
+	private Vector3f tangUp = new Vector3f();
 	
     @Override
     public void initParticleData(Emitter emitter, int numParticles) {
@@ -239,6 +219,83 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
 			
 			switch (emitter.getBillboardMode()) {
 				case Velocity:
+					if (p.velocity.x != Vector3f.UNIT_Y.x &&
+						p.velocity.y != Vector3f.UNIT_Y.y &&
+						p.velocity.z != Vector3f.UNIT_Y.z)
+						up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+					else
+						up.set(p.velocity).crossLocal(lock).normalizeLocal();
+					left.set(p.velocity).crossLocal(up).normalizeLocal();
+					dir.set(p.velocity);
+					break;
+				case Velocity_Z_Up:
+					if (p.velocity.x != Vector3f.UNIT_Y.x &&
+						p.velocity.y != Vector3f.UNIT_Y.y &&
+						p.velocity.z != Vector3f.UNIT_Y.z)
+						up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+					else
+						up.set(p.velocity).crossLocal(lock).normalizeLocal();
+					left.set(p.velocity).crossLocal(up).normalizeLocal();
+					dir.set(p.velocity);
+					rotStore = tempQ.fromAngleAxis(-90*FastMath.DEG_TO_RAD, left);
+					left = rotStore.mult(left);
+					up = rotStore.mult(up);
+					break;
+				case Velocity_Z_Up_Y_Left:
+					up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+					left.set(p.velocity).crossLocal(up).normalizeLocal();
+					dir.set(p.velocity);
+					tempV3.set(left).crossLocal(up).normalizeLocal();
+					rotStore = tempQ.fromAngleAxis(90*FastMath.DEG_TO_RAD, p.velocity);
+					left = rotStore.mult(left);
+					up = rotStore.mult(up);
+					rotStore = tempQ.fromAngleAxis(-90*FastMath.DEG_TO_RAD, left);
+					up = rotStore.mult(up);
+					break;
+				case Normal:
+					emitter.getShape().setNext(p.triangleIndex);
+					tempV3.set(emitter.getShape().getNormal());
+					if (tempV3 == Vector3f.UNIT_Y)
+						tempV3.set(p.velocity);
+					
+					up.set(tempV3).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+					left.set(tempV3).crossLocal(up).normalizeLocal();
+					dir.set(tempV3);
+					break;
+				case Normal_Y_Up:
+					emitter.getShape().setNext(p.triangleIndex);
+					tempV3.set(p.velocity);
+					if (tempV3 == Vector3f.UNIT_Y)
+						tempV3.set(Vector3f.UNIT_X);
+					
+					up.set(Vector3f.UNIT_Y);
+					left.set(tempV3).crossLocal(up).normalizeLocal();
+					dir.set(tempV3);
+					break;
+				case Camera:
+					up.set(cam.getUp());
+					left.set(cam.getLeft());
+					dir.set(cam.getDirection());
+					break;
+				case UNIT_X:
+					up.set(Vector3f.UNIT_Y);
+					left.set(Vector3f.UNIT_Z);
+					dir.set(Vector3f.UNIT_X);
+					break;
+				case UNIT_Y:
+					up.set(Vector3f.UNIT_Z);
+					left.set(Vector3f.UNIT_X);
+					dir.set(Vector3f.UNIT_Y);
+					break;
+				case UNIT_Z:
+					up.set(Vector3f.UNIT_X);
+					left.set(Vector3f.UNIT_Y);
+					dir.set(Vector3f.UNIT_Z);
+					break;
+			}
+			/*
+			switch (emitter.getBillboardMode()) {
+				case Velocity:
 					up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
 					left.set(p.velocity).crossLocal(up).normalizeLocal();
 					dir.set(p.velocity);
@@ -285,6 +342,25 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
 					left.set(Vector3f.UNIT_Y);
 					dir.set(Vector3f.UNIT_Z);
 					break;
+			}
+			*/
+			p.upVec.set(up);
+			
+			if (p.emitter.getUseVelocityStretching()) {
+				up.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
+			/*	
+				switch (p.emitter.getForcedStretchAxis()) {
+					case X:
+						left.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
+						break;
+					case Y:
+						up.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
+						break;
+					case Z:
+						dir.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
+						break;
+				}
+			*/
 			}
 			
 			up.multLocal(p.size.y);
