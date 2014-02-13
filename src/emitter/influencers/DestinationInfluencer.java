@@ -5,12 +5,15 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
 import java.io.IOException;
 import java.util.ArrayList;
 import emitter.Interpolation;
 import emitter.particle.ParticleData;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -153,7 +156,11 @@ public class DestinationInfluencer implements ParticleInfluencer {
 		OutputCapsule oc = ex.getCapsule(this);
 		oc.writeSavableArrayList(new ArrayList(destinations), "destinations", null);
 		oc.writeSavableArrayList(new ArrayList(weights), "weightss", null);
-		oc.writeSavableArrayList(new ArrayList(interpolations), "interpolations", null);
+		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
+		for (Interpolation in : interpolations.getArray()) {
+			interps.put(Interpolation.getInterpolationName(in),null);
+		}
+		oc.writeStringSavableMap(interps, "interpolations", null);
 		oc.write(enabled, "enabled", true);
 		oc.write(useRandomStartDestination, "useRandomStartDestination", false);
 		oc.write(cycle, "cycle", false);
@@ -165,7 +172,10 @@ public class DestinationInfluencer implements ParticleInfluencer {
 		InputCapsule ic = im.getCapsule(this);
 		destinations = new SafeArrayList<Vector3f>(Vector3f.class, ic.readSavableArrayList("destinations", null));
 		weights = new SafeArrayList<Float>(Float.class, ic.readSavableArrayList("weights", null));
-		interpolations = new SafeArrayList<Interpolation>(Interpolation.class, ic.readSavableArrayList("interpolations", null));
+		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
+		for (String in : interps.keySet()) {
+			interpolations.add(Interpolation.getInterpolationByName(in));
+		}
 		enabled = ic.readBoolean("enabled", true);
 		useRandomStartDestination = ic.readBoolean("useRandomStartDestination", false);
 		cycle = ic.readBoolean("cycle", false);

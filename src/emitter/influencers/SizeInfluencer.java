@@ -5,11 +5,15 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
 import java.io.IOException;
 import emitter.Interpolation;
 import emitter.particle.ParticleData;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -169,15 +173,28 @@ public class SizeInfluencer implements ParticleInfluencer {
 	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
-        oc.write(startSize, "startColor", new Vector3f(1,1,1));
-        oc.write(endSize, "endColor", new Vector3f(0,0,0));
+		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
+		for (Interpolation in : interpolations.getArray()) {
+			interps.put(Interpolation.getInterpolationName(in),null);
+		}
+		oc.writeStringSavableMap(interps, "interpolations", null);
+		oc.write(useRandomSize, "useRandomSize", false);
+		oc.write(randomSizeTolerance, "randomSizeTolerance", 0.5f);
+		oc.write(fixedDuration, "fixedDuration", 0f);
+		oc.write(enabled, "enabled", true);
 	}
 
 	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
-		startSize = (Vector3f) ic.readSavable("startColor", new Vector3f(1,1,1));
-		endSize = (Vector3f) ic.readSavable("endColor", new Vector3f(0,0,0));
+		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
+		for (String in : interps.keySet()) {
+			interpolations.add(Interpolation.getInterpolationByName(in));
+		}
+		useRandomSize = ic.readBoolean("useRandomSize", false);
+		randomSizeTolerance = ic.readFloat("randomSizeTolerance", 0.5f);
+		fixedDuration = ic.readFloat("fixedDuration", 0f);
+		enabled = ic.readBoolean("enabled", true);
 	}
 
 	@Override
@@ -185,6 +202,11 @@ public class SizeInfluencer implements ParticleInfluencer {
 		try {
 			SizeInfluencer clone = (SizeInfluencer) super.clone();
 			clone.sizes.addAll(sizes);
+			clone.interpolations.addAll(interpolations);
+			clone.setFixedDuration(fixedDuration);
+			clone.setRandomSizeTolerance(randomSizeTolerance);
+			clone.setUseRandomSize(useRandomSize);
+			clone.setEnabled(enabled);
 			return clone;
 		} catch (CloneNotSupportedException e) {
 			throw new AssertionError();

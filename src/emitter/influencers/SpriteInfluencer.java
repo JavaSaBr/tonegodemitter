@@ -1,7 +1,9 @@
 package emitter.influencers;
 
+import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
+import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
 import java.io.IOException;
 import emitter.particle.ParticleData;
@@ -157,18 +159,38 @@ public class SpriteInfluencer implements ParticleInfluencer {
 	
 	@Override
 	public void write(JmeExporter ex) throws IOException {
-		
+		/*
+		private boolean enabled = true;
+		private boolean useRandomImage = false;
+		private boolean animate = true;
+		private float fixedDuration = 0f;
+		private int[] frameSequence = null;
+		 */
+		OutputCapsule oc = ex.getCapsule(this);
+		oc.write(useRandomImage, "useRandomImage", false);
+		oc.write(animate, "animate", true);
+		oc.write(fixedDuration, "fixedDuration", 0f);
+		oc.write(enabled, "enabled", true);
 	}
 
 	@Override
 	public void read(JmeImporter im) throws IOException {
-		
+		InputCapsule ic = im.getCapsule(this);
+		useRandomImage = ic.readBoolean("useRandomImage", false);
+		animate = ic.readBoolean("animate", true);
+		fixedDuration = ic.readFloat("fixedDuration", 0f);
+		enabled = ic.readBoolean("enabled", true);
 	}
 	
 	@Override
 	public ParticleInfluencer clone() {
 		try {
 			SpriteInfluencer clone = (SpriteInfluencer) super.clone();
+			clone.setAnimate(animate);
+			clone.setFixedDuration(fixedDuration);
+			clone.setUseRandomStartImage(useRandomImage);
+			clone.setFrameSequence(frameSequence);
+			clone.setEnabled(enabled);
 			return clone;
 		} catch (CloneNotSupportedException e) {
 			throw new AssertionError();
