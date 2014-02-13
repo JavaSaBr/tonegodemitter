@@ -39,6 +39,7 @@ import emitter.influencers.RadialVelocityInfluencer;
 import emitter.particle.ParticleData;
 import emitter.particle.ParticleDataMesh;
 import emitter.particle.ParticleDataPointMesh;
+import emitter.particle.ParticleDataTemplateMesh;
 import emitter.shapes.TriangleEmitterShape;
 import java.util.ArrayList;
 
@@ -46,7 +47,7 @@ import java.util.ArrayList;
  *
  * @author t0neg0d
  */
-public class Emitter implements Control {
+public class Emitter implements Control, Cloneable {
 	public static enum BillboardMode {
 		/**
 		 * Facing direction follows the velocity as it changes
@@ -98,6 +99,7 @@ public class Emitter implements Control {
 	private String name;
 	EmitterMesh emitterShape = new EmitterMesh();
 	ParticleDataMesh mesh;
+	Mesh template = null;
 	ParticleData[] particles;
 //	Map<String,ParticleInfluencer> influencers = new HashMap();
 	SafeArrayList<ParticleInfluencer> influencers = new SafeArrayList(ParticleInfluencer.class);
@@ -165,14 +167,14 @@ public class Emitter implements Control {
 		particleTestNode = new Node(this.name + ":Test");
 		this.assetManager = assetManager;
 		this.maxParticles = maxParticles;
-		
-		this.mat = mat;
 	
 		for (ParticleInfluencer pi : influencers) {
 			addInfluencer(pi);
 		}
 		
 		initMaterials();
+		if (mat != null)
+			this.mat = mat;
 	}
 	
 	private void initMaterials() {
@@ -188,8 +190,10 @@ public class Emitter implements Control {
 	public <T extends ParticleDataMesh> void initParticles(Class<T> t, Mesh template) {
 		try {
 			this.mesh = t.newInstance();
-			if (template != null)
+			if (template != null) {
 				this.mesh.extractTemplateFromMesh(template);
+				this.template = template;
+			}
 			initParticles();
 		} catch (InstantiationException | IllegalAccessException ex) {
 			Logger.getLogger(Emitter.class.getName()).log(Level.SEVERE, null, ex);
@@ -996,6 +1000,7 @@ public class Emitter implements Control {
 		oc.write(spriteRows, "spriteRows", 1);
 		oc.write(billboardMode, "billboardMode", BillboardMode.Camera);
 		oc.write(particlesFollowEmitter, "particlesFollowEmitter", false);
+		
 		oc.write(enabled, "enabled", false);
 	}
 
@@ -1031,17 +1036,66 @@ public class Emitter implements Control {
 		Emitter clone = new Emitter(name, assetManager, maxParticles);
 		
 		clone.setShape(emitterShape.getMesh());
+		clone.setInterpolation(getInterpolation());
 		clone.setForceMinMax(forceMin, forceMax);
 		clone.setLifeMinMax(lifeMin, lifeMax);
 		clone.setEmissionsPerSecond(emissionsPerSecond);
 		clone.setParticlesPerEmission(particlesPerEmission);
+		clone.setUseRandomEmissionPoint(useRandomEmissionPoint);
+		clone.setUseSequentialEmissionFace(useSequentialEmissionFace);
+		clone.setUseSequentialSkipPattern(useSequentialSkipPattern);
 		clone.setParticlesFollowEmitter(particlesFollowEmitter);
 		clone.setUseStaticParticles(useStaticParticles);
-		clone.setSpriteBySize(texturePath, spriteWidth, spriteHeight);
+		clone.setUseVelocityStretching(useVelocityStretching);
+		clone.setVelocityStretchFactor(velocityStretchFactor);
+		clone.setForcedStretchAxis(stretchAxis);
+		clone.setParticleEmissionPoint(particleEmissionPoint);
 		clone.setBillboardMode(billboardMode);
+		clone.setEmitterTestMode(TEST_EMITTER, TEST_PARTICLES);
+		
+		for (ParticleInfluencer inf : influencers) {
+			clone.addInfluencer(inf.clone());
+		}
+		
+		clone.initParticles(mesh.getClass(), template);
+		clone.setSprite(texturePath, spriteCols, spriteRows);
+		
 		clone.setEnabled(enabled);
-		clone.influencers.addAll(influencers);
+		
 		clone.setSpatial(spatial);
+		return clone;
+	}
+	
+	@Override
+	public Emitter clone() {
+		Emitter clone = new Emitter(name, assetManager, maxParticles);
+		
+		clone.setShape(emitterShape.getMesh());
+		clone.setInterpolation(getInterpolation());
+		clone.setForceMinMax(forceMin, forceMax);
+		clone.setLifeMinMax(lifeMin, lifeMax);
+		clone.setEmissionsPerSecond(emissionsPerSecond);
+		clone.setParticlesPerEmission(particlesPerEmission);
+		clone.setUseRandomEmissionPoint(useRandomEmissionPoint);
+		clone.setUseSequentialEmissionFace(useSequentialEmissionFace);
+		clone.setUseSequentialSkipPattern(useSequentialSkipPattern);
+		clone.setParticlesFollowEmitter(particlesFollowEmitter);
+		clone.setUseStaticParticles(useStaticParticles);
+		clone.setUseVelocityStretching(useVelocityStretching);
+		clone.setVelocityStretchFactor(velocityStretchFactor);
+		clone.setForcedStretchAxis(stretchAxis);
+		clone.setParticleEmissionPoint(particleEmissionPoint);
+		clone.setBillboardMode(billboardMode);
+		clone.setEmitterTestMode(TEST_EMITTER, TEST_PARTICLES);
+		
+		for (ParticleInfluencer inf : influencers) {
+			clone.addInfluencer(inf.clone());
+		}
+		
+		clone.initParticles(mesh.getClass(), template);
+		clone.setSprite(texturePath, spriteCols, spriteRows);
+		
+		clone.setEnabled(enabled);
 		return clone;
 	}
 	
