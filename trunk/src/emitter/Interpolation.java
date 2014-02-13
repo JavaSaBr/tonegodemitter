@@ -390,4 +390,82 @@ public abstract class Interpolation {
 			return a * a * ((scale + 1) * a - scale);
 		}
 	}
+	public static String getInterpolationName(Interpolation interp) {
+		String ret = "";
+		if (interp == Interpolation.bounce) ret = "bounce";
+		else if (interp == Interpolation.bounceIn) ret = "bounceIn";
+		else if (interp == Interpolation.bounceOut) ret = "bounceOut";
+		else if (interp == Interpolation.circle) ret = "circle";
+		else if (interp == Interpolation.circleIn) ret = "circleIn";
+		else if (interp == Interpolation.circleOut) ret = "circleOut";
+		else if (interp == Interpolation.elastic) ret = "elastic";
+		else if (interp == Interpolation.elasticIn) ret = "elasticIn";
+		else if (interp == Interpolation.elasticOut) ret = "elasticOut";
+		else if (interp == Interpolation.exp10) ret = "exp10";
+		else if (interp == Interpolation.exp10In) ret = "exp10In";
+		else if (interp == Interpolation.exp10Out) ret = "exp10Out";
+		else if (interp == Interpolation.exp5) ret = "exp5";
+		else if (interp == Interpolation.exp5In) ret = "exp5In";
+		else if (interp == Interpolation.exp5Out) ret = "exp5Out";
+		else if (interp == Interpolation.fade) ret = "fade";
+		else if (interp == Interpolation.linear) ret = "linear";
+		else if (interp == Interpolation.pow2) ret = "pow2";
+		else if (interp == Interpolation.pow2In) ret = "pow2In";
+		else if (interp == Interpolation.pow2Out) ret = "pow2Out";
+		else if (interp == Interpolation.pow3) ret = "pow3";
+		else if (interp == Interpolation.pow3In) ret = "pow3In";
+		else if (interp == Interpolation.pow3Out) ret = "pow3Out";
+		else if (interp == Interpolation.pow4) ret = "pow4";
+		else if (interp == Interpolation.pow4In) ret = "pow4In";
+		else if (interp == Interpolation.pow4Out) ret = "pow4Out";
+		else if (interp == Interpolation.pow5) ret = "pow5";
+		else if (interp == Interpolation.pow5In) ret = "pow5In";
+		else if (interp == Interpolation.pow5Out) ret = "pow5Out";
+		else if (interp == Interpolation.sine) ret = "sine";
+		else if (interp == Interpolation.sineIn) ret = "sineIn";
+		else if (interp == Interpolation.sineOut) ret = "sineOut";
+		else if (interp == Interpolation.swing) ret = "swing";
+		else if (interp == Interpolation.swingIn) ret = "swingIn";
+		else if (interp == Interpolation.swingOut) ret = "swingOut";
+		return ret;
+	}
+	public static Interpolation getInterpolationByName(String name) {
+		Interpolation ret = null;
+		if (name.equals("bounce")) ret = Interpolation.bounce;
+		else if (name.equals("bounceIn")) ret = Interpolation.bounceIn;
+		else if (name.equals("bounceOut")) ret = Interpolation.bounceOut;
+		else if (name.equals("circle")) ret = Interpolation.circle;
+		else if (name.equals("circleIn")) ret = Interpolation.circleIn;
+		else if (name.equals("circleOut")) ret = Interpolation.circleOut;
+		else if (name.equals("elastic")) ret = Interpolation.elastic;
+		else if (name.equals("elasticIn")) ret = Interpolation.elasticIn;
+		else if (name.equals("elasticOut")) ret = Interpolation.elasticOut;
+		else if (name.equals("exp10")) ret = Interpolation.exp10;
+		else if (name.equals("exp10In")) ret = Interpolation.exp10In;
+		else if (name.equals("exp10Out")) ret = Interpolation.exp10Out;
+		else if (name.equals("exp5")) ret = Interpolation.exp5;
+		else if (name.equals("exp5In")) ret = Interpolation.exp5In;
+		else if (name.equals("exp5Out")) ret = Interpolation.exp5Out;
+		else if (name.equals("fade")) ret = Interpolation.fade;
+		else if (name.equals("linear")) ret = Interpolation.linear;
+		else if (name.equals("pow2")) ret = Interpolation.pow2;
+		else if (name.equals("pow2In")) ret = Interpolation.pow2In;
+		else if (name.equals("pow2Out")) ret = Interpolation.pow2Out;
+		else if (name.equals("pow3")) ret = Interpolation.pow3;
+		else if (name.equals("pow3In")) ret = Interpolation.pow3In;
+		else if (name.equals("pow3Out")) ret = Interpolation.pow3Out;
+		else if (name.equals("pow4")) ret = Interpolation.pow4;
+		else if (name.equals("pow4In")) ret = Interpolation.pow4In;
+		else if (name.equals("pow4Out")) ret = Interpolation.pow4Out;
+		else if (name.equals("pow5")) ret = Interpolation.pow5;
+		else if (name.equals("pow5In")) ret = Interpolation.pow5In;
+		else if (name.equals("pow5Out")) ret = Interpolation.pow5Out;
+		else if (name.equals("sine")) ret = Interpolation.sine;
+		else if (name.equals("sineIn")) ret = Interpolation.sineIn;
+		else if (name.equals("sineOut")) ret = Interpolation.sineOut;
+		else if (name.equals("swing")) ret = Interpolation.swing;
+		else if (name.equals("swingIn")) ret = Interpolation.swingIn;
+		else if (name.equals("swingOut")) ret = Interpolation.swingOut;
+		return ret;
+	}
 }

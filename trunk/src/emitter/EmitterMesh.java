@@ -1,17 +1,21 @@
 package emitter;
 
+import com.jme3.export.JmeExporter;
+import com.jme3.export.JmeImporter;
+import com.jme3.export.Savable;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Triangle;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
+import java.io.IOException;
 
 /**
  *
  * @author t0neg0d
  */
-public class EmitterMesh {
+public class EmitterMesh implements Savable {
 	public static enum DirectionType {
 		Normal,
 		NormalNegate,
@@ -214,5 +218,15 @@ public class EmitterMesh {
 		q.fromAngleAxis(FastMath.nextRandomFloat()*360*FastMath.DEG_TO_RAD, getNormal());
 		tempDir.set(q.mult(tempDir));
 		return tempDir;
+	}
+	
+	@Override
+	public void write(JmeExporter ex) throws IOException {
+		
+	}
+
+	@Override
+	public void read(JmeImporter im) throws IOException {
+		
 	}
 }
