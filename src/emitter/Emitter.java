@@ -1,5 +1,7 @@
 package emitter;
 
+import com.jme3.app.Application;
+import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
@@ -40,9 +42,10 @@ import emitter.influencers.RadialVelocityInfluencer;
 import emitter.particle.ParticleData;
 import emitter.particle.ParticleDataMesh;
 import emitter.particle.ParticleDataPointMesh;
-import emitter.particle.ParticleDataTemplateMesh;
+import emitter.particle.ParticleDataTriMesh;
 import emitter.shapes.TriangleEmitterShape;
 import java.util.ArrayList;
+import java.util.UUID;
 
 /**
  *
@@ -99,7 +102,8 @@ public class Emitter implements Control, Cloneable {
 	private Spatial spatial;
 	private String name;
 	EmitterMesh emitterShape = new EmitterMesh();
-	ParticleDataMesh mesh;
+	Class particleType = ParticleDataTriMesh.class;
+	ParticleDataMesh mesh = null;
 	Mesh template = null;
 	ParticleData[] particles;
 //	Map<String,ParticleInfluencer> influencers = new HashMap();
@@ -133,10 +137,11 @@ public class Emitter implements Control, Cloneable {
 	
 	// Material information
 	private AssetManager assetManager;
-	private Material mat, testMat;
+	private Material mat, testMat, userDefinedMat = null;
+	private String uniformName = "Texture";
 	private Texture tex;
 	private String texturePath;
-	private float spriteWidth, spriteHeight;
+	private float spriteWidth = -1, spriteHeight = -1;
 	private int spriteCols = 1, spriteRows = 1;
 	
 	private BillboardMode billboardMode = BillboardMode.Camera;
@@ -149,6 +154,53 @@ public class Emitter implements Control, Cloneable {
 	private boolean TEST_EMITTER = false;
 	private boolean TEST_PARTICLES = false;
 	
+	private boolean emitterInitialized = false;
+	
+	public Emitter() {
+		emitterNode = new Node();
+		emitterTestNode = new Node();
+		particleNode = new Node();
+		particleTestNode = new Node();
+	}
+	
+	public <T extends ParticleDataMesh> void setParticleType(Class<T> t) {
+		this.particleType = t;
+	}
+	
+	public <T extends ParticleDataMesh> void setParticleType(Class<T> t, Mesh template) {
+		this.particleType = t;
+		this.template = template;
+	}
+	
+	public ParticleDataMesh getParticleType() {
+		return this.mesh;
+	}
+	
+	public Mesh getParticleMeshTemplate() {
+		return this.template;
+	}
+	
+	public void setMaxParticles(int maxParticles) {
+		this.maxParticles = maxParticles;
+		if (emitterInitialized) {
+			// rebuild emitter
+		}
+	}
+	
+	public void addInfluencers(ParticleInfluencer... influencers) {
+		for (ParticleInfluencer pi : influencers) {
+			addInfluencer(pi);
+		}
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	private String generateName() {
+		return UUID.randomUUID().toString();
+	}
+	
 	/**
 	 * Creates a new instance of the Emitter class
 	 * @param name The name of the emitter (used as the output Node name containing the ParticleDataMesh)
@@ -157,16 +209,17 @@ public class Emitter implements Control, Cloneable {
 	 * @param maxParticles The maximum number of particles handled by the emitter
 	 * @param influencers The list of ParticleInfluencer's to add to the emitter control
 	 */
+	/*
 	public Emitter(String name, AssetManager assetManager, int maxParticles, ParticleInfluencer... influencers) {
 		this(name, assetManager, null, maxParticles, influencers);
 	}
 	
 	public Emitter(String name, AssetManager assetManager, Material mat, int maxParticles, ParticleInfluencer... influencers) {
 		this.name = name;
-		emitterNode = new Node(this.name + ":Emitter");
-		emitterTestNode = new Node(this.name + ":EmitterTest");
-		particleNode = new Node(this.name);
-		particleTestNode = new Node(this.name + ":Test");
+		this.emitterNode = new Node(this.name + ":Emitter");
+		this.emitterTestNode = new Node(this.name + ":EmitterTest");
+		this.particleNode = new Node(this.name);
+		this.particleTestNode = new Node(this.name + ":Test");
 		this.assetManager = assetManager;
 		this.maxParticles = maxParticles;
 	
@@ -178,6 +231,7 @@ public class Emitter implements Control, Cloneable {
 		if (mat != null)
 			this.mat = mat;
 	}
+	*/
 	
 	private void initMaterials() {
 		mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
@@ -189,7 +243,7 @@ public class Emitter implements Control, Cloneable {
 		testMat.getAdditionalRenderState().setWireframe(true);
 	}
 	
-	public <T extends ParticleDataMesh> void initParticles(Class<T> t, Mesh template) {
+	private <T extends ParticleDataMesh> void initParticles(Class<T> t, Mesh template) {
 		try {
 			this.mesh = t.newInstance();
 			if (template != null) {
@@ -517,19 +571,12 @@ public class Emitter implements Control, Cloneable {
 		requiresUpdate = true;
 	}
 	
-	@Deprecated
-	public final void addInfluencer(String key, ParticleInfluencer influencer) {
-	//	influencers.put(key, influencer);
-		influencers.add(influencer);
-		requiresUpdate = true;
-	}
-	
 	/**
 	 * Returns the current chain of particle influencers
 	 * @return The Collection of particle influencers
 	 */
 	public ParticleInfluencer[] getInfluencers() {
-		return (ParticleInfluencer[])this.influencers.toArray();
+		return (ParticleInfluencer[])this.influencers.getArray();
 	}
 	
 	/**
@@ -588,31 +635,32 @@ public class Emitter implements Control, Cloneable {
 	 * @param spriteFrameHeight The height in pixels of a single sprite frame
 	 * @return Texture
 	 */
-	public Texture setSpriteBySize(String texturePath, float spriteFrameWidth, float spriteFrameHeight) {
-		return setSpriteBySize(texturePath, "Texture", spriteFrameWidth, spriteFrameHeight);
+	public void setSpriteBySize(String texturePath, float spriteFrameWidth, float spriteFrameHeight) {
+		setSpriteBySize(texturePath, "Texture", spriteFrameWidth, spriteFrameHeight);
 	}
 	
-	public Texture setSpriteBySize(String texturePath, String uniformName, float spriteFrameWidth, float spriteFrameHeight) {
+	public void setSpriteBySize(String texturePath, String uniformName, float spriteFrameWidth, float spriteFrameHeight) {
 		this.texturePath = texturePath;
 		this.spriteWidth = spriteFrameWidth;
 		this.spriteHeight = spriteFrameHeight;
+		this.uniformName = uniformName;
 		
-		tex = assetManager.loadTexture(texturePath);
-		tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-		tex.setMagFilter(Texture.MagFilter.Bilinear);
-		mat.setTexture(uniformName, tex);
-		
-		Image img = tex.getImage();
-		int width = img.getWidth();
-		int height = img.getHeight();
-		
-		spriteCols = (int)(width/spriteFrameWidth);
-		spriteRows = (int)(height/spriteFrameHeight);
-		
-		mesh.setImagesXY(spriteCols,spriteRows);
-		requiresUpdate = true;
-		
-		return tex;
+		if (emitterInitialized) {
+			tex = assetManager.loadTexture(texturePath);
+			tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+			tex.setMagFilter(Texture.MagFilter.Bilinear);
+			mat.setTexture(uniformName, tex);
+
+			Image img = tex.getImage();
+			int width = img.getWidth();
+			int height = img.getHeight();
+
+			spriteCols = (int)(width/spriteFrameWidth);
+			spriteRows = (int)(height/spriteFrameHeight);
+			
+			mesh.setImagesXY(spriteCols,spriteRows);
+			requiresUpdate = true;
+		}
 	}
 	
 	public void setSprite(String texturePath) {
@@ -623,51 +671,54 @@ public class Emitter implements Control, Cloneable {
 		setSpriteByCount(texturePath, "Texture", numCols, numRows);
 	}
 	
-	public void setSprite(String texturePath, String uniform) {
-		setSpriteByCount(texturePath, uniform, 1, 1);
+	public void setSprite(String texturePath, String uniformName) {
+		setSpriteByCount(texturePath, uniformName, 1, 1);
 	}
 	
-	public void setSprite(String texturePath, String uniform, int numCols, int numRows) {
-		setSpriteByCount(texturePath, uniform, numCols, numRows);
+	public void setSprite(String texturePath, String uniformName, int numCols, int numRows) {
+		setSpriteByCount(texturePath, uniformName, numCols, numRows);
 	}
 	
-	public Texture setSpriteByCount(String texturePath, int numCols, int numRows) {
-		return setSpriteByCount(texturePath, "Texture", numCols, numRows);
+	public void setSpriteByCount(String texturePath, int numCols, int numRows) {
+		setSpriteByCount(texturePath, "Texture", numCols, numRows);
 	}
 	
-	public Texture setSpriteByCount(String texturePath, String uniformName, int numCols, int numRows) {
+	public void setSpriteByCount(String texturePath, String uniformName, int numCols, int numRows) {
 		this.texturePath = texturePath;
 		this.spriteCols = numCols;
 		this.spriteRows = numRows;
+		this.uniformName = uniformName;
 		
-		tex = assetManager.loadTexture(texturePath);
-		tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-		tex.setMagFilter(Texture.MagFilter.Bilinear);
-		mat.setTexture(uniformName, tex);
-		
-		Image img = tex.getImage();
-		int width = img.getWidth();
-		int height = img.getHeight();
-		
-		this.spriteWidth = width/numCols;
-		this.spriteHeight = height/numRows;
-		
-		mesh.setImagesXY(spriteCols,spriteRows);
-		requiresUpdate = true;
-		
-		return tex;
+		if (emitterInitialized) {
+			tex = assetManager.loadTexture(texturePath);
+			tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+			tex.setMagFilter(Texture.MagFilter.Bilinear);
+			mat.setTexture(uniformName, tex);
+
+			Image img = tex.getImage();
+			int width = img.getWidth();
+			int height = img.getHeight();
+
+			spriteWidth = (int)(width/spriteCols);
+			spriteHeight = (int)(height/spriteRows);
+			
+			mesh.setImagesXY(spriteCols,spriteRows);
+			requiresUpdate = true;
+		}
 	}
 	
 	public Material getMaterial() { return this.mat; }
 	
 	@SuppressWarnings("empty-statement")
 	public void setMaterial(Material mat) {
-		this.mat = mat;
+		this.userDefinedMat = mat;
 		
-		tex = assetManager.loadTexture(texturePath);
-		tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-		tex.setMagFilter(Texture.MagFilter.Bilinear);
-		mat.setTexture("Texture", tex);
+		if (emitterInitialized) {
+			tex = assetManager.loadTexture(texturePath);
+			tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+			tex.setMagFilter(Texture.MagFilter.Bilinear);
+			mat.setTexture(uniformName, tex);
+		}
 		
 		if (particleNode != null) {
 			particleNode.setMaterial(mat);
@@ -731,9 +782,44 @@ public class Emitter implements Control, Cloneable {
 	
 	public boolean isEnabled() { return this.enabled; }
 	
-	@Override
-	public void setSpatial(Spatial spatial) {
-		if (spatial != null) {
+	public void initialize(AssetManager assetManager) {
+		if (!emitterInitialized) {
+			this.assetManager = assetManager;
+			initMaterials();
+			if (userDefinedMat != null) {
+				mat = userDefinedMat;
+			}
+			if (this.name == null)
+				name = this.generateName();
+			emitterNode.setName(this.name + ":Emitter");
+			emitterTestNode.setName(this.name + ":EmitterTest");
+			particleNode.setName(this.name);
+			particleTestNode.setName(this.name + ":Test");
+			
+			initParticles(particleType,mesh);
+			mesh.setImagesXY(spriteCols,spriteRows);
+			
+			tex = assetManager.loadTexture(texturePath);
+			tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+			tex.setMagFilter(Texture.MagFilter.Bilinear);
+			mat.setTexture(uniformName, tex);
+
+			Image img = tex.getImage();
+			int width = img.getWidth();
+			int height = img.getHeight();
+			
+		//	if (spriteWidth != -1 && spriteHeight != -1) {
+		//		spriteCols = (int)(width/spriteWidth);
+		//		spriteRows = (int)(height/spriteHeight);
+		//	} else {
+				spriteWidth = width/spriteCols;
+				spriteHeight = height/spriteRows;
+		//	}
+
+			if (emitterInitialized) {
+				mesh.setImagesXY(spriteCols,spriteRows);
+				requiresUpdate = true;
+			}
 			if (particleNode.getChildren().isEmpty()) {
 				Geometry geom = new Geometry();
 				geom.setMesh(mesh);
@@ -741,23 +827,30 @@ public class Emitter implements Control, Cloneable {
 				particleNode.setMaterial(mat);
 				particleNode.setQueueBucket(RenderQueue.Bucket.Transparent);
 			}
-			((Node)spatial).attachChild(particleNode);
-
+			
 			if (emitterTestNode.getChildren().isEmpty()) {
 				Geometry testGeom = new Geometry();
 				testGeom.setMesh(emitterShape.getMesh());
 				emitterTestNode.attachChild(testGeom);
 				emitterTestNode.setMaterial(testMat);
 			}
-			if (TEST_EMITTER)
-				((Node)spatial).attachChild(emitterTestNode);
-			
 			if (particleTestNode.getChildren().isEmpty()) {
 				Geometry testPGeom = new Geometry();
 				testPGeom.setMesh(mesh);
 				particleTestNode.attachChild(testPGeom);
 				particleTestNode.setMaterial(testMat);
 			}
+			
+			emitterInitialized = true;
+		}
+	}
+	
+	@Override
+	public void setSpatial(Spatial spatial) {
+		if (spatial != null) {
+			((Node)spatial).attachChild(particleNode);
+			if (TEST_EMITTER)
+				((Node)spatial).attachChild(emitterTestNode);
 			if (TEST_PARTICLES)
 				((Node)spatial).attachChild(particleTestNode);
 		} else {
@@ -815,7 +908,7 @@ public class Emitter implements Control, Cloneable {
 	
 	@Override
 	public void update(float tpf) {
-		if (enabled) {
+		if (enabled && emitterInitialized) {
 			for (ParticleData p : particles) {
 				if (p.active) p.update(tpf);
 			}
@@ -833,7 +926,7 @@ public class Emitter implements Control, Cloneable {
 		} else {
 			currentInterval = 0;
 		}
-		if (enabled || postRequiresUpdate) {
+		if (emitterInitialized && (enabled || postRequiresUpdate)) {
 			((Geometry)particleNode.getChild(0)).updateModelBound();
 			postRequiresUpdate = false;
 		}
@@ -966,7 +1059,7 @@ public class Emitter implements Control, Cloneable {
 	
 	@Override
 	public void render(RenderManager rm, ViewPort vp) {
-		if (enabled || (!enabled && requiresUpdate)) {
+		if (emitterInitialized && (enabled || (!enabled && requiresUpdate))) {
 			Camera cam = vp.getCamera();
 
 			if (mesh.getClass() == ParticleDataPointMesh.class) {
@@ -1041,9 +1134,10 @@ public class Emitter implements Control, Cloneable {
 
 	@Override
 	public Control cloneForSpatial(Spatial spatial) {
-		Emitter clone = new Emitter(name, assetManager, maxParticles);
-		
+		Emitter clone = new Emitter();
+		clone.setMaxParticles(maxParticles);
 		clone.setShape(emitterShape.getMesh());
+		clone.setParticleType(particleType, template);
 		clone.setInterpolation(getInterpolation());
 		clone.setForceMinMax(forceMin, forceMax);
 		clone.setLifeMinMax(lifeMin, lifeMax);
@@ -1065,9 +1159,9 @@ public class Emitter implements Control, Cloneable {
 			clone.addInfluencer(inf.clone());
 		}
 		
-		clone.initParticles(mesh.getClass(), template);
+	//	clone.initParticles(mesh.getClass(), template);
 		clone.setSprite(texturePath, spriteCols, spriteRows);
-		
+		clone.initialize(assetManager);
 		clone.setEnabled(enabled);
 		
 		clone.setSpatial(spatial);
@@ -1076,9 +1170,10 @@ public class Emitter implements Control, Cloneable {
 	
 	@Override
 	public Emitter clone() {
-		Emitter clone = new Emitter(name, assetManager, maxParticles);
-		
+		Emitter clone = new Emitter();
+		clone.setMaxParticles(maxParticles);
 		clone.setShape(emitterShape.getMesh());
+		clone.setParticleType(particleType, template);
 		clone.setInterpolation(getInterpolation());
 		clone.setForceMinMax(forceMin, forceMax);
 		clone.setLifeMinMax(lifeMin, lifeMax);
@@ -1100,9 +1195,9 @@ public class Emitter implements Control, Cloneable {
 			clone.addInfluencer(inf.clone());
 		}
 		
-		clone.initParticles(mesh.getClass(), template);
+	//	clone.initParticles(mesh.getClass(), template);
 		clone.setSprite(texturePath, spriteCols, spriteRows);
-		
+		clone.initialize(assetManager);
 		clone.setEnabled(enabled);
 		return clone;
 	}
@@ -1164,4 +1259,5 @@ public class Emitter implements Control, Cloneable {
 	public Vector3f getLocalScale() {
 		return emitterNode.getLocalScale();
 	}
+	
 }
