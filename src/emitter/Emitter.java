@@ -23,6 +23,7 @@ import com.jme3.scene.control.Control;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.util.SafeArrayList;
+import emitter.EmitterMesh.DirectionType;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -128,6 +129,7 @@ public class Emitter implements Control, Cloneable {
 	private float velocityStretchFactor = 0.35f;
 	private ForcedStretchAxis stretchAxis = ForcedStretchAxis.Y;
 	private ParticleEmissionPoint particleEmissionPoint = ParticleEmissionPoint.Particle_Center;
+	private DirectionType directionType = DirectionType.Random;
 	
 	// Material information
 	private AssetManager assetManager;
@@ -272,6 +274,12 @@ public class Emitter implements Control, Cloneable {
 	}
 	
 	public int getParticlesPerEmission() { return this.particlesPerEmission; }
+	
+	public void setDirectionType(DirectionType directionType) {
+		this.directionType = directionType;
+	}
+	
+	public DirectionType getDirectionType() { return this.directionType; }
 	
 	public void setTargetFPS(float fps) {
 		tpfThreshold = 1f/fps;

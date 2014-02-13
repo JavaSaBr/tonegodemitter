@@ -1,21 +1,17 @@
 package emitter;
 
-import com.jme3.export.JmeExporter;
-import com.jme3.export.JmeImporter;
-import com.jme3.export.Savable;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Triangle;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
-import java.io.IOException;
 
 /**
  *
  * @author t0neg0d
  */
-public class EmitterMesh implements Savable {
+public class EmitterMesh {
 	public static enum DirectionType {
 		Normal,
 		NormalNegate,
@@ -44,7 +40,7 @@ public class EmitterMesh implements Savable {
 	Vector3f up = new Vector3f();
 	Vector3f left = new Vector3f();
 	
-	DirectionType directionType = DirectionType.Normal;
+//	DirectionType directionType = DirectionType.Normal;
 	
 	/**
 	 * Sets the mesh to use as the emitter shape
@@ -68,13 +64,13 @@ public class EmitterMesh implements Savable {
 	public Mesh getMesh() {
 		return this.mesh;
 	}
-	
+	/*
 	public void setDirectionType(DirectionType directionType) {
 		this.directionType = directionType;
 	}
 	
 	public DirectionType getDirectionType() { return this.directionType; }
-	
+	*/
 	/**
 	 * Selects a random face as the next particle emission point
 	 */
@@ -170,7 +166,7 @@ public class EmitterMesh implements Savable {
 	 * @return A Vector3f containing the normal of the selected emission point
 	 */
 	public Vector3f getNextDirection(){
-		switch (directionType) {
+		switch (emitter.getDirectionType()) {
 			case Normal:
 				tempDir.set(getDirectionNormal());
 				break;
@@ -218,15 +214,5 @@ public class EmitterMesh implements Savable {
 		q.fromAngleAxis(FastMath.nextRandomFloat()*360*FastMath.DEG_TO_RAD, getNormal());
 		tempDir.set(q.mult(tempDir));
 		return tempDir;
-	}
-	
-	@Override
-	public void write(JmeExporter ex) throws IOException {
-		
-	}
-
-	@Override
-	public void read(JmeImporter im) throws IOException {
-		
 	}
 }
