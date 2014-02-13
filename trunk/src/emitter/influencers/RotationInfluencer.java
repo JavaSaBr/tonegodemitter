@@ -5,11 +5,15 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
 import java.io.IOException;
 import emitter.Interpolation;
 import emitter.particle.ParticleData;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -226,19 +230,49 @@ public class RotationInfluencer implements ParticleInfluencer {
 	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
-        oc.write(speedFactor, "speedFactor", Vector3f.ZERO);
+		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
+		for (Interpolation in : interpolations.getArray()) {
+			interps.put(Interpolation.getInterpolationName(in),null);
+		}
+		oc.writeStringSavableMap(interps, "interpolations", null);
+		oc.write(speedFactor, "speedFactor", Vector3f.ZERO);
+		oc.write(useRandomDirection, "useRandomDirection", true);
+		oc.write(useRandomSpeed, "useRandomSpeed", true);
+		oc.write(direction, "direction", true);
+		oc.write(useRandomStartRotationX, "useRandomStartRotationX", false);
+		oc.write(useRandomStartRotationY, "useRandomStartRotationY", false);
+		oc.write(useRandomStartRotationZ, "useRandomStartRotationZ", false);
+		oc.write(fixedDuration, "fixedDuration", 0f);
+		oc.write(enabled, "enabled", true);
 	}
 
 	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
+		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
+		for (String in : interps.keySet()) {
+			interpolations.add(Interpolation.getInterpolationByName(in));
+		}
 		speedFactor = (Vector3f) ic.readSavable("speedFactor", Vector3f.ZERO.clone());
+		useRandomDirection = ic.readBoolean("useRandomDirection", true);
+		useRandomSpeed = ic.readBoolean("useRandomSpeed", true);
+		direction = ic.readBoolean("direction", true);
+		useRandomStartRotationX = ic.readBoolean("useRandomStartRotationX", false);
+		useRandomStartRotationY = ic.readBoolean("useRandomStartRotationY", false);
+		useRandomStartRotationZ = ic.readBoolean("useRandomStartRotationZ", false);
+		fixedDuration = ic.readFloat("fixedDuration", 0f);
+		enabled = ic.readBoolean("enabled", true);
 	}
 	
 	@Override
 	public ParticleInfluencer clone() {
 		try {
 			RotationInfluencer clone = (RotationInfluencer) super.clone();
+			clone.setDirection(direction);
+			clone.setUseRandomDirection(useRandomDirection);
+			clone.setUseRandomSpeed(useRandomSpeed);
+			clone.setUseRandomStartRotation(useRandomStartRotationX, useRandomStartRotationY, useRandomStartRotationZ);
+			clone.setEnabled(enabled);
 			return clone;
 		} catch (CloneNotSupportedException e) {
 			throw new AssertionError();
