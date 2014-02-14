@@ -1,7 +1,5 @@
 package emitter;
 
-import com.jme3.app.Application;
-import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
@@ -29,16 +27,7 @@ import emitter.EmitterMesh.DirectionType;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import emitter.influencers.ColorInfluencer;
-import emitter.influencers.GravityInfluencer;
-import emitter.influencers.ImpulseInfluencer;
 import emitter.influencers.ParticleInfluencer;
-import emitter.influencers.DestinationInfluencer;
-import emitter.influencers.PhysicsInfluencer;
-import emitter.influencers.RotationInfluencer;
-import emitter.influencers.SizeInfluencer;
-import emitter.influencers.SpriteInfluencer;
-import emitter.influencers.RadialVelocityInfluencer;
 import emitter.particle.ParticleData;
 import emitter.particle.ParticleDataMesh;
 import emitter.particle.ParticleDataPointMesh;
@@ -114,8 +103,8 @@ public class Emitter implements Control, Cloneable {
 	private int maxParticles;
 	private float forceMax = .5f;
 	private float forceMin = .15f;
-	private float lifeMin = 12f;
-	private float lifeMax = 14f;
+	private float lifeMin = 0.999f;
+	private float lifeMax = 0.999f;
 	protected int activeParticleCount = 0;
 	protected Interpolation interpolation = Interpolation.linear;
 	
@@ -172,10 +161,19 @@ public class Emitter implements Control, Cloneable {
 		this.template = template;
 	}
 	
-	public ParticleDataMesh getParticleType() {
-		return this.mesh;
+	/**
+	 * Returns the Class defined for the particle type.
+	 * (ex. ParticleDataTriMesh.class - a quad-base particle)
+	 * @return 
+	 */
+	public Class getParticleType() {
+		return this.particleType;
 	}
 	
+	/**
+	 * Returns the Mesh defined as a template for a single particle
+	 * @return The Mesh to use as a particle template
+	 */
 	public Mesh getParticleMeshTemplate() {
 		return this.template;
 	}
@@ -187,51 +185,28 @@ public class Emitter implements Control, Cloneable {
 		}
 	}
 	
-	public void addInfluencers(ParticleInfluencer... influencers) {
-		for (ParticleInfluencer pi : influencers) {
-			addInfluencer(pi);
-		}
-	}
-	
+	/**
+	 * Set the user defined name of the influencer.  This is used in naming
+	 * The Nodes generated for the emitter shape, particle node, and both test
+	 * nodes.
+	 * NOTE: If no name is set, a unique name is generated for the emitter.
+	 * @param name The String name for the influencer
+	 */
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	/**
+	 * Returns the name of the emitter.
+	 * @return The String name of the emitter
+	 */
+	public String getName() {
+		return this.name;
 	}
 	
 	private String generateName() {
 		return UUID.randomUUID().toString();
 	}
-	
-	/**
-	 * Creates a new instance of the Emitter class
-	 * @param name The name of the emitter (used as the output Node name containing the ParticleDataMesh)
-	 * @param assetManager The application's asset manager
-	 * @param type The particle type (point, triangle, etc)
-	 * @param maxParticles The maximum number of particles handled by the emitter
-	 * @param influencers The list of ParticleInfluencer's to add to the emitter control
-	 */
-	/*
-	public Emitter(String name, AssetManager assetManager, int maxParticles, ParticleInfluencer... influencers) {
-		this(name, assetManager, null, maxParticles, influencers);
-	}
-	
-	public Emitter(String name, AssetManager assetManager, Material mat, int maxParticles, ParticleInfluencer... influencers) {
-		this.name = name;
-		this.emitterNode = new Node(this.name + ":Emitter");
-		this.emitterTestNode = new Node(this.name + ":EmitterTest");
-		this.particleNode = new Node(this.name);
-		this.particleTestNode = new Node(this.name + ":Test");
-		this.assetManager = assetManager;
-		this.maxParticles = maxParticles;
-	
-		for (ParticleInfluencer pi : influencers) {
-			addInfluencer(pi);
-		}
-		
-		initMaterials();
-		if (mat != null)
-			this.mat = mat;
-	}
-	*/
 	
 	private void initMaterials() {
 		mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
@@ -254,10 +229,6 @@ public class Emitter implements Control, Cloneable {
 		} catch (InstantiationException | IllegalAccessException ex) {
 			Logger.getLogger(Emitter.class.getName()).log(Level.SEVERE, null, ex);
 		}
-	}
-	
-	public String getName() {
-		return this.name;
 	}
 	
 	private void initParticles() {
@@ -539,26 +510,14 @@ public class Emitter implements Control, Cloneable {
 	
 	public int getMaxParticles() { return this.maxParticles; }
 	
-	// Influencers
-	private void preloadAllInfluencers() {
-		addInfluencer(new GravityInfluencer());
-		addInfluencer(new RadialVelocityInfluencer());
-		addInfluencer(new ColorInfluencer());
-		addInfluencer(new SizeInfluencer());
-		addInfluencer(new RotationInfluencer());
-		addInfluencer(new SpriteInfluencer());
-		addInfluencer(new DestinationInfluencer());
-		addInfluencer(new PhysicsInfluencer());
-		addInfluencer(new ImpulseInfluencer());
-	}
-	
-	// Influencers
-	private void preloadCoreInfluencers() {
-		addInfluencer(new GravityInfluencer());
-		addInfluencer(new ColorInfluencer());
-		addInfluencer(new SizeInfluencer());
-		addInfluencer(new RotationInfluencer());
-		addInfluencer(new ImpulseInfluencer());
+	/**
+	 * Adds a series of influencers
+	 * @param influencers The list of influencers
+	 */
+	public void addInfluencers(ParticleInfluencer... influencers) {
+		for (ParticleInfluencer pi : influencers) {
+			addInfluencer(pi);
+		}
 	}
 	
 	/**
@@ -796,7 +755,7 @@ public class Emitter implements Control, Cloneable {
 			particleNode.setName(this.name);
 			particleTestNode.setName(this.name + ":Test");
 			
-			initParticles(particleType,mesh);
+			initParticles(particleType,template);
 			mesh.setImagesXY(spriteCols,spriteRows);
 			
 			tex = assetManager.loadTexture(texturePath);
@@ -1080,27 +1039,45 @@ public class Emitter implements Control, Cloneable {
 	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
-		oc.write(name, "name", null);
 		oc.writeSavableArrayList(new ArrayList(influencers), "influencers", null);
+		
+		oc.write(name, "name", null);
+		oc.write(emitterShape.getMesh(), "emitterShape", new TriangleEmitterShape(1));
+		oc.write(template, "template", null);
+		
+		oc.write(particleType.getName(), "particleType", ParticleDataTriMesh.class.getName());
+		
 		oc.write(maxParticles, "maxParticles", 30);
-		oc.write(forceMin, "forceMin", .15f);
-		oc.write(forceMax, "forceMax", .5f);
-		oc.write(lifeMin, "lifeMin", 1.5f);
-		oc.write(lifeMax, "lifeMax", 2.5f);
-		oc.write(targetInterval, "targetInterval", .00015f);
-		oc.write(currentInterval, "currentInterval", 0f);
 		oc.write(emissionsPerSecond, "emissionsPerSecond", 20);
 		oc.write(particlesPerEmission, "particlesPerEmission", 1);
 		oc.write(useStaticParticles, "useStaticParticles", false);
-		oc.write(mat, "mat", null);
-		oc.write(tex, "tex", null);
+		oc.write(forceMin, "forceMin", .15f);
+		oc.write(forceMax, "forceMax", .5f);
+		oc.write(lifeMin, "lifeMin", 0.999f);
+		oc.write(lifeMax, "lifeMax", 0.999f);
+		oc.write(velocityStretchFactor, "velocityStretchFactor", 0.35f);
+		
+		// Material
+		oc.write(userDefinedMat, "userDefinedMat", null);
+		oc.write(uniformName, "uniformName", null);
 		oc.write(texturePath, "texturePath", null);
 		oc.write(spriteWidth, "spriteWidth", 50);
 		oc.write(spriteHeight, "spriteHeight", 50);
 		oc.write(spriteCols, "spriteCols", 1);
 		oc.write(spriteRows, "spriteRows", 1);
-		oc.write(billboardMode, "billboardMode", BillboardMode.Camera);
+		
+		oc.write(directionType.name(), "directionType", EmitterMesh.DirectionType.Random.name());
+		oc.write(billboardMode.name(), "billboardMode", BillboardMode.Camera.name());
+		oc.write(stretchAxis.name(), "stretchAxis", ForcedStretchAxis.Y.name());
+		oc.write(particleEmissionPoint.name(), "particleEmissionPoint", ParticleEmissionPoint.Particle_Center.name());
+		
 		oc.write(particlesFollowEmitter, "particlesFollowEmitter", false);
+		oc.write(useStaticParticles, "useStaticParticles", false);
+		oc.write(useRandomEmissionPoint, "useRandomEmissionPoint", false);
+		oc.write(useSequentialEmissionFace, "useSequentialEmissionFace", false);
+		oc.write(useSequentialSkipPattern, "useSequentialSkipPattern", false);
+		oc.write(TEST_EMITTER, "TEST_EMITTER", false);
+		oc.write(TEST_PARTICLES, "TEST_PARTICLES", false);
 		
 		oc.write(enabled, "enabled", false);
 	}
@@ -1108,27 +1085,62 @@ public class Emitter implements Control, Cloneable {
 	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
-		name = ic.readString("name", null);
+		
 		influencers = new SafeArrayList<ParticleInfluencer>(ParticleInfluencer.class, ic.readSavableArrayList("influencers", null));
+		
+		name = ic.readString("name", generateName());
+		
+		Mesh eShape = (Mesh)ic.readSavable("emitterShape", new TriangleEmitterShape(1));
+		setShape(eShape);
+		try {
+			particleType = Class.forName(ic.readString("particleType", ParticleDataTriMesh.class.getName()));
+		} catch (IOException | ClassNotFoundException ex) {
+			particleType = ParticleDataTriMesh.class;
+		}
+		template = (Mesh)ic.readSavable("template", null);
+		
+		initParticles(particleType, template);
+		
 		maxParticles = ic.readInt("maxParticles", 30);
-		forceMin = ic.readFloat("forceMin", .15f);
-		forceMax = ic.readFloat("forceMax", .5f);
-		lifeMin = ic.readFloat("lifeMin", 1.5f);
-		lifeMax = ic.readFloat("lifeMax", 2.5f);
-		targetInterval = ic.readFloat("targetInterval", .00015f);
-		currentInterval = ic.readFloat("currentInterval", 0f);
-		emissionsPerSecond = ic.readInt("emissionsPerSecond", 20);
-		particlesPerEmission = ic.readInt("particlesPerEmission", 1);
-		useStaticParticles = ic.readBoolean("useStaticParticles", false);
-		mat = (Material)ic.readSavable("mat", null);
-		tex = (Texture)ic.readSavable("tex", null);
+		int emsPerSec = ic.readInt("emissionsPerSecond", 20);
+		setEmissionsPerSecond(emsPerSec);
+		int parsPerEm = ic.readInt("particlesPerEmission", 1);
+		setParticlesPerEmission(parsPerEm);
+		
+		float fMin = ic.readFloat("forceMin", .15f);
+		float fMax = ic.readFloat("forceMax", .5f);
+		setForceMinMax(fMin,fMax);
+		
+		float lMin = ic.readFloat("lifeMin", 0.999f);
+		float lMax = ic.readFloat("lifeMax", 0.999f);
+		setLifeMinMax(lMin, lMax);
+		
+		float stretchFactor = ic.readFloat("velocityStretchFactor", 0.35f);
+		setVelocityStretchFactor(stretchFactor);
+		
+		// Material
+		userDefinedMat = (Material)ic.readSavable("userDefinedMat", null);
+		uniformName = ic.readString("uniformName", null);
 		texturePath = ic.readString("texturePath", null);
-		spriteWidth = ic.readFloat("spriteWidth", 50f);
-		spriteHeight = ic.readFloat("spriteHeight", 50f);
+		spriteWidth = ic.readFloat("spriteWidth", 50);
+		spriteHeight = ic.readFloat("spriteHeight", 50);
 		spriteCols = ic.readInt("spriteCols", 1);
 		spriteRows = ic.readInt("spriteRows", 1);
-		billboardMode = ic.readEnum("billboardMode", BillboardMode.class, BillboardMode.Camera);
+		
+		directionType = DirectionType.valueOf(ic.readString("directionType", EmitterMesh.DirectionType.Random.name()));
+		billboardMode = BillboardMode.valueOf(ic.readString("billboardMode", BillboardMode.Camera.name()));
+		stretchAxis = ForcedStretchAxis.valueOf(ic.readString("stretchAxis", ForcedStretchAxis.Y.name()));
+		particleEmissionPoint = ParticleEmissionPoint.valueOf(ic.readString("particleEmissionPoint", ParticleEmissionPoint.Particle_Center.name()));
+		
+		useStaticParticles = ic.readBoolean("useStaticParticles", false);
 		particlesFollowEmitter = ic.readBoolean("particlesFollowEmitter", false);
+		useStaticParticles = ic.readBoolean("useStaticParticles", false);
+		useRandomEmissionPoint = ic.readBoolean("useRandomEmissionPoint", false);
+		useSequentialEmissionFace = ic.readBoolean("useSequentialEmissionFace", false);
+		useSequentialSkipPattern = ic.readBoolean("useSequentialSkipPattern", false);
+		TEST_EMITTER = ic.readBoolean("TEST_EMITTER", false);
+		TEST_PARTICLES = ic.readBoolean("TEST_PARTICLES", false);
+		
 		enabled = ic.readBoolean("enabled", false);
 	}
 
