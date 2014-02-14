@@ -151,7 +151,7 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
         
         for (int i = 0; i < particles.length; i++){
             ParticleData p = particles[i];
-            if (p.life == 0) {
+            if (p.life == 0 || !p.active) {
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
@@ -240,19 +240,6 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
 			
 			if (p.emitter.getUseVelocityStretching()) {
 				up.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
-			/*	
-				switch (p.emitter.getForcedStretchAxis()) {
-					case X:
-						left.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
-						break;
-					case Y:
-						up.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
-						break;
-					case Z:
-						dir.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
-						break;
-				}
-			*/
 			}
 			
 			up.multLocal(p.size.y);

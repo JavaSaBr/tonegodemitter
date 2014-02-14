@@ -201,7 +201,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
         
         for (int i = 0; i < particles.length; i++){
             ParticleData p = particles[i];
-            if (p.life == 0) {
+            if (p.life == 0 || !p.active) {
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);

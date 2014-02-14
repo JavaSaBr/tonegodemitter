@@ -28,7 +28,7 @@ public class ParticleData {
     /**
      * ParticleData color
      */
-    public final ColorRGBA color = new ColorRGBA(0,0,0,0);
+    public final ColorRGBA color = new ColorRGBA(1,1,1,1);
     public int colorIndex = 0;
 	public float colorInterval = 0f;
 	public float colorDuration = 1f;
