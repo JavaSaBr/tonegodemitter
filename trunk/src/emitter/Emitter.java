@@ -267,7 +267,6 @@ public class Emitter implements Control, Cloneable {
 		mesh.initParticleData(this, maxParticles);
 	}
 	
-	// Emitter Shape
 	/**
 	 * Creates a single triangle emitter shape
 	 */
@@ -331,10 +330,23 @@ public class Emitter implements Control, Cloneable {
 	 */
 	public int getParticlesPerEmission() { return this.particlesPerEmission; }
 	
+	/**
+	 * Defines how particles are emitted from the face of the emitter shape.
+	 * For example:
+	 * Normal will emit in the direction of the face's normal
+	 * NormalNegate will emit the the opposite direction of the face's normal
+	 * RandomTangent will select a random tagent to the face's normal.
+	 * @param directionType 
+	 */
 	public void setDirectionType(DirectionType directionType) {
 		this.directionType = directionType;
 	}
 	
+	/**
+	 * Returns the direction in which the particles will be emitted relative
+	 * to the emitter shape's selected face.
+	 * @return 
+	 */
 	public DirectionType getDirectionType() { return this.directionType; }
 	
 	public void setTargetFPS(float fps) {
@@ -435,25 +447,57 @@ public class Emitter implements Control, Cloneable {
 	 */
 	public boolean getParticlesFollowEmitter() { return this.particlesFollowEmitter; }
 	
+	/**
+	 * By default, emission happens from the direct center of the selected emitter shape face.  This
+	 * flag enables selecting a random point of emission within the selected face.
+	 * @param useRandomEmissionPoint 
+	 */
 	public void setUseRandomEmissionPoint(boolean useRandomEmissionPoint) {
 		this.useRandomEmissionPoint = useRandomEmissionPoint;
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Returns if particle emission uses a randomly selected point on the emitter shape's selected
+	 * face or it's absolute center.  Center emission is default.
+	 * @return 
+	 */
 	public boolean getUseRandomEmissionPoint() { return this.useRandomEmissionPoint; }
 	
+	/**
+	 * For use with emitter shapes that contain more than one face.
+	 * By default, the face selected for emission is random.  Use this to enforce
+	 * emission in the sequential order the faces are created in the emitter shape mesh.
+	 * @param useSequentialEmissionFace 
+	 */
 	public void setUseSequentialEmissionFace(boolean useSequentialEmissionFace) {
 		this.useSequentialEmissionFace = useSequentialEmissionFace;
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Returns if emission happens in the sequential order the faces of the emitter
+	 * shape mesh are defined.
+	 * @return 
+	 */
 	public boolean getUseSequentialEmissionFace() { return this.useSequentialEmissionFace; }
 	
+	/**
+	 * Enabling skip pattern will use every other face in the emitter shape.  This
+	 * stops the clustering of two particles per quad that makes up the the emitter
+	 * shape.
+	 * @param useSequentialSkipPattern 
+	 */
 	public void setUseSequentialSkipPattern(boolean useSequentialSkipPattern) {
 		this.useSequentialSkipPattern = useSequentialSkipPattern;
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Returns if the emitter will skip every other face in the sequential order the emitter
+	 * shape faces are defined.
+	 * @return 
+	 */
 	public boolean getUseSequentialSkipPattern() {
 		return this.useSequentialSkipPattern;
 	}
