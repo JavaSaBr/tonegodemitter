@@ -95,7 +95,6 @@ public class Emitter implements Control, Cloneable {
 	ParticleDataMesh mesh = null;
 	Mesh template = null;
 	ParticleData[] particles;
-//	Map<String,ParticleInfluencer> influencers = new HashMap();
 	SafeArrayList<ParticleInfluencer> influencers = new SafeArrayList(ParticleInfluencer.class);
 	Node emitterNode, particleNode, emitterTestNode, particleTestNode;
 	
@@ -127,6 +126,7 @@ public class Emitter implements Control, Cloneable {
 	// Material information
 	private AssetManager assetManager;
 	private Material mat, testMat, userDefinedMat = null;
+	private boolean applyLightingTransform = false;
 	private String uniformName = "Texture";
 	private Texture tex;
 	private String texturePath;
@@ -145,6 +145,9 @@ public class Emitter implements Control, Cloneable {
 	
 	private boolean emitterInitialized = false;
 	
+	/**
+	 * Creates a new instance of the Emitter
+	 */
 	public Emitter() {
 		emitterNode = new Node();
 		emitterTestNode = new Node();
@@ -152,10 +155,26 @@ public class Emitter implements Control, Cloneable {
 		particleTestNode = new Node();
 	}
 	
+	/**
+	 * Sets the mesh class used to create the particle mesh.
+	 * For example:
+	 * ParticleDataTriMesh.class - A quad-based particle mesh
+	 * ParticleDataImpostorMesh.class - A star-shaped impostor mesh
+	 * @param <T>
+	 * @param t The Mesh class used to create the particle Mesh
+	 */
 	public <T extends ParticleDataMesh> void setParticleType(Class<T> t) {
 		this.particleType = t;
 	}
 	
+	/**
+	 * Sets the mesh class used to create the particle mesh.
+	 * For example:
+	 * ParticleDataTemplateMesh.class - Uses a supplied mesh as a template for particles
+	 * @param <T>
+	 * @param t The Mesh class used to create the particle Mesh
+	 * @param template The template mesh used to define a single particle
+	 */
 	public <T extends ParticleDataMesh> void setParticleType(Class<T> t, Mesh template) {
 		this.particleType = t;
 		this.template = template;
@@ -178,6 +197,10 @@ public class Emitter implements Control, Cloneable {
 		return this.template;
 	}
 	
+	/**
+	 * Sets the maximum number of particles the emitter will manage
+	 * @param maxParticles 
+	 */
 	public void setMaxParticles(int maxParticles) {
 		this.maxParticles = maxParticles;
 		if (emitterInitialized) {
@@ -287,6 +310,10 @@ public class Emitter implements Control, Cloneable {
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Return the number of times the particle emitter will emit particles over the course of one second
+	 * @return 
+	 */
 	public int getEmissionsPerSecond() { return this.emissionsPerSecond; }
 	
 	/**
@@ -298,6 +325,10 @@ public class Emitter implements Control, Cloneable {
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Returns the number of particles to be emitted per emission.
+	 * @return 
+	 */
 	public int getParticlesPerEmission() { return this.particlesPerEmission; }
 	
 	public void setDirectionType(DirectionType directionType) {
@@ -327,32 +358,64 @@ public class Emitter implements Control, Cloneable {
 		return this.useStaticParticles;
 	}
 	
+	/**
+	 * Enable or disable to use of particle stretching
+	 * @param useVelocityStretching 
+	 */
 	public void setUseVelocityStretching(boolean useVelocityStretching) {
 		this.useVelocityStretching = useVelocityStretching;
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Returns if the emitter will use particle stretching
+	 * @return 
+	 */
 	public boolean getUseVelocityStretching() { return this.useVelocityStretching; }
 	
+	/**
+	 * Sets the magnitude of the particle stretch
+	 * @param velocityStretchFactor 
+	 */
 	public void setVelocityStretchFactor(float velocityStretchFactor) {
 		this.velocityStretchFactor = velocityStretchFactor;
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Gets the magnitude of the particle stretching
+	 * @return 
+	 */
 	public float getVelocityStretchFactor() { return this.velocityStretchFactor; }
 	
+	/**
+	 * Forces the stretch to occure along the specified axis relative to the particle's velocity
+	 * @param axis The axis to stretch against.  Default is Y
+	 */
 	public void setForcedStretchAxis(ForcedStretchAxis axis) {
 		this.stretchAxis = axis;
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Returns the axis to stretch particles against.  Axis is relative to the particles velocity.
+	 * @return 
+	 */
 	public ForcedStretchAxis getForcedStretchAxis() { return this.stretchAxis; }
 	
+	/**
+	 * Determine how the particle is placed when first emitted.  The default is the particles 0,0,0 point
+	 * @param particleEmissionPoint 
+	 */
 	public void setParticleEmissionPoint(ParticleEmissionPoint particleEmissionPoint) {
 		this.particleEmissionPoint = particleEmissionPoint;
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Returns how the particle is placed when first emitted.
+	 * @return 
+	 */
 	public ParticleEmissionPoint getParticleEmissionPoint() {
 		return this.particleEmissionPoint;
 	}
@@ -395,7 +458,24 @@ public class Emitter implements Control, Cloneable {
 		return this.useSequentialSkipPattern;
 	}
 	
-	// Life Cycle
+	/**
+	 * Sets the default interpolation for the emitter will use
+	 * @param interpolation 
+	 */
+	public void setInterpolation(Interpolation interpolation) {
+		this.interpolation = interpolation;
+		requiresUpdate = true;
+	}
+	
+	/**
+	 * Returns the default interpolation used by the emitter
+	 * @return 
+	 */
+	public Interpolation getInterpolation() {
+		return this.interpolation;
+	}
+	
+	//<editor-fold desc="Emission Force & Particle Lifespan">
 	/**
 	 * Sets the inner and outter bounds of the time a particle will remain alive (active)
 	 * @param lifeMin The minimum time a particle must remian alive once emitted
@@ -447,16 +527,6 @@ public class Emitter implements Control, Cloneable {
 	 */
 	public float getLifeMin() { return this.lifeMin; }
 	
-	public void setInterpolation(Interpolation interpolation) {
-		this.interpolation = interpolation;
-		requiresUpdate = true;
-	}
-	
-	public Interpolation getInterpolation() {
-		return this.interpolation;
-	}
-	
-	// Force
 	/**
 	 * Sets the inner and outter bounds of the initial force with which the particle is emitted.  This directly effects the initial velocity vector of the particle.
 	 * @param forceMin The minimum force with which the particle will be emitted
@@ -507,7 +577,13 @@ public class Emitter implements Control, Cloneable {
 	 * @return The maximum force with which the particle can be emitted
 	 */
 	public float getForceMax() { return this.forceMax; }
+	//</editor-fold>
 	
+	//<editor-fold desc="Add/Remove Influencers">
+	/**
+	 * Returns the maximum number of particles managed by the emitter
+	 * @return 
+	 */
 	public int getMaxParticles() { return this.maxParticles; }
 	
 	/**
@@ -539,22 +615,6 @@ public class Emitter implements Control, Cloneable {
 	}
 	
 	/**
-	 * 
-	 * @param type
-	 * @return 
-	 */
-	/*
-	public ParticleInfluencer getInfluencer(String type) {
-		T ret = null;
-		for (ParticleInfluencer pi : (ParticleInfluencer[])influencers.getArray()) {
-			if (pi.getInfluencerClass() == c)
-				ret = (T)pi;
-		}
-		return ret;
-	//	return influencers.get(type);
-	}
-	*/
-	/**
 	 * Returns the first instance of a specified ParticleData Influencer type
 	 * @param <T>
 	 * @param c
@@ -572,6 +632,10 @@ public class Emitter implements Control, Cloneable {
 	//	return (T) influencers.get(c.getName());
 	}
 	
+	/**
+	 * Removes the specified influencer by class
+	 * @param c The class of the influencer to remove
+	 */
 	public void removeInfluencer(Class c) {
 		for (ParticleInfluencer pi : (ParticleInfluencer[])influencers.getArray()) {
 			if (pi.getInfluencerClass() == c) {
@@ -582,22 +646,33 @@ public class Emitter implements Control, Cloneable {
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Removes all influencers
+	 */
 	public void removeAllInfluencers() {
 		influencers.clear();
 		requiresUpdate = true;
 	}
-	// Material
+	//</editor-fold>
+	
+	//<editor-fold desc="Material & Particle Texture">
 	/**
 	 * Sets the texture to be used by particles, this can contain multiple images for random image selection or sprite animation of particles.
 	 * @param texturePath The path of the texture to use
 	 * @param spriteFrameWidth The width in pixels of a single sprite frame
 	 * @param spriteFrameHeight The height in pixels of a single sprite frame
-	 * @return Texture
 	 */
 	public void setSpriteBySize(String texturePath, float spriteFrameWidth, float spriteFrameHeight) {
 		setSpriteBySize(texturePath, "Texture", spriteFrameWidth, spriteFrameHeight);
 	}
 	
+	/**
+	 * Sets the texture to be used by particles, this can contain multiple images for random image selection or sprite animation of particles.
+	 * @param texturePath The path of the texture to use
+	 * @param uniformName The uniform name used when setting the particle texture
+	 * @param spriteFrameWidth The width in pixels of a single sprite frame
+	 * @param spriteFrameHeight The height in pixels of a single sprite frame
+	 */
 	public void setSpriteBySize(String texturePath, String uniformName, float spriteFrameWidth, float spriteFrameHeight) {
 		this.texturePath = texturePath;
 		this.spriteWidth = spriteFrameWidth;
@@ -622,26 +697,62 @@ public class Emitter implements Control, Cloneable {
 		}
 	}
 	
+	/**
+	 * Sets the texture to be used by particles, when calling this method, it is assumed that the image
+	 * does not contain multiple sprite images
+	 * @param texturePath The path of the texture to use
+	 */
 	public void setSprite(String texturePath) {
 		setSpriteByCount(texturePath, "Texture", 1, 1);
 	}
 	
+	/**
+	 * Sets the texture to be used by particles, this can contain multiple images for random image selection or sprite animation of particles.
+	 * @param texturePath The path of the texture to use
+	 * @param numCols The number of sprite images per row
+	 * @param numRows The number of rows containing sprite images
+	 */
 	public void setSprite(String texturePath, int numCols, int numRows) {
 		setSpriteByCount(texturePath, "Texture", numCols, numRows);
 	}
 	
+	/**
+	 * Sets the texture to be used by particles, when calling this method, it is assumed that the image
+	 * @param texturePath The path of the texture to use
+	 * @param uniformName The uniform name used when setting the particle texture
+	 */
 	public void setSprite(String texturePath, String uniformName) {
 		setSpriteByCount(texturePath, uniformName, 1, 1);
 	}
 	
+	/**
+	 * Sets the texture to be used by particles, this can contain multiple images for random image selection or sprite animation of particles.
+	 * @param texturePath The path of the texture to use
+	 * @param uniformName The uniform name used when setting the particle texture
+	 * @param numCols The number of sprite images per row
+	 * @param numRows The number of rows containing sprite images
+	 */
 	public void setSprite(String texturePath, String uniformName, int numCols, int numRows) {
 		setSpriteByCount(texturePath, uniformName, numCols, numRows);
 	}
 	
+	/**
+	 * Sets the texture to be used by particles, this can contain multiple images for random image selection or sprite animation of particles.
+	 * @param texturePath The path of the texture to use
+	 * @param numCols The number of sprite images per row
+	 * @param numRows The number of rows containing sprite images
+	 */
 	public void setSpriteByCount(String texturePath, int numCols, int numRows) {
 		setSpriteByCount(texturePath, "Texture", numCols, numRows);
 	}
 	
+	/**
+	 * Sets the texture to be used by particles, this can contain multiple images for random image selection or sprite animation of particles.
+	 * @param texturePath The path of the texture to use
+	 * @param uniformName The uniform name used when setting the particle texture
+	 * @param numCols The number of sprite images per row
+	 * @param numRows The number of rows containing sprite images
+	 */
 	public void setSpriteByCount(String texturePath, String uniformName, int numCols, int numRows) {
 		this.texturePath = texturePath;
 		this.spriteCols = numCols;
@@ -666,11 +777,52 @@ public class Emitter implements Control, Cloneable {
 		}
 	}
 	
+	/**
+	 * Returns the current material used by the emitter.
+	 * @return 
+	 */
 	public Material getMaterial() { return this.mat; }
 	
-	@SuppressWarnings("empty-statement")
+	/**
+	 * Can be used to override the default Particle material.
+	 * NOTE: If the color/diffuse uniform name differs from "Texture", the new uniform
+	 * name must be set when calling one of the setSprite methods.
+	 * @param mat The material
+	 */
 	public void setMaterial(Material mat) {
+		setMaterial(mat, false);
+	}
+	
+	/**
+	 * Can be used to override the default Particle material.
+	 * NOTE: If the color/diffuse uniform name differs from "Texture", the new uniform
+	 * name must be set when calling one of the setSprite methods.
+	 * @param mat The material
+	 * @param applyLightingTransform Forces update of normals and should only be used if the emitter material uses a lighting shader
+	 */
+	public void setMaterial(Material mat, boolean applyLightingTransform) {
+		setMaterial(mat, "Texture", applyLightingTransform);
+	}
+	
+	/**
+	 * Can be used to override the default Particle material.
+	 * @param mat The material
+	 * @param uniformName The material uniform name used for applying a color map (ex: Texture, ColorMap, DiffuseMap)
+	 */
+	public void setMaterial(Material mat, String uniformName) {
+		setMaterial(mat, uniformName, false);
+	}
+	
+	/**
+	 * Can be used to override the default Particle material.
+	 * @param mat The material
+	 * @param uniformName The material uniform name used for applying a color map (ex: Texture, ColorMap, DiffuseMap)
+	 * @param applyLightingTransform Forces update of normals and should only be used if the emitter material uses a lighting shader
+	 */
+	public void setMaterial(Material mat, String uniformName, boolean applyLightingTransform) {
 		this.userDefinedMat = mat;
+		this.applyLightingTransform = applyLightingTransform;
+		this.uniformName = uniformName;
 		
 		if (emitterInitialized) {
 			tex = assetManager.loadTexture(texturePath);
@@ -678,23 +830,6 @@ public class Emitter implements Control, Cloneable {
 			tex.setMagFilter(Texture.MagFilter.Bilinear);
 			mat.setTexture(uniformName, tex);
 		}
-		
-		if (particleNode != null) {
-			particleNode.setMaterial(mat);
-			requiresUpdate = true;
-		}
-	}
-	
-	@SuppressWarnings("empty-statement")
-	public void setMaterialUnshaded() {
-		mat = new Material(assetManager, "emitter/shaders/Particle.j3md");
-		mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-		mat.getAdditionalRenderState().setAlphaTest(true);
-		
-		tex = assetManager.loadTexture(texturePath);
-		tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-		tex.setMagFilter(Texture.MagFilter.Bilinear);
-		mat.setTexture("Texture", tex);
 		
 		if (particleNode != null) {
 			particleNode.setMaterial(mat);
@@ -715,6 +850,15 @@ public class Emitter implements Control, Cloneable {
 	public int getSpriteRowCount() { return this.spriteRows; }
 	
 	/**
+	 * Returns if the emitter will update normals for lighting materials
+	 * @return 
+	 */
+	public boolean getApplyLightingTransform() {
+		return this.applyLightingTransform;
+	}
+	//</editor-fold>
+	
+	/**
 	 * Sets the billboard mode to be used by emitted particles.  The default mode is Camera
 	 * @param billboardMode The billboard mode to use
 	 */
@@ -733,14 +877,25 @@ public class Emitter implements Control, Cloneable {
 	
 	/**
 	 * Enables the particle emitter.  The emitter is disabled by default.
+	 * Enabling the emitter will actively call the update loop each frame.
+	 * The emitter should remain disabled if you are using the emitter to produce static meshes.
 	 * @param enabled Activate/deactivate the emitter
 	 */
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 	
+	/**
+	 * Returns if the emitter is actively calling update.
+	 * @return 
+	 */
 	public boolean isEnabled() { return this.enabled; }
 	
+	/**
+	 * Initializes the emitter, materials & particle mesh
+	 * Must be called prior to adding the control to your scene.
+	 * @param assetManager 
+	 */
 	public void initialize(AssetManager assetManager) {
 		if (!emitterInitialized) {
 			this.assetManager = assetManager;
@@ -841,10 +996,18 @@ public class Emitter implements Control, Cloneable {
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Returns if the emitter is set to show the emitter shape as a wireframe.
+	 * @return 
+	 */
 	public boolean getEmitterTestModeShape() {
 		return TEST_EMITTER;
 	}
 	
+	/**
+	 * Returns if the emitter is set to show the particle mesh as a wireframe.
+	 * @return 
+	 */
 	public boolean getEmitterTestModeParticles() {
 		return TEST_PARTICLES;
 	}
@@ -944,6 +1107,10 @@ public class Emitter implements Control, Cloneable {
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Emits the specified number of particles
+	 * @param count The number of particles to emit.
+	 */
 	public void emitNumParticles(int count) {
 		int counter = 0;
 		for (ParticleData p : particles) {
@@ -957,6 +1124,9 @@ public class Emitter implements Control, Cloneable {
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Clears all current particles, setting them to inactive
+	 */
 	public void killAllParticles() {
 		for (ParticleData p : particles) {
 			p.reset();
@@ -976,14 +1146,24 @@ public class Emitter implements Control, Cloneable {
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Returns the number of active particles
+	 * @return 
+	 */
 	public int getActiveParticleCount() {
 		return activeParticleCount;
 	}
 	
+	/**
+	 * DO NOT CALL - For internal use.
+	 */
 	public void incActiveParticleCount() {
 		activeParticleCount++;
 	}
 	
+	/**
+	 * DO NOT CALL - For internal use.
+	 */
 	public void decActiveParticleCount() {
 		activeParticleCount--;
 	}
@@ -997,12 +1177,18 @@ public class Emitter implements Control, Cloneable {
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Resets all particle data and the current emission interval
+	 */
 	public void reset() {
 		killAllParticles();
 		currentInterval = 0;
 		requiresUpdate = true;
 	}
 	
+	/**
+	 * Resets the current emission interval
+	 */
 	public void resetInterval() {
 		currentInterval = 0;
 	}
@@ -1214,6 +1400,7 @@ public class Emitter implements Control, Cloneable {
 		return clone;
 	}
 	
+	//<editor-fold desc="Emitter Transforms">
 	public void setLocalTranslation(Vector3f translation) {
 		emitterNode.setLocalTranslation(translation);
 		emitterTestNode.setLocalTranslation(translation);
@@ -1271,5 +1458,5 @@ public class Emitter implements Control, Cloneable {
 	public Vector3f getLocalScale() {
 		return emitterNode.getLocalScale();
 	}
-	
+	//</editor-fold>
 }
