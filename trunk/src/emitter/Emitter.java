@@ -707,7 +707,7 @@ public class Emitter implements Control, Cloneable {
 	 * @param spriteFrameHeight The height in pixels of a single sprite frame
 	 */
 	public void setSpriteBySize(String texturePath, float spriteFrameWidth, float spriteFrameHeight) {
-		setSpriteBySize(texturePath, "Texture", spriteFrameWidth, spriteFrameHeight);
+		setSpriteBySize(texturePath, uniformName, spriteFrameWidth, spriteFrameHeight);
 	}
 	
 	/**
@@ -747,7 +747,7 @@ public class Emitter implements Control, Cloneable {
 	 * @param texturePath The path of the texture to use
 	 */
 	public void setSprite(String texturePath) {
-		setSpriteByCount(texturePath, "Texture", 1, 1);
+		setSpriteByCount(texturePath, uniformName, 1, 1);
 	}
 	
 	/**
@@ -757,7 +757,7 @@ public class Emitter implements Control, Cloneable {
 	 * @param numRows The number of rows containing sprite images
 	 */
 	public void setSprite(String texturePath, int numCols, int numRows) {
-		setSpriteByCount(texturePath, "Texture", numCols, numRows);
+		setSpriteByCount(texturePath, uniformName, numCols, numRows);
 	}
 	
 	/**
@@ -787,7 +787,7 @@ public class Emitter implements Control, Cloneable {
 	 * @param numRows The number of rows containing sprite images
 	 */
 	public void setSpriteByCount(String texturePath, int numCols, int numRows) {
-		setSpriteByCount(texturePath, "Texture", numCols, numRows);
+		setSpriteByCount(texturePath, uniformName, numCols, numRows);
 	}
 	
 	/**
@@ -845,7 +845,7 @@ public class Emitter implements Control, Cloneable {
 	 * @param applyLightingTransform Forces update of normals and should only be used if the emitter material uses a lighting shader
 	 */
 	public void setMaterial(Material mat, boolean applyLightingTransform) {
-		setMaterial(mat, "Texture", applyLightingTransform);
+		setMaterial(mat, uniformName, applyLightingTransform);
 	}
 	
 	/**

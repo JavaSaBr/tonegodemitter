@@ -1,5 +1,7 @@
 package emitter.particle;
 
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Matrix4f;
 import com.jme3.math.Quaternion;
@@ -14,6 +16,15 @@ import com.jme3.util.BufferUtils;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import emitter.Emitter;
+import static emitter.Emitter.BillboardMode.Camera;
+import static emitter.Emitter.BillboardMode.Normal;
+import static emitter.Emitter.BillboardMode.Normal_Y_Up;
+import static emitter.Emitter.BillboardMode.UNIT_X;
+import static emitter.Emitter.BillboardMode.UNIT_Y;
+import static emitter.Emitter.BillboardMode.UNIT_Z;
+import static emitter.Emitter.BillboardMode.Velocity;
+import static emitter.Emitter.BillboardMode.Velocity_Z_Up;
+import static emitter.Emitter.BillboardMode.Velocity_Z_Up_Y_Left;
 
 /**
  *
@@ -29,6 +40,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 	private Vector3f up = new Vector3f(), tempUp = new Vector3f();
 	private Vector3f dir = new Vector3f();
 	private Vector3f tempV3 = new Vector3f();
+	private ColorRGBA tempV4 = new ColorRGBA();
 	private Quaternion rotStore = new Quaternion();
 	private Quaternion tempQ = new Quaternion();
 	private Node tempN = new Node();
@@ -39,14 +51,18 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 	private FloatBuffer	templateCoords;
 	private IndexBuffer	templateIndexes;
 	private FloatBuffer	templateNormals;
+	private FloatBuffer	templateColors;
 	
 	private FloatBuffer	finVerts;
 	private FloatBuffer	finCoords;
 	private ShortBuffer	finIndexes;
 	private FloatBuffer	finNormals;
+	private FloatBuffer	finColors;
 	
 	Matrix3f mat3 = new Matrix3f();
 	Matrix4f mat4 = new Matrix4f();
+	
+	private Vector3f lock = new Vector3f(0,0.99f,0.01f);
 	
 	@Override
 	public void extractTemplateFromMesh(Mesh mesh) {
@@ -55,6 +71,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 		templateCoords = MeshUtils.getTexCoordBuffer(mesh);
 		templateIndexes = MeshUtils.getIndexBuffer(mesh);
 		templateNormals = MeshUtils.getNormalsBuffer(mesh);
+		templateColors = BufferUtils.createFloatBuffer(templateVerts.capacity()/3*4);
 	}
 	
 	public Mesh getTemplateMesh() { return this.template; }
@@ -69,8 +86,9 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 		try { this.finCoords = BufferUtils.createFloatBuffer(templateCoords.capacity()*numParticles); } catch (Exception e) {  }
 		this.finIndexes = BufferUtils.createShortBuffer(templateIndexes.size()*numParticles);
 		this.finNormals = BufferUtils.createFloatBuffer(templateNormals.capacity()*numParticles);
+		this.finColors = BufferUtils.createFloatBuffer(templateVerts.capacity()/3*4*numParticles);
 		
-		int index = 0, index2 = 0, index3 = 0, index4 = 0;
+		int index = 0, index2 = 0, index3 = 0, index4 = 0, index5 = 0;
 		int indexOffset = 0;
 		
 		for (int i = 0; i < numParticles; i++) {
@@ -102,6 +120,10 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 				finNormals.put(index4, templateNormals.get(v));
 				index4++;
 			}
+			
+			for (int v = 0; v < finColors.capacity(); v++) {
+				finColors.put(v, 1.0f);
+			}
 		}
 		
 		// Help GC
@@ -115,11 +137,13 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 		this.clearBuffer(VertexBuffer.Type.Position);
 		this.setBuffer(VertexBuffer.Type.Position,	3, finVerts);
 		this.clearBuffer(VertexBuffer.Type.TexCoord);
-		try { this.setBuffer(VertexBuffer.Type.TexCoord,	2, finCoords); } catch (Exception e) {  }
+		try { this.setBuffer(VertexBuffer.Type.TexCoord, 2, finCoords); } catch (Exception e) {  }
 		this.clearBuffer(VertexBuffer.Type.Index);
-		this.setBuffer(VertexBuffer.Type.Index,		3, finIndexes);
+		this.setBuffer(VertexBuffer.Type.Index,	3, finIndexes);
 		this.clearBuffer(VertexBuffer.Type.Normal);
-		this.setBuffer(VertexBuffer.Type.Normal,		3, finNormals);
+		this.setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
+		this.clearBuffer(VertexBuffer.Type.Color);
+		this.setBuffer(VertexBuffer.Type.Color, 4, finColors);
 		this.updateBound();
     }
     
@@ -138,43 +162,38 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 	
     @Override
     public void updateParticleData(ParticleData[] particles, Camera cam, Matrix3f inverseRotation) {
-    //    VertexBuffer pvb = getBuffer(VertexBuffer.Type.Position);
-     //   FloatBuffer positions = (FloatBuffer) pvb.getData();
-
-     //   VertexBuffer cvb = getBuffer(VertexBuffer.Type.Color);
-     //   ByteBuffer colors = (ByteBuffer) cvb.getData();
-
-     //   VertexBuffer tvb = getBuffer(VertexBuffer.Type.TexCoord);
-     //   FloatBuffer texcoords = (FloatBuffer) tvb.getData();
-
-        // update data in vertex buffers
-     //   positions.clear();
-	//	positions.rewind();
-     //   colors.clear();
-     //   texcoords.clear();
-        
+		
         for (int i = 0; i < particles.length; i++){
             ParticleData p = particles[i];
 			int offset = templateVerts.capacity()*i;
-			if (p.life == 0) {
-				for (int x = 0; x < templateVerts.capacity(); x++) {
+			int colorOffset = templateColors.capacity()*i;
+			if (p.life == 0 || !p.active) {
+				for (int x = 0; x < templateVerts.capacity(); x += 3) {
 					finVerts.put(offset+x,0);
+					finVerts.put(offset+x+1,0);
+					finVerts.put(offset+x+2,0);
 				}
 				continue;
 			}
+			
 			for (int x = 0; x < templateVerts.capacity(); x += 3) {
-				tempV3.set(templateVerts.get(x),templateVerts.get(x+1),templateVerts.get(x+2));
 				
 				tempV3.multLocal(p.size);
+				
+				tempV3.set(templateVerts.get(x),templateVerts.get(x+1),templateVerts.get(x+2));
 				
 				rotStore = tempQ.fromAngles(p.angles.x, p.angles.y, p.angles.z);
 				tempV3 = rotStore.mult(tempV3);
 				
 				tempV3.addLocal(p.position);
+				if (!emitter.getParticlesFollowEmitter()) {
+					tempV3.subtractLocal(emitter.getEmitterNode().getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
+				}
 				
 				finVerts.put(offset+x,tempV3.getX());
 				finVerts.put(offset+x+1,tempV3.getY());
 				finVerts.put(offset+x+2,tempV3.getZ());
+				
 			}
 			if (p.emitter.getApplyLightingTransform()) {
 				for (int v = 0; v < templateNormals.capacity(); v += 3) {
@@ -192,11 +211,18 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 					finNormals.put(offset+v+2, tempV3.getZ());
 				}
 			}
+			for (int v = 0; v < templateColors.capacity(); v += 4) {
+				finColors.put(colorOffset+v,p.color.r)
+						.put(colorOffset+v+1,p.color.g)
+						.put(colorOffset+v+2,p.color.b)
+						.put(colorOffset+v+3,p.color.a*p.alpha);
+			}
         }
 		
-		this.clearBuffer(VertexBuffer.Type.Position);
 		this.setBuffer(VertexBuffer.Type.Position, 3, finVerts);
-		this.setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
+		if (particles[0].emitter.getApplyLightingTransform())
+			this.setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
+		this.setBuffer(VertexBuffer.Type.Color, 4, finColors);
 		
 		updateBound();
     }

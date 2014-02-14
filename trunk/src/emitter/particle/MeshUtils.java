@@ -30,4 +30,8 @@ public final class MeshUtils {
 	public static FloatBuffer getNormalsBuffer(Mesh mesh) {
 		return mesh.getFloatBuffer(VertexBuffer.Type.Normal);
 	}
+	
+	public static FloatBuffer getColorBuffer(Mesh mesh) {
+		return mesh.getFloatBuffer(VertexBuffer.Type.Color);
+	}
 }
