@@ -230,9 +230,12 @@ public class RotationInfluencer implements ParticleInfluencer {
 	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
+		oc.writeSavableArrayList(new ArrayList(speeds), "speeds", null);
 		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
+		int index = 0;
 		for (Interpolation in : interpolations.getArray()) {
-			interps.put(Interpolation.getInterpolationName(in),null);
+			interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index),null);
+			index++;
 		}
 		oc.writeStringSavableMap(interps, "interpolations", null);
 		oc.write(speedFactor, "speedFactor", Vector3f.ZERO);
@@ -249,9 +252,11 @@ public class RotationInfluencer implements ParticleInfluencer {
 	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
+		speeds = new SafeArrayList<Vector3f>(Vector3f.class, ic.readSavableArrayList("speeds", null));
 		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
 		for (String in : interps.keySet()) {
-			interpolations.add(Interpolation.getInterpolationByName(in));
+			String name = in.substring(0,in.indexOf(":"));
+			interpolations.add(Interpolation.getInterpolationByName(name));
 		}
 		speedFactor = (Vector3f) ic.readSavable("speedFactor", Vector3f.ZERO.clone());
 		useRandomDirection = ic.readBoolean("useRandomDirection", true);

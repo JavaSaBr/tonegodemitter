@@ -173,9 +173,12 @@ public class SizeInfluencer implements ParticleInfluencer {
 	@Override
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
+		oc.writeSavableArrayList(new ArrayList(sizes), "sizes", null);
 		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
+		int index = 0;
 		for (Interpolation in : interpolations.getArray()) {
-			interps.put(Interpolation.getInterpolationName(in),null);
+			interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index),null);
+			index++;
 		}
 		oc.writeStringSavableMap(interps, "interpolations", null);
 		oc.write(useRandomSize, "useRandomSize", false);
@@ -187,9 +190,11 @@ public class SizeInfluencer implements ParticleInfluencer {
 	@Override
 	public void read(JmeImporter im) throws IOException {
 		InputCapsule ic = im.getCapsule(this);
+		sizes = new SafeArrayList<Vector3f>(Vector3f.class, ic.readSavableArrayList("sizes", null));
 		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
 		for (String in : interps.keySet()) {
-			interpolations.add(Interpolation.getInterpolationByName(in));
+			String name = in.substring(0,in.indexOf(":"));
+			interpolations.add(Interpolation.getInterpolationByName(name));
 		}
 		useRandomSize = ic.readBoolean("useRandomSize", false);
 		randomSizeTolerance = ic.readFloat("randomSizeTolerance", 0.5f);
