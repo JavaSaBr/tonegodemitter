@@ -1289,6 +1289,7 @@ public class Emitter implements Control, Cloneable {
 		
 		// Material
 		oc.write(userDefinedMat, "userDefinedMat", null);
+		oc.write(applyLightingTransform, "applyLightingTransform", false);
 		oc.write(uniformName, "uniformName", null);
 		oc.write(texturePath, "texturePath", null);
 		oc.write(spriteWidth, "spriteWidth", 50);
@@ -1350,6 +1351,7 @@ public class Emitter implements Control, Cloneable {
 		
 		// Material
 		userDefinedMat = (Material)ic.readSavable("userDefinedMat", null);
+		applyLightingTransform = ic.readBoolean("applyLightingTransform", false);
 		uniformName = ic.readString("uniformName", null);
 		texturePath = ic.readString("texturePath", null);
 		spriteWidth = ic.readFloat("spriteWidth", 50);
