@@ -131,8 +131,10 @@ public class ColorInfluencer implements ParticleInfluencer {
 		OutputCapsule oc = ex.getCapsule(this);
 		oc.writeSavableArrayList(new ArrayList(colors), "colors", null);
 		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
+		int index = 0;
 		for (Interpolation in : interpolations.getArray()) {
-			interps.put(Interpolation.getInterpolationName(in),null);
+			interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index),null);
+			index++;
 		}
 		oc.writeStringSavableMap(interps, "interpolations", null);
 		oc.write(enabled, "enabled", true);
@@ -147,7 +149,8 @@ public class ColorInfluencer implements ParticleInfluencer {
 		colors = new SafeArrayList<ColorRGBA>(ColorRGBA.class, ic.readSavableArrayList("colors", null));
 		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
 		for (String in : interps.keySet()) {
-			interpolations.add(Interpolation.getInterpolationByName(in));
+			String name = in.substring(0,in.indexOf(":"));
+			interpolations.add(Interpolation.getInterpolationByName(name));
 		}
 		enabled = ic.readBoolean("enabled", true);
 		useRandomStartColor = ic.readBoolean("useRandomStartColor", false);

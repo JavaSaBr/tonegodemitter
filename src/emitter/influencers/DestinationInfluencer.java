@@ -157,8 +157,10 @@ public class DestinationInfluencer implements ParticleInfluencer {
 		oc.writeSavableArrayList(new ArrayList(destinations), "destinations", null);
 		oc.writeSavableArrayList(new ArrayList(weights), "weightss", null);
 		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
+		int index = 0;
 		for (Interpolation in : interpolations.getArray()) {
-			interps.put(Interpolation.getInterpolationName(in),null);
+			interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index),null);
+			index++;
 		}
 		oc.writeStringSavableMap(interps, "interpolations", null);
 		oc.write(enabled, "enabled", true);
@@ -174,7 +176,8 @@ public class DestinationInfluencer implements ParticleInfluencer {
 		weights = new SafeArrayList<Float>(Float.class, ic.readSavableArrayList("weights", null));
 		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
 		for (String in : interps.keySet()) {
-			interpolations.add(Interpolation.getInterpolationByName(in));
+			String name = in.substring(0,in.indexOf(":"));
+			interpolations.add(Interpolation.getInterpolationByName(name));
 		}
 		enabled = ic.readBoolean("enabled", true);
 		useRandomStartDestination = ic.readBoolean("useRandomStartDestination", false);

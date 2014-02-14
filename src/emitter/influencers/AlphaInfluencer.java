@@ -138,13 +138,17 @@ public class AlphaInfluencer implements ParticleInfluencer {
 	public void write(JmeExporter ex) throws IOException {
 		OutputCapsule oc = ex.getCapsule(this);
 		Map<String,Vector2f> as = new HashMap<String,Vector2f>();
+		int index = 0;
 		for (Float alpha : alphas.getArray()) {
-			as.put(String.valueOf(alpha),null);
+			as.put(String.valueOf(alpha) + ":" + String.valueOf(index),null);
+			index++;
 		}
-		oc.writeStringSavableMap(as, "interpolations", null);
+		oc.writeStringSavableMap(as, "alphas", null);
 		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
+		index = 0;
 		for (Interpolation in : interpolations.getArray()) {
-			interps.put(Interpolation.getInterpolationName(in),null);
+			interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index),null);
+			index++;
 		}
 		oc.writeStringSavableMap(interps, "interpolations", null);
 		oc.write(enabled, "enabled", true);
@@ -158,11 +162,13 @@ public class AlphaInfluencer implements ParticleInfluencer {
 		InputCapsule ic = im.getCapsule(this);
 		Map<String,Vector2f> as = (Map<String,Vector2f>)ic.readStringSavableMap("alphas", null);
 		for (String in : as.keySet()) {
-			alphas.add(Float.valueOf(in));
+			String val = in.substring(0,in.indexOf(":"));
+			alphas.add(Float.valueOf(val));
 		}
 		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
 		for (String in : interps.keySet()) {
-			interpolations.add(Interpolation.getInterpolationByName(in));
+			String name = in.substring(0,in.indexOf(":"));
+			interpolations.add(Interpolation.getInterpolationByName(name));
 		}
 		enabled = ic.readBoolean("enabled", true);
 		useRandomStartAlpha = ic.readBoolean("useRandomStartAlpha", false);
