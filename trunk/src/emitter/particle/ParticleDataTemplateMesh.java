@@ -1,6 +1,7 @@
 package emitter.particle;
 
 import com.jme3.math.Matrix3f;
+import com.jme3.math.Matrix4f;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
@@ -43,6 +44,9 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 	private FloatBuffer	finCoords;
 	private ShortBuffer	finIndexes;
 	private FloatBuffer	finNormals;
+	
+	Matrix3f mat3 = new Matrix3f();
+	Matrix4f mat4 = new Matrix4f();
 	
 	@Override
 	public void extractTemplateFromMesh(Mesh mesh) {
@@ -163,13 +167,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 				
 				tempV3.multLocal(p.size);
 				
-				rotStore = tempQ.fromAngleAxis(p.angles.y, p.velocity);
-				tempV3 = rotStore.mult(tempV3);
-				
-				rotStore = tempQ.fromAngleAxis(p.angles.x, p.velocity);
-				tempV3 = rotStore.mult(tempV3);
-				
-				rotStore = tempQ.fromAngleAxis(p.angles.z, p.velocity);
+				rotStore = tempQ.fromAngles(p.angles.x, p.angles.y, p.angles.z);
 				tempV3 = rotStore.mult(tempV3);
 				
 				tempV3.addLocal(p.position);
@@ -178,68 +176,27 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 				finVerts.put(offset+x+1,tempV3.getY());
 				finVerts.put(offset+x+2,tempV3.getZ());
 			}
-			
-			/*
-			if (emitter.getParticlesFollowEmitter()) {
-				tempV3.set(p.position);
-			} else {
-				tempV3.set(p.position).subtractLocal(emitter.getNode().getWorldTranslation().subtract(p.initialPosition).divide(8f));
+			if (p.emitter.getApplyLightingTransform()) {
+				for (int v = 0; v < templateNormals.capacity(); v += 3) {
+					tempV3.set(templateNormals.get(v),templateNormals.get(v+1),templateNormals.get(v+2));
+
+					rotStore.fromAngles(p.angles.x, p.angles.y, p.angles.z);
+					mat3.set(rotStore.toRotationMatrix());
+					float vx = tempV3.x, vy = tempV3.y, vz = tempV3.z;
+					tempV3.x = mat3.get(0,0) * vx + mat3.get(0,1) * vy + mat3.get(0,2) * vz;
+					tempV3.y = mat3.get(1,0) * vx + mat3.get(1,1) * vy + mat3.get(1,2) * vz;
+					tempV3.z = mat3.get(2,0) * vx + mat3.get(2,1) * vy + mat3.get(2,2) * vz;
+
+					finNormals.put(offset+v, tempV3.getX());
+					finNormals.put(offset+v+1, tempV3.getY());
+					finNormals.put(offset+v+2, tempV3.getZ());
+				}
 			}
-			
-			positions.put(tempV3.x + left.x + up.x)
-                     .put(tempV3.y + left.y + up.y)
-                     .put(tempV3.z + left.z + up.z);
-
-            positions.put(tempV3.x - left.x + up.x)
-                     .put(tempV3.y - left.y + up.y)
-                     .put(tempV3.z - left.z + up.z);
-
-            positions.put(tempV3.x + left.x - up.x)
-                     .put(tempV3.y + left.y - up.y)
-                     .put(tempV3.z + left.z - up.z);
-
-            positions.put(tempV3.x - left.x - up.x)
-                     .put(tempV3.y - left.y - up.y)
-                     .put(tempV3.z - left.z - up.z);
-
-			if (uniqueTexCoords){
-				imgX = p.spriteCol;
-				imgY = p.spriteRow;
-
-				startX = 1f/imagesX*imgX;
-				startY = 1f/imagesY*imgY;
-				endX   = startX + 1f/imagesX;
-				endY   = startY + 1f/imagesY;
-
-				texcoords.put(startX).put(endY);
-				texcoords.put(endX).put(endY);
-				texcoords.put(startX).put(startY);
-				texcoords.put(endX).put(startY);
-			}
-
-            int abgr = p.color.asIntABGR();
-            colors.putInt(abgr);
-            colors.putInt(abgr);
-            colors.putInt(abgr);
-            colors.putInt(abgr);
-			*/
         }
 		
-			this.clearBuffer(VertexBuffer.Type.Position);
-			this.setBuffer(VertexBuffer.Type.Position,	3, finVerts);
-	//	this.setBuffer(VertexBuffer.Type.Position, 3, positions);
-    //    positions.clear();
-    //    colors.clear();
-    //    if (!uniqueTexCoords)
-    //        texcoords.clear();
-    //    else{
-    //        texcoords.clear();
-    //        tvb.updateData(texcoords);
-    //    }
-
-        // force renderer to re-send data to GPU
-    //    pvb.updateData(positions);
-    //    cvb.updateData(colors);
+		this.clearBuffer(VertexBuffer.Type.Position);
+		this.setBuffer(VertexBuffer.Type.Position, 3, finVerts);
+		this.setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
 		
 		updateBound();
     }
