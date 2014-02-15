@@ -115,7 +115,7 @@ public class SizeInfluencer implements ParticleInfluencer {
 	@Override
 	public void reset(ParticleData p) {
 		p.size.set(0,0,0);
-		p.startSize.set(.1f,.1f,.1f);
+		p.startSize.set(0f,0f,0f);
 		p.endSize.set(0,0,0);
 	}
 	
@@ -177,7 +177,7 @@ public class SizeInfluencer implements ParticleInfluencer {
 		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
 		int index = 0;
 		for (Interpolation in : interpolations.getArray()) {
-			interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index),null);
+			interps.put(in.name() + ":" + String.valueOf(index),null);
 			index++;
 		}
 		oc.writeStringSavableMap(interps, "interpolations", null);
@@ -194,7 +194,7 @@ public class SizeInfluencer implements ParticleInfluencer {
 		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
 		for (String in : interps.keySet()) {
 			String name = in.substring(0,in.indexOf(":"));
-			interpolations.add(Interpolation.getInterpolationByName(name));
+			interpolations.add(Interpolation.valueOf(name));
 		}
 		useRandomSize = ic.readBoolean("useRandomSize", false);
 		randomSizeTolerance = ic.readFloat("randomSizeTolerance", 0.5f);
