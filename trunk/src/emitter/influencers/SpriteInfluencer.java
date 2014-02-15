@@ -21,7 +21,6 @@ public class SpriteInfluencer implements ParticleInfluencer {
 	private boolean cycle = false;
 	private transient float targetInterval;
 	private int[] frameSequence = null;
-	private int frame;
 	
 	@Override
 	public void update(ParticleData p, float tpf) {
@@ -49,34 +48,36 @@ public class SpriteInfluencer implements ParticleInfluencer {
 			p.spriteIndex++;
 			if (p.spriteIndex == frameSequence.length)
 				p.spriteIndex = 0;
-			frame = frameSequence[p.spriteIndex];
-			p.spriteRow = (int)FastMath.floor(frame/p.emitter.getSpriteRowCount())-2;
-			p.spriteCol = (int)frame%p.emitter.getSpriteColCount();
+			p.spriteRow = (int)FastMath.floor(frameSequence[p.spriteIndex]/p.emitter.getSpriteRowCount())-2;
+			p.spriteCol = (int)frameSequence[p.spriteIndex]%p.emitter.getSpriteColCount();
 		}
 		p.spriteInterval -= targetInterval;
 	}
 	
 	@Override
 	public void initialize(ParticleData p) {
-		if (frameSequence != null) {
-			p.spriteIndex = 0;
-			frame = frameSequence[p.spriteIndex];
-			p.spriteRow = (int)FastMath.floor(frame/p.emitter.getSpriteRowCount())-2;
-			p.spriteCol = (int)frame%p.emitter.getSpriteColCount();
-		}
 		if (totalFrames == -1) {
 			totalFrames = p.emitter.getSpriteColCount()*p.emitter.getSpriteRowCount();
 			if (totalFrames == 1) setAnimate(false);
 		}
 		if (useRandomImage) {
 			if (frameSequence == null) {
-				p.spriteCol = FastMath.nextRandomInt(0,p.emitter.getSpriteColCount()-1);
-				p.spriteRow = FastMath.nextRandomInt(0,p.emitter.getSpriteRowCount()-1);
+				p.spriteCol = FastMath.rand.nextInt(p.emitter.getSpriteColCount());
+				p.spriteRow = FastMath.rand.nextInt(p.emitter.getSpriteRowCount());
 			} else {
 				p.spriteIndex = FastMath.nextRandomInt(0,frameSequence.length-1);
-				frame = frameSequence[p.spriteIndex];
-				p.spriteRow = (int)FastMath.floor(frame/p.emitter.getSpriteRowCount())-2;
-				p.spriteCol = (int)frame%p.emitter.getSpriteColCount();
+				p.spriteRow = (int)FastMath.floor(frameSequence[p.spriteIndex]/p.emitter.getSpriteRowCount())-2;
+				p.spriteCol = (int)frameSequence[p.spriteIndex]%p.emitter.getSpriteColCount();
+			}
+		} else {
+			if (frameSequence != null) {
+				p.spriteIndex = frameSequence[0];
+				p.spriteRow = (int)FastMath.floor(frameSequence[p.spriteIndex]/p.emitter.getSpriteRowCount())-2;
+				p.spriteCol = (int)frameSequence[p.spriteIndex]%p.emitter.getSpriteColCount();
+			} else {
+				p.spriteIndex = 0;
+				p.spriteRow = 0;
+				p.spriteCol = 0;
 			}
 		}
 		if (animate) {
