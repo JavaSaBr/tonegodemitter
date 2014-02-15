@@ -147,7 +147,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
 		Map<String,Vector2f> interps = new HashMap<String,Vector2f>();
 		index = 0;
 		for (Interpolation in : interpolations.getArray()) {
-			interps.put(in.name() + ":" + String.valueOf(index),null);
+			interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index),null);
 			index++;
 		}
 		oc.writeStringSavableMap(interps, "interpolations", null);
@@ -168,7 +168,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
 		Map<String,Vector2f> interps = (Map<String,Vector2f>)ic.readStringSavableMap("interpolations", null);
 		for (String in : interps.keySet()) {
 			String name = in.substring(0,in.indexOf(":"));
-			interpolations.add(Interpolation.valueOf(name));
+			interpolations.add(Interpolation.getInterpolationByName(name));
 		}
 		enabled = ic.readBoolean("enabled", true);
 		useRandomStartAlpha = ic.readBoolean("useRandomStartAlpha", false);
