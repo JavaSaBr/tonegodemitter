@@ -1,5 +1,8 @@
 package emitter;
 
+import com.jme3.animation.AnimChannel;
+import com.jme3.animation.AnimControl;
+import com.jme3.animation.LoopMode;
 import com.jme3.asset.AssetManager;
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
@@ -31,6 +34,7 @@ import emitter.influencers.ParticleInfluencer;
 import emitter.particle.ParticleData;
 import emitter.particle.ParticleDataMesh;
 import emitter.particle.ParticleDataPointMesh;
+import emitter.particle.ParticleDataTemplateMesh;
 import emitter.particle.ParticleDataTriMesh;
 import emitter.shapes.TriangleEmitterShape;
 import java.util.ArrayList;
@@ -145,6 +149,25 @@ public class Emitter implements Control, Cloneable {
 	
 	private boolean emitterInitialized = false;
 	
+	// Emitter animation
+	Node esAnimNode = null;
+	boolean esNodeExists = true;
+	AnimControl esAnimControl = null;
+	AnimChannel esAnimChannel = null;
+	String esAnimName = "";
+	float esAnimSpeed = 1;
+	float esAnimBlendTime = 1;
+	LoopMode esAnimLoopMode = LoopMode.Loop;
+	
+	// Particle animation
+	Node ptAnimNode = null;
+	AnimControl ptAnimControl = null;
+	AnimChannel ptAnimChannel = null;
+	String ptAnimName = "";
+	float ptAnimSpeed = 1;
+	float ptAnimBlendTime = 1;
+	LoopMode ptAnimLoopMode = LoopMode.Loop;
+	
 	/**
 	 * Creates a new instance of the Emitter
 	 */
@@ -181,6 +204,35 @@ public class Emitter implements Control, Cloneable {
 	}
 	
 	/**
+	 * Sets the mesh class used to create the particle mesh.
+	 * For example:
+	 * ParticleDataTemplateMesh.class - Uses a supplied mesh as a template for particles
+	 * NOTE: This method is supplied for use with animated particles.
+	 * @param <T>
+	 * @param t The Mesh class used to create the particle Mesh
+	 * @param template The Node to extract the template mesh used to define a single particle
+	 */
+	public <T extends ParticleDataMesh> void setParticleType(Class<T> t, Node template) {
+		if (ptAnimNode != null)
+			ptAnimNode.removeFromParent();
+		
+		this.particleType = t;
+		this.ptAnimNode = template;
+		this.template = ((Geometry)ptAnimNode.getChild(0)).getMesh();
+		ptAnimNode.setLocalScale(0);
+		
+		ptAnimControl = ptAnimNode.getControl(AnimControl.class);
+		if (ptAnimControl != null) {
+			ptAnimChannel = ptAnimControl.createChannel();
+		}
+		
+		if (emitterInitialized) {
+			if (getSpatial() != null)
+				((Node)spatial).attachChild(ptAnimNode);
+		}
+	}
+	
+	/**
 	 * Returns the Class defined for the particle type.
 	 * (ex. ParticleDataTriMesh.class - a quad-base particle)
 	 * @return 
@@ -195,6 +247,19 @@ public class Emitter implements Control, Cloneable {
 	 */
 	public Mesh getParticleMeshTemplate() {
 		return this.template;
+	}
+	
+	public void setParticleAnimation(String ptAnimName, float ptAnimSpeed, float ptAnimBlendTime, LoopMode ptAnimLoopMode) {
+		this.ptAnimName = ptAnimName;
+		this.ptAnimSpeed = ptAnimSpeed;
+		this.ptAnimBlendTime = ptAnimBlendTime;
+		this.ptAnimLoopMode = ptAnimLoopMode;
+		
+		if (emitterInitialized && ptAnimControl != null) {
+			ptAnimChannel.setAnim(ptAnimName, ptAnimBlendTime);
+			ptAnimChannel.setSpeed(ptAnimSpeed);
+			ptAnimChannel.setLoopMode(ptAnimLoopMode);
+		}
 	}
 	
 	/**
@@ -292,11 +357,67 @@ public class Emitter implements Control, Cloneable {
 	}
 	
 	/**
+	 * Sets the particle emitter shape to the specified mesh
+	 * NOTE: This method is supplied for use with animated emitter shapes.
+	 * @param n The node containing the Mesh used as the particle emitter shape
+	 * @param sceneAlreadyContainsEmitterShape Tells the emitter if shape is an asset that is already contained within the scene.  This allows you to manage animations via the asset in place of calling setEmitterAnimation
+	 */
+	public final void setShape(Node n, boolean sceneAlreadyContainsEmitterShape) {
+		if (esAnimNode != null)
+			esAnimNode.removeFromParent();
+		
+		esAnimNode = n;
+		esNodeExists = sceneAlreadyContainsEmitterShape;
+		if (!esNodeExists)
+			esAnimNode.setLocalScale(0);
+		
+		Mesh shape = ((Geometry)n.getChild(0)).getMesh();
+		setShape(shape);
+		
+		esAnimControl = esAnimNode.getControl(AnimControl.class);
+		if (esAnimControl != null) {
+			esAnimChannel = esAnimControl.createChannel();
+		}
+		
+		if (emitterInitialized) {
+			if (getSpatial() != null)
+				((Node)spatial).attachChild(esAnimNode);
+		}
+	}
+	
+	/**
 	 * Returns the current ParticleData Emitter's EmitterMesh
 	 * @return The EmitterMesh containing the specified shape Mesh
 	 */
 	public EmitterMesh getShape() {
 		return emitterShape;
+	}
+	
+	/**
+	 * Returns if the current emitter shape has an associated animation Control
+	 * @return 
+	 */
+	public boolean getIsShapeAnimated() {
+		return !(esAnimControl == null);
+	}
+	
+	/**
+	 * Called to set the emitter shape's animation IF the emitter shape is not pointing to a scene asset
+	 * @param esAnimName The String name of the animation
+	 * @param esAnimSpeed The speed at which the animation should run
+	 * @param esAnimBlendTime The blend time to use when switching animations
+	 */
+	public void setEmitterAnimation(String esAnimName, float esAnimSpeed, float esAnimBlendTime, LoopMode esAnimLoopMode) {
+		this.esAnimName = esAnimName;
+		this.esAnimSpeed = esAnimSpeed;
+		this.esAnimBlendTime = esAnimBlendTime;
+		this.esAnimLoopMode = esAnimLoopMode;
+		
+		if (emitterInitialized && esAnimControl != null) {
+			esAnimChannel.setAnim(esAnimName, esAnimBlendTime);
+			esAnimChannel.setSpeed(esAnimSpeed);
+			esAnimChannel.setLoopMode(esAnimLoopMode);
+		}
 	}
 	
 	/**
@@ -966,18 +1087,23 @@ public class Emitter implements Control, Cloneable {
 			int width = img.getWidth();
 			int height = img.getHeight();
 			
-		//	if (spriteWidth != -1 && spriteHeight != -1) {
-		//		spriteCols = (int)(width/spriteWidth);
-		//		spriteRows = (int)(height/spriteHeight);
-		//	} else {
-				spriteWidth = width/spriteCols;
-				spriteHeight = height/spriteRows;
-		//	}
-
-			if (emitterInitialized) {
-				mesh.setImagesXY(spriteCols,spriteRows);
-				requiresUpdate = true;
+			spriteWidth = width/spriteCols;
+			spriteHeight = height/spriteRows;
+			
+			if (esAnimControl != null) {
+				if (!esAnimName.equals("")) {
+					esAnimChannel.setAnim(esAnimName, esAnimBlendTime);
+					esAnimChannel.setSpeed(esAnimSpeed);
+				}
 			}
+
+			if (ptAnimControl != null) {
+				if (!ptAnimName.equals("")) {
+					ptAnimChannel.setAnim(ptAnimName, ptAnimBlendTime);
+					ptAnimChannel.setSpeed(ptAnimSpeed);
+				}
+			}
+			
 			if (particleNode.getChildren().isEmpty()) {
 				Geometry geom = new Geometry();
 				geom.setMesh(mesh);
@@ -1007,12 +1133,20 @@ public class Emitter implements Control, Cloneable {
 	public void setSpatial(Spatial spatial) {
 		if (spatial != null) {
 			((Node)spatial).attachChild(particleNode);
+			if (esAnimControl != null && !esNodeExists)
+				((Node)spatial).attachChild(esAnimNode);
+			if (ptAnimControl != null)
+				((Node)spatial).attachChild(ptAnimNode);
 			if (TEST_EMITTER)
 				((Node)spatial).attachChild(emitterTestNode);
 			if (TEST_PARTICLES)
 				((Node)spatial).attachChild(particleTestNode);
 		} else {
 			particleNode.removeFromParent();
+			if (esAnimNode != null)
+				esAnimNode.removeFromParent();
+			if (ptAnimNode != null)
+				ptAnimNode.removeFromParent();
 			emitterTestNode.removeFromParent();
 			particleTestNode.removeFromParent();
 		}
@@ -1272,10 +1406,26 @@ public class Emitter implements Control, Cloneable {
 		oc.writeSavableArrayList(new ArrayList(influencers), "influencers", null);
 		
 		oc.write(name, "name", null);
+		
+		// Emitter shape
 		oc.write(emitterShape.getMesh(), "emitterShape", new TriangleEmitterShape(1));
+		
+		// Particle mesh
+		oc.write(particleType.getName(), "particleType", ParticleDataTriMesh.class.getName());
 		oc.write(template, "template", null);
 		
-		oc.write(particleType.getName(), "particleType", ParticleDataTriMesh.class.getName());
+		// Emitter animation
+		oc.write(esAnimNode, "esAnimNode", null);
+		oc.write(esNodeExists, "esNodeExists", true);
+		oc.write(esAnimName, "esAnimName", "");
+		oc.write(esAnimSpeed, "esAnimSpeed", 1);
+		oc.write(esAnimBlendTime, "esAnimBlendTime", 1);
+		
+		// Particle animation
+		oc.write(ptAnimNode, "ptAnimNode", null);
+		oc.write(ptAnimName, "ptAnimName", "");
+		oc.write(ptAnimSpeed, "ptAnimSpeed", 1);
+		oc.write(ptAnimBlendTime, "ptAnimBlendTime", 1);
 		
 		oc.write(maxParticles, "maxParticles", 30);
 		oc.write(emissionsPerSecond, "emissionsPerSecond", 20);
@@ -1321,16 +1471,48 @@ public class Emitter implements Control, Cloneable {
 		
 		name = ic.readString("name", generateName());
 		
-		Mesh eShape = (Mesh)ic.readSavable("emitterShape", new TriangleEmitterShape(1));
-		setShape(eShape);
+		// Reconstruct particle mesh
 		try {
 			particleType = Class.forName(ic.readString("particleType", ParticleDataTriMesh.class.getName()));
 		} catch (IOException | ClassNotFoundException ex) {
 			particleType = ParticleDataTriMesh.class;
 		}
 		template = (Mesh)ic.readSavable("template", null);
+		Node ptAnimN = (Node)ic.readSavable("ptAnimNode", null);
 		
+		if (ptAnimN == null)
+			setParticleType(particleType, template);
+		else
+			setParticleType(particleType, ptAnimN);
 		initParticles(particleType, template);
+		
+		// Reconstruct emitter shape
+		Mesh eShape = (Mesh)ic.readSavable("emitterShape", new TriangleEmitterShape(1));
+		Node esAnimN = (Node)ic.readSavable("esAnimNode", null);
+		boolean esNExists = ic.readBoolean("esNodeExists", true);
+		
+		if (esAnimN == null)
+			setShape(eShape);
+		else
+			setShape(esAnimN, esNExists);
+		
+		// Emitter animation
+		String esAName = ic.readString("esAnimName", "");
+		float esASpeed = ic.readFloat("esAnimSpeed", 1);
+		float esABlendTime = ic.readFloat("esAnimBlendTime", 1);
+		LoopMode esALoop = LoopMode.valueOf(ic.readString("esAnimLoopMode", LoopMode.Loop.name()));
+		
+		if (!esAName.equals("") && esAnimControl != null)
+			setEmitterAnimation(esAName, esASpeed, esABlendTime, esALoop);
+		
+		// Particle animation
+		String ptAName = ic.readString("ptAnimName", "");
+		float ptASpeed = ic.readFloat("ptAnimSpeed", 1);
+		float ptABlendTime = ic.readFloat("ptAnimBlendTime", 1);
+		LoopMode ptALoop = LoopMode.valueOf(ic.readString("ptAnimLoopMode", LoopMode.Loop.name()));
+		
+		if (!ptAName.equals("") && ptAnimControl != null)
+			setParticleAnimation(ptAName, ptASpeed, ptABlendTime, ptALoop);
 		
 		maxParticles = ic.readInt("maxParticles", 30);
 		int emsPerSec = ic.readInt("emissionsPerSecond", 20);
