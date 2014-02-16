@@ -156,139 +156,151 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
+				/*
+				if (uniqueTexCoords){
+					startX = 1f/p.emitter.getSpriteColCount()*p.spriteCol;
+					startY = 1f/p.emitter.getSpriteRowCount()*p.spriteRow;
+					endX   = startX + 1f/p.emitter.getSpriteColCount();
+					endY   = startY + 1f/p.emitter.getSpriteRowCount();
+
+					texcoords.put(startX).put(endY);
+					texcoords.put(endX).put(endY);
+					texcoords.put(startX).put(startY);
+					texcoords.put(endX).put(startY);
+				}
 				
-				texcoords.put(0).put(0)
-						.put(0).put(0)
-						.put(0).put(0)
-						.put(0).put(0);
-				
-				colors.putInt(0)
-						.putInt(0)
-						.putInt(0)
-						.putInt(0);
+				tempC.set(p.color);
+				tempC.a *= p.alpha;
+				int abgr = tempC.asIntABGR();
+				colors.putInt(abgr);
+				colors.putInt(abgr);
+				colors.putInt(abgr);
+				colors.putInt(abgr);
                 continue;
-            }
+				*/
+            } else {
 			
-			switch (emitter.getBillboardMode()) {
-				case Velocity:
-					if (p.velocity.x != Vector3f.UNIT_Y.x &&
-						p.velocity.y != Vector3f.UNIT_Y.y &&
-						p.velocity.z != Vector3f.UNIT_Y.z)
+				switch (emitter.getBillboardMode()) {
+					case Velocity:
+						if (p.velocity.x != Vector3f.UNIT_Y.x &&
+							p.velocity.y != Vector3f.UNIT_Y.y &&
+							p.velocity.z != Vector3f.UNIT_Y.z)
+							up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+						else
+							up.set(p.velocity).crossLocal(lock).normalizeLocal();
+						left.set(p.velocity).crossLocal(up).normalizeLocal();
+						dir.set(p.velocity);
+						break;
+					case Velocity_Z_Up:
+						if (p.velocity.x != Vector3f.UNIT_Y.x &&
+							p.velocity.y != Vector3f.UNIT_Y.y &&
+							p.velocity.z != Vector3f.UNIT_Y.z)
+							up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+						else
+							up.set(p.velocity).crossLocal(lock).normalizeLocal();
+						left.set(p.velocity).crossLocal(up).normalizeLocal();
+						dir.set(p.velocity);
+						rotStore = tempQ.fromAngleAxis(-90*FastMath.DEG_TO_RAD, left);
+						left = rotStore.mult(left);
+						up = rotStore.mult(up);
+						break;
+					case Velocity_Z_Up_Y_Left:
 						up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-					else
-						up.set(p.velocity).crossLocal(lock).normalizeLocal();
-					left.set(p.velocity).crossLocal(up).normalizeLocal();
-					dir.set(p.velocity);
-					break;
-				case Velocity_Z_Up:
-					if (p.velocity.x != Vector3f.UNIT_Y.x &&
-						p.velocity.y != Vector3f.UNIT_Y.y &&
-						p.velocity.z != Vector3f.UNIT_Y.z)
-						up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-					else
-						up.set(p.velocity).crossLocal(lock).normalizeLocal();
-					left.set(p.velocity).crossLocal(up).normalizeLocal();
-					dir.set(p.velocity);
-					rotStore = tempQ.fromAngleAxis(-90*FastMath.DEG_TO_RAD, left);
-					left = rotStore.mult(left);
-					up = rotStore.mult(up);
-					break;
-				case Velocity_Z_Up_Y_Left:
-					up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-					left.set(p.velocity).crossLocal(up).normalizeLocal();
-					dir.set(p.velocity);
-					tempV3.set(left).crossLocal(up).normalizeLocal();
-					rotStore = tempQ.fromAngleAxis(90*FastMath.DEG_TO_RAD, p.velocity);
-					left = rotStore.mult(left);
-					up = rotStore.mult(up);
-					rotStore = tempQ.fromAngleAxis(-90*FastMath.DEG_TO_RAD, left);
-					up = rotStore.mult(up);
-					break;
-				case Normal:
-					emitter.getShape().setNext(p.triangleIndex);
-					tempV3.set(emitter.getShape().getNormal());
-					if (tempV3 == Vector3f.UNIT_Y)
+						left.set(p.velocity).crossLocal(up).normalizeLocal();
+						dir.set(p.velocity);
+						tempV3.set(left).crossLocal(up).normalizeLocal();
+						rotStore = tempQ.fromAngleAxis(90*FastMath.DEG_TO_RAD, p.velocity);
+						left = rotStore.mult(left);
+						up = rotStore.mult(up);
+						rotStore = tempQ.fromAngleAxis(-90*FastMath.DEG_TO_RAD, left);
+						up = rotStore.mult(up);
+						break;
+					case Normal:
+						emitter.getShape().setNext(p.triangleIndex);
+						tempV3.set(emitter.getShape().getNormal());
+						if (tempV3 == Vector3f.UNIT_Y)
+							tempV3.set(p.velocity);
+
+						up.set(tempV3).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+						left.set(tempV3).crossLocal(up).normalizeLocal();
+						dir.set(tempV3);
+						break;
+					case Normal_Y_Up:
+						emitter.getShape().setNext(p.triangleIndex);
 						tempV3.set(p.velocity);
-					
-					up.set(tempV3).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-					left.set(tempV3).crossLocal(up).normalizeLocal();
-					dir.set(tempV3);
-					break;
-				case Normal_Y_Up:
-					emitter.getShape().setNext(p.triangleIndex);
-					tempV3.set(p.velocity);
-					if (tempV3 == Vector3f.UNIT_Y)
-						tempV3.set(Vector3f.UNIT_X);
-					
-					up.set(Vector3f.UNIT_Y);
-					left.set(tempV3).crossLocal(up).normalizeLocal();
-					dir.set(tempV3);
-					break;
-				case Camera:
-					up.set(cam.getUp());
-					left.set(cam.getLeft());
-					dir.set(cam.getDirection());
-					break;
-				case UNIT_X:
-					up.set(Vector3f.UNIT_Y);
-					left.set(Vector3f.UNIT_Z);
-					dir.set(Vector3f.UNIT_X);
-					break;
-				case UNIT_Y:
-					up.set(Vector3f.UNIT_Z);
-					left.set(Vector3f.UNIT_X);
-					dir.set(Vector3f.UNIT_Y);
-					break;
-				case UNIT_Z:
-					up.set(Vector3f.UNIT_X);
-					left.set(Vector3f.UNIT_Y);
-					dir.set(Vector3f.UNIT_Z);
-					break;
+						if (tempV3 == Vector3f.UNIT_Y)
+							tempV3.set(Vector3f.UNIT_X);
+
+						up.set(Vector3f.UNIT_Y);
+						left.set(tempV3).crossLocal(up).normalizeLocal();
+						dir.set(tempV3);
+						break;
+					case Camera:
+						up.set(cam.getUp());
+						left.set(cam.getLeft());
+						dir.set(cam.getDirection());
+						break;
+					case UNIT_X:
+						up.set(Vector3f.UNIT_Y);
+						left.set(Vector3f.UNIT_Z);
+						dir.set(Vector3f.UNIT_X);
+						break;
+					case UNIT_Y:
+						up.set(Vector3f.UNIT_Z);
+						left.set(Vector3f.UNIT_X);
+						dir.set(Vector3f.UNIT_Y);
+						break;
+					case UNIT_Z:
+						up.set(Vector3f.UNIT_X);
+						left.set(Vector3f.UNIT_Y);
+						dir.set(Vector3f.UNIT_Z);
+						break;
+				}
+
+				p.upVec.set(up);
+
+				if (p.emitter.getUseVelocityStretching()) {
+					up.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
+				}
+
+				up.multLocal(p.size.y);
+				left.multLocal(p.size.x);
+
+				rotStore = tempQ.fromAngleAxis(p.angles.y, left);
+				left = rotStore.mult(left);
+				up = rotStore.mult(up);
+
+				rotStore = tempQ.fromAngleAxis(p.angles.x, up);
+				left = rotStore.mult(left);
+				up = rotStore.mult(up);
+
+				rotStore = tempQ.fromAngleAxis(p.angles.z, dir);
+				left = rotStore.mult(left);
+				up = rotStore.mult(up);
+
+				if (emitter.getParticlesFollowEmitter()) {
+					tempV3.set(p.position);
+				} else {
+					tempV3.set(p.position).subtractLocal(emitter.getEmitterNode().getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
+				}
+
+				positions.put(tempV3.x + left.x + up.x)
+						 .put(tempV3.y + left.y + up.y)
+						 .put(tempV3.z + left.z + up.z);
+
+				positions.put(tempV3.x - left.x + up.x)
+						 .put(tempV3.y - left.y + up.y)
+						 .put(tempV3.z - left.z + up.z);
+
+				positions.put(tempV3.x + left.x - up.x)
+						 .put(tempV3.y + left.y - up.y)
+						 .put(tempV3.z + left.z - up.z);
+
+				positions.put(tempV3.x - left.x - up.x)
+						 .put(tempV3.y - left.y - up.y)
+						 .put(tempV3.z - left.z - up.z);
 			}
 			
-			p.upVec.set(up);
-			
-			if (p.emitter.getUseVelocityStretching()) {
-				up.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
-			}
-			
-			up.multLocal(p.size.y);
-			left.multLocal(p.size.x);
-			
-			rotStore = tempQ.fromAngleAxis(p.angles.y, left);
-			left = rotStore.mult(left);
-			up = rotStore.mult(up);
-
-			rotStore = tempQ.fromAngleAxis(p.angles.x, up);
-			left = rotStore.mult(left);
-			up = rotStore.mult(up);
-
-			rotStore = tempQ.fromAngleAxis(p.angles.z, dir);
-			left = rotStore.mult(left);
-			up = rotStore.mult(up);
-			
-			if (emitter.getParticlesFollowEmitter()) {
-				tempV3.set(p.position);
-			} else {
-				tempV3.set(p.position).subtractLocal(emitter.getEmitterNode().getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
-			}
-			
-			positions.put(tempV3.x + left.x + up.x)
-                     .put(tempV3.y + left.y + up.y)
-                     .put(tempV3.z + left.z + up.z);
-
-            positions.put(tempV3.x - left.x + up.x)
-                     .put(tempV3.y - left.y + up.y)
-                     .put(tempV3.z - left.z + up.z);
-
-            positions.put(tempV3.x + left.x - up.x)
-                     .put(tempV3.y + left.y - up.y)
-                     .put(tempV3.z + left.z - up.z);
-
-            positions.put(tempV3.x - left.x - up.x)
-                     .put(tempV3.y - left.y - up.y)
-                     .put(tempV3.z - left.z - up.z);
-
 			if (uniqueTexCoords){
 				startX = 1f/p.emitter.getSpriteColCount()*p.spriteCol;
 				startY = 1f/p.emitter.getSpriteRowCount()*p.spriteRow;
