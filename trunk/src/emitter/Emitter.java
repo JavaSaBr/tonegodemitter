@@ -1197,12 +1197,20 @@ public class Emitter implements Control, Cloneable {
 		return this.particleNode;
 	}
 	
+	public Node getParticleTestNode() {
+		return this.particleTestNode;
+	}
+	
 	/**
 	 * Returns the node containing the emitter transform information
 	 * @return The node containing the emitter transform information
 	 */
 	public Node getEmitterNode() {
 		return this.emitterNode;
+	}
+	
+	public Node getEmitterTestNode() {
+		return this.emitterTestNode;
 	}
 	
 	@Override
@@ -1227,6 +1235,8 @@ public class Emitter implements Control, Cloneable {
 		}
 		if (emitterInitialized && (enabled || postRequiresUpdate)) {
 			((Geometry)particleNode.getChild(0)).updateModelBound();
+			if (TEST_PARTICLES)
+				((Geometry)particleTestNode.getChild(0)).updateModelBound();
 			postRequiresUpdate = false;
 		}
 	}
