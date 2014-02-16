@@ -821,47 +821,6 @@ public class Emitter implements Control, Cloneable {
 	
 	//<editor-fold desc="Material & Particle Texture">
 	/**
-	 * Sets the texture to be used by particles, this can contain multiple images for random image selection or sprite animation of particles.
-	 * @param texturePath The path of the texture to use
-	 * @param spriteFrameWidth The width in pixels of a single sprite frame
-	 * @param spriteFrameHeight The height in pixels of a single sprite frame
-	 */
-	public void setSpriteBySize(String texturePath, float spriteFrameWidth, float spriteFrameHeight) {
-		setSpriteBySize(texturePath, uniformName, spriteFrameWidth, spriteFrameHeight);
-	}
-	
-	/**
-	 * Sets the texture to be used by particles, this can contain multiple images for random image selection or sprite animation of particles.
-	 * @param texturePath The path of the texture to use
-	 * @param uniformName The uniform name used when setting the particle texture
-	 * @param spriteFrameWidth The width in pixels of a single sprite frame
-	 * @param spriteFrameHeight The height in pixels of a single sprite frame
-	 */
-	public void setSpriteBySize(String texturePath, String uniformName, float spriteFrameWidth, float spriteFrameHeight) {
-		this.texturePath = texturePath;
-		this.spriteWidth = spriteFrameWidth;
-		this.spriteHeight = spriteFrameHeight;
-		this.uniformName = uniformName;
-		
-		if (emitterInitialized) {
-			tex = assetManager.loadTexture(texturePath);
-			tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-			tex.setMagFilter(Texture.MagFilter.Bilinear);
-			mat.setTexture(uniformName, tex);
-
-			Image img = tex.getImage();
-			int width = img.getWidth();
-			int height = img.getHeight();
-
-			spriteCols = (int)(width/spriteFrameWidth);
-			spriteRows = (int)(height/spriteFrameHeight);
-			
-			mesh.setImagesXY(spriteCols,spriteRows);
-			requiresUpdate = true;
-		}
-	}
-	
-	/**
 	 * Sets the texture to be used by particles, when calling this method, it is assumed that the image
 	 * does not contain multiple sprite images
 	 * @param texturePath The path of the texture to use
@@ -1569,36 +1528,7 @@ public class Emitter implements Control, Cloneable {
 
 	@Override
 	public Control cloneForSpatial(Spatial spatial) {
-		Emitter clone = new Emitter();
-		clone.setMaxParticles(maxParticles);
-		clone.setShape(emitterShape.getMesh());
-		clone.setParticleType(particleType, template);
-		clone.setInterpolation(getInterpolation());
-		clone.setForceMinMax(forceMin, forceMax);
-		clone.setLifeMinMax(lifeMin, lifeMax);
-		clone.setEmissionsPerSecond(emissionsPerSecond);
-		clone.setParticlesPerEmission(particlesPerEmission);
-		clone.setUseRandomEmissionPoint(useRandomEmissionPoint);
-		clone.setUseSequentialEmissionFace(useSequentialEmissionFace);
-		clone.setUseSequentialSkipPattern(useSequentialSkipPattern);
-		clone.setParticlesFollowEmitter(particlesFollowEmitter);
-		clone.setUseStaticParticles(useStaticParticles);
-		clone.setUseVelocityStretching(useVelocityStretching);
-		clone.setVelocityStretchFactor(velocityStretchFactor);
-		clone.setForcedStretchAxis(stretchAxis);
-		clone.setParticleEmissionPoint(particleEmissionPoint);
-		clone.setBillboardMode(billboardMode);
-		clone.setEmitterTestMode(TEST_EMITTER, TEST_PARTICLES);
-		
-		for (ParticleInfluencer inf : influencers) {
-			clone.addInfluencer(inf.clone());
-		}
-		
-	//	clone.initParticles(mesh.getClass(), template);
-		clone.setSprite(texturePath, spriteCols, spriteRows);
-		clone.initialize(assetManager);
-		clone.setEnabled(enabled);
-		
+		Emitter clone = clone();
 		clone.setSpatial(spatial);
 		return clone;
 	}
@@ -1607,8 +1537,16 @@ public class Emitter implements Control, Cloneable {
 	public Emitter clone() {
 		Emitter clone = new Emitter();
 		clone.setMaxParticles(maxParticles);
-		clone.setShape(emitterShape.getMesh());
-		clone.setParticleType(particleType, template);
+		if (esAnimNode != null) {
+			clone.setShape(esAnimNode, this.esNodeExists);
+			clone.setEmitterAnimation(esAnimName, esAnimSpeed, esAnimBlendTime, esAnimLoopMode);
+		} else
+			clone.setShape(emitterShape.getMesh());
+		if (ptAnimNode != null) {
+			clone.setParticleType(particleType, ptAnimNode);
+			clone.setParticleAnimation(ptAnimName, ptAnimSpeed, ptAnimBlendTime, ptAnimLoopMode);
+		} else
+			clone.setParticleType(particleType, template);
 		clone.setInterpolation(getInterpolation());
 		clone.setForceMinMax(forceMin, forceMax);
 		clone.setLifeMinMax(lifeMin, lifeMax);
