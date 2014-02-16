@@ -239,7 +239,6 @@ public class ParticleData {
 				emitter.getShape().getNextTranslation().add(randomOffset)
 			);
 		}
-		
 		velocity.set(
 			emitter.getShape().getNextDirection()
 		).normalizeLocal().multLocal(force);
@@ -248,6 +247,11 @@ public class ParticleData {
 		initialPosition.set(
 			emitter.getParticleNode().getWorldTranslation()
 		);
+		
+	//	spriteIndex = 0;
+	//	spriteCol = 0;
+	//	spriteRow = 0;
+		
 		for (ParticleInfluencer influencer : emitter.getInfluencers()) {
 			influencer.initialize(this);
 		}

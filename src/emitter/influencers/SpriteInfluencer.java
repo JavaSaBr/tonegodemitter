@@ -62,11 +62,14 @@ public class SpriteInfluencer implements ParticleInfluencer {
 		}
 		if (useRandomImage) {
 			if (frameSequence == null) {
-				p.spriteCol = FastMath.rand.nextInt(p.emitter.getSpriteColCount());
-				p.spriteRow = FastMath.rand.nextInt(p.emitter.getSpriteRowCount());
+				p.spriteIndex = FastMath.nextRandomInt(0,totalFrames-1);
+				p.spriteRow = (int)FastMath.floor(p.spriteIndex/p.emitter.getSpriteRowCount())-1;
+				p.spriteCol = (int)p.spriteIndex%p.emitter.getSpriteColCount();
+			//	p.spriteCol = FastMath.nextRandomInt(0,frameSequence.length-1);
+			//	p.spriteRow = FastMath.nextRandomInt(0,frameSequence.length-1);
 			} else {
 				p.spriteIndex = FastMath.nextRandomInt(0,frameSequence.length-1);
-				p.spriteRow = (int)FastMath.floor(frameSequence[p.spriteIndex]/p.emitter.getSpriteRowCount())-2;
+				p.spriteRow = (int)FastMath.floor(frameSequence[p.spriteIndex]/p.emitter.getSpriteRowCount())-1;
 				p.spriteCol = (int)frameSequence[p.spriteIndex]%p.emitter.getSpriteColCount();
 			}
 		} else {
@@ -93,6 +96,7 @@ public class SpriteInfluencer implements ParticleInfluencer {
 
 	@Override
 	public void reset(ParticleData p) {
+		p.spriteIndex = 0;
 		p.spriteCol = 0;
 		p.spriteRow = 0;
 	}
