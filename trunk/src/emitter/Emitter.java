@@ -34,7 +34,6 @@ import emitter.influencers.ParticleInfluencer;
 import emitter.particle.ParticleData;
 import emitter.particle.ParticleDataMesh;
 import emitter.particle.ParticleDataPointMesh;
-import emitter.particle.ParticleDataTemplateMesh;
 import emitter.particle.ParticleDataTriMesh;
 import emitter.shapes.TriangleEmitterShape;
 import java.util.ArrayList;

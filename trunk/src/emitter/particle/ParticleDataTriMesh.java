@@ -156,6 +156,16 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
+				
+				texcoords.put(0).put(0)
+						.put(0).put(0)
+						.put(0).put(0)
+						.put(0).put(0);
+				
+				colors.putInt(0)
+						.putInt(0)
+						.putInt(0)
+						.putInt(0);
                 continue;
             }
 			
@@ -280,14 +290,11 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                      .put(tempV3.z - left.z - up.z);
 
 			if (uniqueTexCoords){
-				imgX = p.spriteCol;
-				imgY = p.spriteRow;
-
-				startX = 1f/imagesX*imgX;
-				startY = 1f/imagesY*imgY;
-				endX   = startX + 1f/imagesX;
-				endY   = startY + 1f/imagesY;
-
+				startX = 1f/p.emitter.getSpriteColCount()*p.spriteCol;
+				startY = 1f/p.emitter.getSpriteRowCount()*p.spriteRow;
+				endX   = startX + 1f/p.emitter.getSpriteColCount();
+				endY   = startY + 1f/p.emitter.getSpriteRowCount();
+				
 				texcoords.put(startX).put(endY);
 				texcoords.put(endX).put(endY);
 				texcoords.put(startX).put(startY);
