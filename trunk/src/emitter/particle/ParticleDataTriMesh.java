@@ -31,6 +31,8 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
 	private Vector3f up = new Vector3f(), tempUp = new Vector3f();
 	private Vector3f dir = new Vector3f();
 	private Vector3f tempV3 = new Vector3f();
+	private Vector3f tempV3a = new Vector3f();
+	private Vector3f tempV3b = new Vector3f();
 	private Quaternion rotStore = new Quaternion();
 	private Quaternion tempQ = new Quaternion();
 	private int imgX, imgY;
@@ -281,7 +283,9 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
 				if (emitter.getParticlesFollowEmitter()) {
 					tempV3.set(p.position);
 				} else {
-					tempV3.set(p.position).subtractLocal(emitter.getEmitterNode().getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
+					tempV3.set(p.position).subtractLocal(
+						emitter.getEmitterNode().getWorldTranslation().subtract(p.initialPosition)
+					);
 				}
 
 				positions.put(tempV3.x + left.x + up.x)

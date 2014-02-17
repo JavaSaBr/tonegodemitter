@@ -45,6 +45,7 @@ public class ParticleData {
 	/**
 	 * The position of the emitter when the particle was released.
 	 */
+	public final Vector3f emitterPosition = new Vector3f();
 	public final Vector3f initialPosition = new Vector3f();
 	public final Vector3f randomOffset = new Vector3f();
     
@@ -245,9 +246,8 @@ public class ParticleData {
 		
 		initialLength = velocity.length();
 		initialPosition.set(
-			emitter.getParticleNode().getWorldTranslation()
+			emitter.getEmitterNode().getWorldTranslation()
 		);
-		
 	//	spriteIndex = 0;
 	//	spriteCol = 0;
 	//	spriteRow = 0;
