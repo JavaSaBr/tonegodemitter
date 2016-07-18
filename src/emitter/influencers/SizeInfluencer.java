@@ -43,7 +43,7 @@ public class SizeInfluencer implements ParticleInfluencer {
 			
 			blend = p.sizeInterpolation.apply(p.sizeInterval/p.sizeDuration);
 			
-			p.size.interpolate(p.startSize, p.endSize, blend);
+			p.size.interpolateLocal(p.startSize, p.endSize, blend);
 		}
 	}
 	

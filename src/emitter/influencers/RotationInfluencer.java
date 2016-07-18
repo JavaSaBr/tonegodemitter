@@ -50,7 +50,7 @@ public class RotationInfluencer implements ParticleInfluencer {
 
 				blend = p.rotationInterpolation.apply(p.rotationInterval/p.rotationDuration);
 				
-				p.rotationSpeed.interpolate(p.startRotationSpeed, p.endRotationSpeed, blend);
+				p.rotationSpeed.interpolateLocal(p.startRotationSpeed, p.endRotationSpeed, blend);
 			}
 			p.angles.addLocal(p.rotationSpeed.mult(tpf));
 		}

@@ -49,7 +49,7 @@ public class ColorInfluencer implements ParticleInfluencer {
 			else
 				endColor.set(colors.getArray()[p.colorIndex+1]);
 			
-			p.color.interpolate(startColor, endColor, blend);
+			p.color.interpolateLocal(startColor, endColor, blend);
 		}
 	}
 	

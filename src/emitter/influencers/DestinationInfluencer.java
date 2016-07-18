@@ -48,7 +48,7 @@ public class DestinationInfluencer implements ParticleInfluencer {
 			
 			weight = weights.getArray()[p.destinationIndex];
 			
-			p.velocity.interpolate(destinationDir, blend*tpf*(weight*10));
+			p.velocity.interpolateLocal(destinationDir, blend*tpf*(weight*10));
 		}
 	}
 	

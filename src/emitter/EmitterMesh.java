@@ -154,9 +154,9 @@ public class EmitterMesh {
 				break;
 		}
 		
-		a.interpolate(p1, p2, 1f-FastMath.rand.nextFloat());
-		b.interpolate(p1, p3, 1f-FastMath.rand.nextFloat());
-		result.interpolate(a,b,FastMath.rand.nextFloat());
+		a.interpolateLocal(p1, p2, 1f-FastMath.rand.nextFloat());
+		b.interpolateLocal(p1, p3, 1f-FastMath.rand.nextFloat());
+		result.interpolateLocal(a,b,FastMath.rand.nextFloat());
 		
 		return result;
 	}
