@@ -21,13 +21,10 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
-import com.jme3.scene.control.Control;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.util.SafeArrayList;
 import com.jme3.util.clone.Cloner;
-import com.jme3.util.clone.IdentityCloneFunction;
 import com.jme3.util.clone.JmeCloneable;
 
 import java.io.IOException;
@@ -105,9 +102,6 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
 
     Class particleType = ParticleDataTriMesh.class;
 
-    private Spatial spatial;
-    private String name;
-
     EmitterMesh emitterShape = new EmitterMesh();
 
     ParticleDataMesh mesh;
@@ -118,6 +112,7 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
     SafeArrayList<ParticleInfluencer> influencers = new SafeArrayList(ParticleInfluencer.class);
 
     protected EmitterNode emitterTestNode, particleTestNode;
+    protected EmitterNode particleNode;
 
     // ParticleData info
     private int maxParticles;
@@ -220,8 +215,14 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
      * Creates a new instance of the Emitter
      */
     public Emitter() {
-        emitterTestNode = new EmitterNode(this);
-        particleTestNode = new EmitterNode(this);
+        this.emitterTestNode = new EmitterNode(this);
+        this.particleTestNode = new EmitterNode(this);
+        this.particleNode = new EmitterNode(this);
+        attachChild(particleNode);
+    }
+
+    public EmitterNode getParticleNode() {
+        return particleNode;
     }
 
     /**
@@ -269,7 +270,7 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
         }
 
         if (emitterInitialized) {
-            if (getSpatial() != null) ((Node) spatial).attachChild(ptAnimNode);
+            attachChild(ptAnimNode);
         }
     }
 
@@ -311,26 +312,6 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
         if (emitterInitialized) {
             // rebuild emitter
         }
-    }
-
-    /**
-     * Set the user defined name of the influencer.  This is used in naming The Nodes generated for
-     * the emitter shape, particle node, and both test nodes. NOTE: If no name is set, a unique name
-     * is generated for the emitter.
-     *
-     * @param name The String name for the influencer
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * Returns the name of the emitter.
-     *
-     * @return The String name of the emitter
-     */
-    public String getName() {
-        return this.name;
     }
 
     private String generateName() {
@@ -431,8 +412,7 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
         }
 
         if (emitterInitialized) {
-            if (getSpatial() != null)
-                ((Node) spatial).attachChild(esAnimNode);
+            attachChild(esAnimNode);
         }
     }
 
@@ -1008,7 +988,7 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
      * Returns the current material used by the emitter.
      */
     public Material getMaterial() {
-        return this.mat;
+        return mat;
     }
 
     /**
@@ -1018,6 +998,7 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
      *
      * @param mat The material
      */
+    @Override
     public void setMaterial(Material mat) {
         setMaterial(mat, false);
     }
@@ -1067,10 +1048,8 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
             mat.setTexture(uniformName, tex);
         }
 
-        if (particleNode != null) {
-            particleNode.setMaterial(mat);
-            requiresUpdate = true;
-        }
+        particleNode.setMaterial(mat);
+        requiresUpdate = true;
     }
 
     /**
@@ -1140,118 +1119,86 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
      * Initializes the emitter, materials & particle mesh Must be called prior to adding the control
      * to your scene.
      */
-    public void initialize(AssetManager assetManager) {
-        if (!emitterInitialized) {
-            this.assetManager = assetManager;
-            initMaterials();
-            if (userDefinedMat != null) {
-                mat = userDefinedMat;
-            }
-            if (this.name == null)
-                name = this.generateName();
-            emitterNode.setName(this.name + ":Emitter");
-            emitterTestNode.setName(this.name + ":EmitterTest");
-            particleNode.setName(this.name);
-            particleTestNode.setName(this.name + ":Test");
+    public void initialize(final AssetManager assetManager) {
+        if (emitterInitialized) return;
 
-            initParticles(particleType, template);
-            mesh.setImagesXY(spriteCols, spriteRows);
+        this.assetManager = assetManager;
 
-            tex = assetManager.loadTexture(texturePath);
-            tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-            tex.setMagFilter(Texture.MagFilter.Bilinear);
-            mat.setTexture(uniformName, tex);
+        initMaterials();
 
-            Image img = tex.getImage();
-            int width = img.getWidth();
-            int height = img.getHeight();
-
-            spriteWidth = width / spriteCols;
-            spriteHeight = height / spriteRows;
-
-            if (esAnimControl != null) {
-                if (!esAnimName.equals("")) {
-                    esAnimChannel.setAnim(esAnimName, esAnimBlendTime);
-                    esAnimChannel.setSpeed(esAnimSpeed);
-                }
-            }
-
-            if (ptAnimControl != null) {
-                if (!ptAnimName.equals("")) {
-                    ptAnimChannel.setAnim(ptAnimName, ptAnimBlendTime);
-                    ptAnimChannel.setSpeed(ptAnimSpeed);
-                }
-            }
-
-            if (particleNode.getChildren().isEmpty()) {
-                Geometry geom = new Geometry();
-                geom.setMesh(mesh);
-                particleNode.attachChild(geom);
-                particleNode.setMaterial(mat);
-                particleNode.setQueueBucket(RenderQueue.Bucket.Transparent);
-            }
-
-            if (emitterTestNode.getChildren().isEmpty()) {
-                Geometry testGeom = new Geometry();
-                testGeom.setMesh(emitterShape.getMesh());
-                emitterTestNode.attachChild(testGeom);
-                emitterTestNode.setMaterial(testMat);
-            }
-            if (particleTestNode.getChildren().isEmpty()) {
-                Geometry testPGeom = new Geometry();
-                testPGeom.setMesh(mesh);
-                particleTestNode.attachChild(testPGeom);
-                particleTestNode.setMaterial(testMat);
-            }
-
-            emitterInitialized = true;
+        if (userDefinedMat != null) {
+            mat = userDefinedMat;
         }
-    }
 
-    @Override
-    public void setSpatial(Spatial spatial) {
-        if (spatial != null) {
-            ((Node) spatial).attachChild(particleNode);
-            if (esAnimControl != null && !esNodeExists)
-                ((Node) spatial).attachChild(esAnimNode);
-            if (ptAnimControl != null)
-                ((Node) spatial).attachChild(ptAnimNode);
-            if (TEST_EMITTER)
-                ((Node) spatial).attachChild(emitterTestNode);
-            if (TEST_PARTICLES)
-                ((Node) spatial).attachChild(particleTestNode);
-        } else {
-            particleNode.removeFromParent();
-            if (esAnimNode != null)
-                esAnimNode.removeFromParent();
-            if (ptAnimNode != null)
-                ptAnimNode.removeFromParent();
-            emitterTestNode.removeFromParent();
-            particleTestNode.removeFromParent();
+        if (name == null) name = generateName();
+
+        emitterTestNode.setName(this.name + ":EmitterTest");
+        particleNode.setName(this.name);
+        particleTestNode.setName(this.name + ":Test");
+
+        initParticles(particleType, template);
+        mesh.setImagesXY(spriteCols, spriteRows);
+
+        tex = assetManager.loadTexture(texturePath);
+        tex.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+        tex.setMagFilter(Texture.MagFilter.Bilinear);
+        mat.setTexture(uniformName, tex);
+
+        Image img = tex.getImage();
+        int width = img.getWidth();
+        int height = img.getHeight();
+
+        spriteWidth = width / spriteCols;
+        spriteHeight = height / spriteRows;
+
+        if (esAnimControl != null) {
+            if (!esAnimName.equals("")) {
+                esAnimChannel.setAnim(esAnimName, esAnimBlendTime);
+                esAnimChannel.setSpeed(esAnimSpeed);
+            }
         }
-        requiresUpdate = true;
-        this.spatial = spatial;
-    }
 
-    public Spatial getSpatial() {
-        return this.spatial;
+        if (ptAnimControl != null) {
+            if (!ptAnimName.equals("")) {
+                ptAnimChannel.setAnim(ptAnimName, ptAnimBlendTime);
+                ptAnimChannel.setSpeed(ptAnimSpeed);
+            }
+        }
+
+        if (particleNode.getChildren().isEmpty()) {
+            Geometry geom = new Geometry();
+            geom.setMesh(mesh);
+            particleNode.attachChild(geom);
+            particleNode.setMaterial(mat);
+            particleNode.setQueueBucket(RenderQueue.Bucket.Transparent);
+        }
+
+        if (emitterTestNode.getChildren().isEmpty()) {
+            Geometry testGeom = new Geometry();
+            testGeom.setMesh(emitterShape.getMesh());
+            emitterTestNode.attachChild(testGeom);
+            emitterTestNode.setMaterial(testMat);
+        }
+        if (particleTestNode.getChildren().isEmpty()) {
+            Geometry testPGeom = new Geometry();
+            testPGeom.setMesh(mesh);
+            particleTestNode.attachChild(testPGeom);
+            particleTestNode.setMaterial(testMat);
+        }
+
+        emitterInitialized = true;
     }
 
     public void setEmitterTestMode(boolean showEmitterShape, boolean showParticleMesh) {
         this.TEST_EMITTER = showEmitterShape;
         this.TEST_PARTICLES = showParticleMesh;
 
-        if (spatial != null) {
-            if (TEST_EMITTER)
-                ((Node) spatial).attachChild(emitterTestNode);
-            else
-                emitterTestNode.removeFromParent();
+        if (TEST_EMITTER) attachChild(emitterTestNode);
+        else emitterTestNode.removeFromParent();
 
-            if (TEST_PARTICLES)
-                ((Node) spatial).attachChild(particleTestNode);
-            else
-                particleTestNode.removeFromParent();
-        }
+        if (TEST_PARTICLES) attachChild(particleTestNode);
+        else particleTestNode.removeFromParent();
+
         requiresUpdate = true;
     }
 
@@ -1269,34 +1216,17 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
         return TEST_PARTICLES;
     }
 
-    /**
-     * Returns the node containing the particle mesh
-     *
-     * @return The node containing the particle mesh
-     */
-    public Node getParticleNode() {
-        return this.particleNode;
-    }
-
     public Node getParticleTestNode() {
-        return this.particleTestNode;
-    }
-
-    /**
-     * Returns the node containing the emitter transform information
-     *
-     * @return The node containing the emitter transform information
-     */
-    public Node getEmitterNode() {
-        return this.emitterNode;
+        return particleTestNode;
     }
 
     public Node getEmitterTestNode() {
-        return this.emitterTestNode;
+        return emitterTestNode;
     }
 
     @Override
-    public void update(float tpf) {
+    public void updateLogicalState(final float tpf) {
+        super.updateLogicalState(tpf);
         if (enabled && emitterInitialized) {
             for (ParticleData p : particles) {
                 if (p.active) p.update(tpf);
@@ -1316,7 +1246,7 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
             currentInterval = 0;
         }
         if (emitterInitialized && (enabled || postRequiresUpdate)) {
-            particleNode.getChild(0).updateModelBound();
+            getChild(0).updateModelBound();
             if (TEST_PARTICLES)
                 particleTestNode.getChild(0).updateModelBound();
             postRequiresUpdate = false;
@@ -1476,7 +1406,8 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
     }
 
     @Override
-    public void render(RenderManager rm, ViewPort vp) {
+    public void runControlRender(final RenderManager rm, final ViewPort vp) {
+        super.runControlRender(rm, vp);
         if (emitterInitialized && (enabled || (!enabled && requiresUpdate))) {
             Camera cam = vp.getCamera();
 
@@ -1662,28 +1593,14 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
     }
 
     @Override
-    public Control cloneForSpatial(Spatial spatial) {
-        Emitter clone = clone();
-        clone.setSpatial(spatial);
-        return clone;
-    }
-
-    @Override
     public Emitter jmeClone() {
-        try {
-            return (Emitter) super.clone();
-        } catch (CloneNotSupportedException ex) {
-            throw new AssertionError();
-        }
+        return clone();
     }
 
     @Override
     public Emitter clone() {
 
-        final Cloner cloner = new Cloner();
-        cloner.setCloneFunction(Mesh.class, new IdentityCloneFunction<>());
-
-        final Emitter result = cloner.clone(this);
+        final Emitter result = (Emitter) super.clone();
         result.setMaxParticles(maxParticles);
 
         if (esAnimNode != null) {
@@ -1728,63 +1645,54 @@ public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
     public void cloneFields(final Cloner cloner, final Object original) {
     }
 
-    //<editor-fold desc="Emitter Transforms">
-    public void setLocalTranslation(Vector3f translation) {
-        emitterNode.setLocalTranslation(translation);
+    @Override
+    public void setLocalTranslation(final Vector3f translation) {
+        super.setLocalTranslation(translation);
         emitterTestNode.setLocalTranslation(translation);
-        particleNode.setLocalTranslation(translation);
         particleTestNode.setLocalTranslation(translation);
         requiresUpdate = true;
     }
 
+    @Override
     public void setLocalTranslation(float x, float y, float z) {
-        emitterNode.setLocalTranslation(x, y, z);
+        super.setLocalTranslation(x, y, z);
         emitterTestNode.setLocalTranslation(x, y, z);
-        particleNode.setLocalTranslation(x, y, z);
         particleTestNode.setLocalTranslation(x, y, z);
         requiresUpdate = true;
     }
 
+    @Override
     public void setLocalRotation(Quaternion q) {
-        emitterNode.setLocalRotation(q);
+        super.setLocalRotation(q);
         emitterTestNode.setLocalRotation(q);
         requiresUpdate = true;
     }
 
+    @Override
     public void setLocalRotation(Matrix3f m) {
-        emitterNode.setLocalRotation(m);
+        super.setLocalRotation(m);
         emitterTestNode.setLocalRotation(m);
         requiresUpdate = true;
     }
 
+    @Override
     public void setLocalScale(Vector3f scale) {
-        emitterNode.setLocalScale(scale);
+        super.setLocalScale(scale);
         emitterTestNode.setLocalScale(scale);
         requiresUpdate = true;
     }
 
+    @Override
     public void setLocalScale(float scale) {
-        emitterNode.setLocalScale(scale);
+        super.setLocalScale(scale);
         emitterTestNode.setLocalScale(scale);
         requiresUpdate = true;
     }
 
+    @Override
     public void setLocalScale(float x, float y, float z) {
-        emitterNode.setLocalScale(x, y, z);
+        super.setLocalScale(x, y, z);
         emitterTestNode.setLocalScale(x, y, z);
         requiresUpdate = true;
     }
-
-    public Quaternion getLocalRotation() {
-        return emitterNode.getLocalRotation();
-    }
-
-    public Vector3f getLocalTranslation() {
-        return emitterNode.getLocalTranslation();
-    }
-
-    public Vector3f getLocalScale() {
-        return emitterNode.getLocalScale();
-    }
-    //</editor-fold>
 }

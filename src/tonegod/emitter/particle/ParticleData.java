@@ -249,7 +249,7 @@ public class ParticleData {
 
         initialLength = velocity.length();
         initialPosition.set(
-                emitter.getEmitterNode().getWorldTranslation()
+                emitter.getWorldTranslation()
         );
         //	spriteIndex = 0;
         //	spriteCol = 0;

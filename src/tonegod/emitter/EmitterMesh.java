@@ -110,7 +110,7 @@ public class EmitterMesh {
         n1.setLocalTranslation(triStore.get1());
         n2.setLocalTranslation(triStore.get2());
         n3.setLocalTranslation(triStore.get3());
-        p.setLocalRotation(emitter.getEmitterNode().getLocalRotation());
+        p.setLocalRotation(emitter.getLocalRotation());
         p.setLocalScale(emitter.getLocalScale());
         triStore.set1(n1.getWorldTranslation());
         triStore.set2(n2.getWorldTranslation());

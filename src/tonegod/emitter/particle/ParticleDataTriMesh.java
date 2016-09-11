@@ -289,7 +289,7 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                     tempV3.set(p.position);
                 } else {
                     tempV3.set(p.position).subtractLocal(
-                            emitter.getEmitterNode().getWorldTranslation().subtract(p.initialPosition)
+                            emitter.getWorldTranslation().subtract(p.initialPosition)
                     );
                 }
 

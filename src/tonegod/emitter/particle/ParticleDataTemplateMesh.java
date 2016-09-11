@@ -269,7 +269,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 
                 tempV3.addLocal(p.position);
                 if (!emitter.getParticlesFollowEmitter()) {
-                    tempV3.subtractLocal(emitter.getEmitterNode().getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
+                    tempV3.subtractLocal(emitter.getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
                 }
 
                 finVerts.put(offset + x, tempV3.getX());
