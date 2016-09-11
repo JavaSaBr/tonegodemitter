@@ -26,6 +26,9 @@ import com.jme3.scene.control.Control;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.util.SafeArrayList;
+import com.jme3.util.clone.Cloner;
+import com.jme3.util.clone.IdentityCloneFunction;
+import com.jme3.util.clone.JmeCloneable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,8 +46,9 @@ import tonegod.emitter.shapes.TriangleEmitterShape;
 
 /**
  * @author t0neg0d
+ * @edit JavaSaBr
  */
-public class Emitter implements Control, Cloneable {
+public class Emitter extends EmitterNode implements JmeCloneable, Cloneable {
 
     public enum BillboardMode {
         /**
@@ -113,7 +117,7 @@ public class Emitter implements Control, Cloneable {
 
     SafeArrayList<ParticleInfluencer> influencers = new SafeArrayList(ParticleInfluencer.class);
 
-    EmitterNode emitterNode, particleNode, emitterTestNode, particleTestNode;
+    protected EmitterNode emitterTestNode, particleTestNode;
 
     // ParticleData info
     private int maxParticles;
@@ -216,9 +220,7 @@ public class Emitter implements Control, Cloneable {
      * Creates a new instance of the Emitter
      */
     public Emitter() {
-        emitterNode = new EmitterNode(this);
         emitterTestNode = new EmitterNode(this);
-        particleNode = new EmitterNode(this);
         particleTestNode = new EmitterNode(this);
     }
 
@@ -374,7 +376,12 @@ public class Emitter implements Control, Cloneable {
      * Creates a single triangle emitter shape
      */
     public void setShapeSimpleEmitter() {
-        setShape(new TriangleEmitterShape(1));
+
+        final TriangleEmitterShape shape = new TriangleEmitterShape();
+        shape.init(1F);
+
+        setShape(shape);
+
         requiresUpdate = true;
     }
 
@@ -1496,7 +1503,11 @@ public class Emitter implements Control, Cloneable {
         oc.write(name, "name", null);
 
         // Emitter shape
-        oc.write(emitterShape.getMesh(), "emitterShape", new TriangleEmitterShape(1));
+        //FIXME
+        final TriangleEmitterShape defVal = new TriangleEmitterShape();
+        defVal.init(1F);
+
+        oc.write(emitterShape.getMesh(), "emitterShape", defVal);
 
         // Particle mesh
         oc.write(particleType.getName(), "particleType", ParticleDataTriMesh.class.getName());
@@ -1575,7 +1586,11 @@ public class Emitter implements Control, Cloneable {
         initParticles(particleType, template);
 
         // Reconstruct emitter shape
-        Mesh eShape = (Mesh) ic.readSavable("emitterShape", new TriangleEmitterShape(1));
+        //FIXME
+        final TriangleEmitterShape defVal = new TriangleEmitterShape();
+        defVal.init(1F);
+
+        Mesh eShape = (Mesh) ic.readSavable("emitterShape", defVal);
         Node esAnimN = (Node) ic.readSavable("esAnimNode", null);
         boolean esNExists = ic.readBoolean("esNodeExists", true);
 
@@ -1654,45 +1669,63 @@ public class Emitter implements Control, Cloneable {
     }
 
     @Override
-    public Emitter clone() {
-        Emitter clone = new Emitter();
-        clone.setMaxParticles(maxParticles);
-        if (esAnimNode != null) {
-            clone.setShape(esAnimNode, this.esNodeExists);
-            clone.setEmitterAnimation(esAnimName, esAnimSpeed, esAnimBlendTime, esAnimLoopMode);
-        } else
-            clone.setShape(emitterShape.getMesh());
-        if (ptAnimNode != null) {
-            clone.setParticleType(particleType, ptAnimNode);
-            clone.setParticleAnimation(ptAnimName, ptAnimSpeed, ptAnimBlendTime, ptAnimLoopMode);
-        } else
-            clone.setParticleType(particleType, template);
-        clone.setInterpolation(getInterpolation());
-        clone.setForceMinMax(forceMin, forceMax);
-        clone.setLifeMinMax(lifeMin, lifeMax);
-        clone.setEmissionsPerSecond(emissionsPerSecond);
-        clone.setParticlesPerEmission(particlesPerEmission);
-        clone.setUseRandomEmissionPoint(useRandomEmissionPoint);
-        clone.setUseSequentialEmissionFace(useSequentialEmissionFace);
-        clone.setUseSequentialSkipPattern(useSequentialSkipPattern);
-        clone.setParticlesFollowEmitter(particlesFollowEmitter);
-        clone.setUseStaticParticles(useStaticParticles);
-        clone.setUseVelocityStretching(useVelocityStretching);
-        clone.setVelocityStretchFactor(velocityStretchFactor);
-        clone.setForcedStretchAxis(stretchAxis);
-        clone.setParticleEmissionPoint(particleEmissionPoint);
-        clone.setBillboardMode(billboardMode);
-        clone.setEmitterTestMode(TEST_EMITTER, TEST_PARTICLES);
+    public Emitter jmeClone() {
+        try {
+            return (Emitter) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new AssertionError();
+        }
+    }
 
-        for (ParticleInfluencer inf : influencers) {
-            clone.addInfluencer(inf.clone());
+    @Override
+    public Emitter clone() {
+
+        final Cloner cloner = new Cloner();
+        cloner.setCloneFunction(Mesh.class, new IdentityCloneFunction<>());
+
+        final Emitter result = cloner.clone(this);
+        result.setMaxParticles(maxParticles);
+
+        if (esAnimNode != null) {
+            result.setShape(esAnimNode, esNodeExists);
+            result.setEmitterAnimation(esAnimName, esAnimSpeed, esAnimBlendTime, esAnimLoopMode);
+        } else result.setShape(emitterShape.getMesh());
+
+        if (ptAnimNode != null) {
+            result.setParticleType(particleType, ptAnimNode);
+            result.setParticleAnimation(ptAnimName, ptAnimSpeed, ptAnimBlendTime, ptAnimLoopMode);
+        } else result.setParticleType(particleType, template);
+
+        result.setInterpolation(getInterpolation());
+        result.setForceMinMax(forceMin, forceMax);
+        result.setLifeMinMax(lifeMin, lifeMax);
+        result.setEmissionsPerSecond(emissionsPerSecond);
+        result.setParticlesPerEmission(particlesPerEmission);
+        result.setUseRandomEmissionPoint(useRandomEmissionPoint);
+        result.setUseSequentialEmissionFace(useSequentialEmissionFace);
+        result.setUseSequentialSkipPattern(useSequentialSkipPattern);
+        result.setParticlesFollowEmitter(particlesFollowEmitter);
+        result.setUseStaticParticles(useStaticParticles);
+        result.setUseVelocityStretching(useVelocityStretching);
+        result.setVelocityStretchFactor(velocityStretchFactor);
+        result.setForcedStretchAxis(stretchAxis);
+        result.setParticleEmissionPoint(particleEmissionPoint);
+        result.setBillboardMode(billboardMode);
+        result.setEmitterTestMode(TEST_EMITTER, TEST_PARTICLES);
+
+        for (final ParticleInfluencer influencer : influencers) {
+            result.addInfluencer(influencer.clone());
         }
 
-        //	clone.initParticles(mesh.getClass(), template);
-        clone.setSprite(texturePath, spriteCols, spriteRows);
-        clone.initialize(assetManager);
-        clone.setEnabled(enabled);
-        return clone;
+        result.setSprite(texturePath, spriteCols, spriteRows);
+        result.initialize(assetManager);
+        result.setEnabled(enabled);
+
+        return result;
+    }
+
+    @Override
+    public void cloneFields(final Cloner cloner, final Object original) {
     }
 
     //<editor-fold desc="Emitter Transforms">
