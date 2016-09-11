@@ -39,18 +39,18 @@ public class SpriteInfluencer implements ParticleInfluencer {
     private void updateFrame(ParticleData p) {
         if (frameSequence == null) {
             p.spriteCol++;
-            if (p.spriteCol == p.emitter.getSpriteColCount()) {
+            if (p.spriteCol == p.emitterNode.getSpriteColCount()) {
                 p.spriteCol = 0;
                 p.spriteRow++;
-                if (p.spriteRow == p.emitter.getSpriteRowCount())
+                if (p.spriteRow == p.emitterNode.getSpriteRowCount())
                     p.spriteRow = 0;
             }
         } else {
             p.spriteIndex++;
             if (p.spriteIndex == frameSequence.length)
                 p.spriteIndex = 0;
-            p.spriteRow = (int) FastMath.floor(frameSequence[p.spriteIndex] / p.emitter.getSpriteRowCount()) - 2;
-            p.spriteCol = (int) frameSequence[p.spriteIndex] % p.emitter.getSpriteColCount();
+            p.spriteRow = (int) FastMath.floor(frameSequence[p.spriteIndex] / p.emitterNode.getSpriteRowCount()) - 2;
+            p.spriteCol = (int) frameSequence[p.spriteIndex] % p.emitterNode.getSpriteColCount();
         }
         p.spriteInterval -= targetInterval;
     }
@@ -58,26 +58,26 @@ public class SpriteInfluencer implements ParticleInfluencer {
     @Override
     public void initialize(ParticleData p) {
         if (totalFrames == -1) {
-            totalFrames = p.emitter.getSpriteColCount() * p.emitter.getSpriteRowCount();
+            totalFrames = p.emitterNode.getSpriteColCount() * p.emitterNode.getSpriteRowCount();
             if (totalFrames == 1) setAnimate(false);
         }
         if (useRandomImage) {
             if (frameSequence == null) {
                 p.spriteIndex = FastMath.nextRandomInt(0, totalFrames - 1);
-                p.spriteRow = (int) FastMath.floor(p.spriteIndex / p.emitter.getSpriteRowCount()) - 1;
-                p.spriteCol = (int) p.spriteIndex % p.emitter.getSpriteColCount();
+                p.spriteRow = (int) FastMath.floor(p.spriteIndex / p.emitterNode.getSpriteRowCount()) - 1;
+                p.spriteCol = (int) p.spriteIndex % p.emitterNode.getSpriteColCount();
                 //	p.spriteCol = FastMath.nextRandomInt(0,frameSequence.length-1);
                 //	p.spriteRow = FastMath.nextRandomInt(0,frameSequence.length-1);
             } else {
                 p.spriteIndex = FastMath.nextRandomInt(0, frameSequence.length - 1);
-                p.spriteRow = (int) FastMath.floor(frameSequence[p.spriteIndex] / p.emitter.getSpriteRowCount()) - 1;
-                p.spriteCol = (int) frameSequence[p.spriteIndex] % p.emitter.getSpriteColCount();
+                p.spriteRow = (int) FastMath.floor(frameSequence[p.spriteIndex] / p.emitterNode.getSpriteRowCount()) - 1;
+                p.spriteCol = (int) frameSequence[p.spriteIndex] % p.emitterNode.getSpriteColCount();
             }
         } else {
             if (frameSequence != null) {
                 p.spriteIndex = frameSequence[0];
-                p.spriteRow = (int) FastMath.floor(frameSequence[p.spriteIndex] / p.emitter.getSpriteRowCount()) - 2;
-                p.spriteCol = (int) frameSequence[p.spriteIndex] % p.emitter.getSpriteColCount();
+                p.spriteRow = (int) FastMath.floor(frameSequence[p.spriteIndex] / p.emitterNode.getSpriteRowCount()) - 2;
+                p.spriteCol = (int) frameSequence[p.spriteIndex] % p.emitterNode.getSpriteColCount();
             } else {
                 p.spriteIndex = 0;
                 p.spriteRow = 0;
@@ -186,7 +186,7 @@ public class SpriteInfluencer implements ParticleInfluencer {
     @Override
     public void write(JmeExporter ex) throws IOException {
         /*
-		private boolean enabled = true;
+        private boolean enabled = true;
 		private boolean useRandomImage = false;
 		private boolean animate = true;
 		private float fixedDuration = 0f;

@@ -83,7 +83,7 @@ public class PhysicsInfluencer implements ParticleInfluencer {
                                     p.velocity.set(0, 0, 0);
                                     break;
                                 case Destroy:
-                                    p.emitter.killParticle(p);
+                                    p.emitterNode.killParticle(p);
                                     break;
                             }
                         }
@@ -101,7 +101,7 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     }
 
     private void updateCollisionShape(ParticleData p, float tpf) {
-        geom.setLocalTranslation(p.position.add(p.emitter.getLocalTranslation()));
+        geom.setLocalTranslation(p.position.add(p.emitterNode.getLocalTranslation()));
         quat.fromAngles(p.angles.x, p.angles.y, p.angles.z);
         geom.setLocalRotation(quat);
         geom.setLocalScale(p.size);

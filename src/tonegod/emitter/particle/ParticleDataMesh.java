@@ -4,7 +4,7 @@ import com.jme3.math.Matrix3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Mesh;
 
-import tonegod.emitter.Emitter;
+import tonegod.emitter.ParticleEmitterNode;
 
 /**
  * @author t0neg0d
@@ -21,10 +21,10 @@ public abstract class ParticleDataMesh extends Mesh {
     /**
      * Initialize mesh data.
      *
-     * @param emitter      The emitter which will use this <code>ParticleDataMesh</code>.
+     * @param emitterNode  The emitter which will use this <code>ParticleDataMesh</code>.
      * @param numParticles The maxmimum number of particles to simulate
      */
-    public abstract void initParticleData(Emitter emitter, int numParticles);
+    public abstract void initParticleData(ParticleEmitterNode emitterNode, int numParticles);
 
     /**
      * Set the images on the X and Y coordinates

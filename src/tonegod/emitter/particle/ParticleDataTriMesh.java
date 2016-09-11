@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-import tonegod.emitter.Emitter;
+import tonegod.emitter.ParticleEmitterNode;
 
 /**
  * @author t0neg0d
@@ -26,7 +26,7 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
     private int imagesX = 1;
     private int imagesY = 1;
     private boolean uniqueTexCoords = false;
-    private Emitter emitter;
+    private ParticleEmitterNode emitterNode;
     private Vector3f left = new Vector3f(), tempLeft = new Vector3f();
     private Vector3f up = new Vector3f(), tempUp = new Vector3f();
     private Vector3f dir = new Vector3f();
@@ -42,10 +42,10 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
     private Vector3f tangUp = new Vector3f();
 
     @Override
-    public void initParticleData(Emitter emitter, int numParticles) {
+    public void initParticleData(ParticleEmitterNode emitterNode, int numParticles) {
         setMode(Mode.Triangles);
 
-        this.emitter = emitter;
+        this.emitterNode = emitterNode;
 
 //        particlesCopy = new ParticleData[numParticles];
 
@@ -164,7 +164,7 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
                 /*
-				if (uniqueTexCoords){
+                if (uniqueTexCoords){
 					startX = 1f/p.emitter.getSpriteColCount()*p.spriteCol;
 					startY = 1f/p.emitter.getSpriteRowCount()*p.spriteRow;
 					endX   = startX + 1f/p.emitter.getSpriteColCount();
@@ -187,7 +187,7 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
 				*/
             } else {
 
-                switch (emitter.getBillboardMode()) {
+                switch (emitterNode.getBillboardMode()) {
                     case Velocity:
                         if (p.velocity.x != Vector3f.UNIT_Y.x &&
                                 p.velocity.y != Vector3f.UNIT_Y.y &&
@@ -223,8 +223,8 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                         up = rotStore.mult(up);
                         break;
                     case Normal:
-                        emitter.getShape().setNext(p.triangleIndex);
-                        tempV3.set(emitter.getShape().getNormal());
+                        emitterNode.getShape().setNext(p.triangleIndex);
+                        tempV3.set(emitterNode.getShape().getNormal());
                         if (tempV3 == Vector3f.UNIT_Y)
                             tempV3.set(p.velocity);
 
@@ -233,7 +233,7 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                         dir.set(tempV3);
                         break;
                     case Normal_Y_Up:
-                        emitter.getShape().setNext(p.triangleIndex);
+                        emitterNode.getShape().setNext(p.triangleIndex);
                         tempV3.set(p.velocity);
                         if (tempV3 == Vector3f.UNIT_Y)
                             tempV3.set(Vector3f.UNIT_X);
@@ -266,8 +266,8 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
 
                 p.upVec.set(up);
 
-                if (p.emitter.getUseVelocityStretching()) {
-                    up.multLocal(p.velocity.length() * p.emitter.getVelocityStretchFactor());
+                if (p.emitterNode.getUseVelocityStretching()) {
+                    up.multLocal(p.velocity.length() * p.emitterNode.getVelocityStretchFactor());
                 }
 
                 up.multLocal(p.size.y);
@@ -285,11 +285,11 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                 left = rotStore.mult(left);
                 up = rotStore.mult(up);
 
-                if (emitter.getParticlesFollowEmitter()) {
+                if (emitterNode.getParticlesFollowEmitter()) {
                     tempV3.set(p.position);
                 } else {
                     tempV3.set(p.position).subtractLocal(
-                            emitter.getWorldTranslation().subtract(p.initialPosition)
+                            emitterNode.getWorldTranslation().subtract(p.initialPosition)
                     );
                 }
 
@@ -311,10 +311,10 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
             }
 
             if (uniqueTexCoords) {
-                startX = 1f / p.emitter.getSpriteColCount() * p.spriteCol;
-                startY = 1f / p.emitter.getSpriteRowCount() * p.spriteRow;
-                endX = startX + 1f / p.emitter.getSpriteColCount();
-                endY = startY + 1f / p.emitter.getSpriteRowCount();
+                startX = 1f / p.emitterNode.getSpriteColCount() * p.spriteCol;
+                startY = 1f / p.emitterNode.getSpriteRowCount() * p.spriteRow;
+                endX = startX + 1f / p.emitterNode.getSpriteColCount();
+                endY = startY + 1f / p.emitterNode.getSpriteRowCount();
 
                 texcoords.put(startX).put(endY);
                 texcoords.put(endX).put(endY);

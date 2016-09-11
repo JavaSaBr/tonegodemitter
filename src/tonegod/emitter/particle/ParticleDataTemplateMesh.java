@@ -17,7 +17,7 @@ import com.jme3.util.BufferUtils;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-import tonegod.emitter.Emitter;
+import tonegod.emitter.ParticleEmitterNode;
 
 /**
  * @author t0neg0d
@@ -27,7 +27,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
     private int imagesX = 1;
     private int imagesY = 1;
     private boolean uniqueTexCoords = false;
-    private Emitter emitter;
+    private ParticleEmitterNode emitterNode;
     private Vector3f left = new Vector3f(), tempLeft = new Vector3f();
     private Vector3f up = new Vector3f(), tempUp = new Vector3f();
     private Vector3f dir = new Vector3f();
@@ -71,10 +71,10 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
     }
 
     @Override
-    public void initParticleData(Emitter emitter, int numParticles) {
+    public void initParticleData(ParticleEmitterNode emitterNode, int numParticles) {
         setMode(Mode.Triangles);
 
-        this.emitter = emitter;
+        this.emitterNode = emitterNode;
 
         this.finVerts = BufferUtils.createFloatBuffer(templateVerts.capacity() * numParticles);
         try {
@@ -183,7 +183,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
             }
 
             for (int x = 0; x < templateVerts.capacity(); x += 3) {
-                switch (emitter.getBillboardMode()) {
+                switch (emitterNode.getBillboardMode()) {
                     case Velocity:
                         if (p.velocity.x != Vector3f.UNIT_Y.x &&
                                 p.velocity.y != Vector3f.UNIT_Y.y &&
@@ -219,8 +219,8 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
                         up = rotStore.mult(up);
                         break;
                     case Normal:
-                        emitter.getShape().setNext(p.triangleIndex);
-                        tempV3.set(emitter.getShape().getNormal());
+                        emitterNode.getShape().setNext(p.triangleIndex);
+                        tempV3.set(emitterNode.getShape().getNormal());
                         if (tempV3 == Vector3f.UNIT_Y)
                             tempV3.set(p.velocity);
 
@@ -229,7 +229,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
                         dir.set(tempV3);
                         break;
                     case Normal_Y_Up:
-                        emitter.getShape().setNext(p.triangleIndex);
+                        emitterNode.getShape().setNext(p.triangleIndex);
                         tempV3.set(p.velocity);
                         if (tempV3 == Vector3f.UNIT_Y)
                             tempV3.set(Vector3f.UNIT_X);
@@ -268,8 +268,8 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
                 tempV3 = rotStore.mult(tempV3);
 
                 tempV3.addLocal(p.position);
-                if (!emitter.getParticlesFollowEmitter()) {
-                    tempV3.subtractLocal(emitter.getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
+                if (!emitterNode.getParticlesFollowEmitter()) {
+                    tempV3.subtractLocal(emitterNode.getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
                 }
 
                 finVerts.put(offset + x, tempV3.getX());
@@ -277,7 +277,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
                 finVerts.put(offset + x + 2, tempV3.getZ());
 
             }
-            if (p.emitter.getApplyLightingTransform()) {
+            if (p.emitterNode.getApplyLightingTransform()) {
                 for (int v = 0; v < templateNormals.capacity(); v += 3) {
                     tempV3.set(templateNormals.get(v), templateNormals.get(v + 1), templateNormals.get(v + 2));
 
@@ -302,7 +302,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
         }
 
         this.setBuffer(VertexBuffer.Type.Position, 3, finVerts);
-        if (particles[0].emitter.getApplyLightingTransform())
+        if (particles[0].emitterNode.getApplyLightingTransform())
             this.setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
         this.setBuffer(VertexBuffer.Type.Color, 4, finColors);
 

@@ -7,8 +7,8 @@ import com.jme3.math.Vector3f;
 import java.util.HashMap;
 import java.util.Map;
 
-import tonegod.emitter.Emitter;
 import tonegod.emitter.Interpolation;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 
 /**
@@ -53,7 +53,7 @@ public class ParticleData {
     /**
      * The parent particle emitter
      */
-    public Emitter emitter;
+    public ParticleEmitterNode emitterNode;
 
     /**
      * The particles index
@@ -187,16 +187,16 @@ public class ParticleData {
     }
 
     public void update(float tpf) {
-        if (!emitter.getUseStaticParticles()) {
+        if (!emitterNode.getUseStaticParticles()) {
             life -= tpf;
             if (life <= 0) {
                 reset();
                 return;
             }
             blend = 1.0f * (startlife - life) / startlife;
-            interpBlend = emitter.getInterpolation().apply(blend);
+            interpBlend = emitterNode.getInterpolation().apply(blend);
         }
-        for (ParticleInfluencer influencer : emitter.getInfluencers()) {
+        for (ParticleInfluencer influencer : emitterNode.getInfluencers()) {
             influencer.update(this, tpf);
         }
 
@@ -204,12 +204,12 @@ public class ParticleData {
         position.addLocal(tempV3);
 
         // TODO: Test this!
-        if (emitter.getUseStaticParticles()) {
-            emitter.getShape().setNext(triangleIndex);
-            if (emitter.getUseRandomEmissionPoint()) {
-                position.set(emitter.getShape().getNextTranslation().addLocal(randomOffset));
+        if (emitterNode.getUseStaticParticles()) {
+            emitterNode.getShape().setNext(triangleIndex);
+            if (emitterNode.getUseRandomEmissionPoint()) {
+                position.set(emitterNode.getShape().getNextTranslation().addLocal(randomOffset));
             } else {
-                position.set(emitter.getShape().getNextTranslation());
+                position.set(emitterNode.getShape().getNextTranslation());
             }
         }
     }
@@ -218,55 +218,55 @@ public class ParticleData {
      * Called once per particle use when the particle is emitted
      */
     public void initialize() {
-        emitter.incActiveParticleCount();
+        emitterNode.incActiveParticleCount();
         active = true;
         blend = 0;
         size.set(0, 0, 0);
-        if (emitter.getLifeMin() != emitter.getLifeMax())
-            startlife = (emitter.getLifeMax() - emitter.getLifeMin()) * FastMath.nextRandomFloat() + emitter.getLifeMin();
+        if (emitterNode.getLifeMin() != emitterNode.getLifeMax())
+            startlife = (emitterNode.getLifeMax() - emitterNode.getLifeMin()) * FastMath.nextRandomFloat() + emitterNode.getLifeMin();
         else
-            startlife = emitter.getLifeMax();
+            startlife = emitterNode.getLifeMax();
         life = startlife;
-        if (emitter.getForceMin() != emitter.getForceMax())
-            force = (emitter.getForceMax() - emitter.getForceMin()) * FastMath.nextRandomFloat() + emitter.getForceMin();
+        if (emitterNode.getForceMin() != emitterNode.getForceMax())
+            force = (emitterNode.getForceMax() - emitterNode.getForceMin()) * FastMath.nextRandomFloat() + emitterNode.getForceMin();
         else
-            force = emitter.getForceMax();
-        emitter.getShape().setNext();
-        triangleIndex = emitter.getShape().getTriangleIndex();
-        if (!emitter.getUseRandomEmissionPoint()) {
+            force = emitterNode.getForceMax();
+        emitterNode.getShape().setNext();
+        triangleIndex = emitterNode.getShape().getTriangleIndex();
+        if (!emitterNode.getUseRandomEmissionPoint()) {
             position.set(
-                    emitter.getShape().getNextTranslation()
+                    emitterNode.getShape().getNextTranslation()
             );
         } else {
-            randomOffset.set(emitter.getShape().getRandomTranslation());
+            randomOffset.set(emitterNode.getShape().getRandomTranslation());
             position.set(
-                    emitter.getShape().getNextTranslation().add(randomOffset)
+                    emitterNode.getShape().getNextTranslation().add(randomOffset)
             );
         }
         velocity.set(
-                emitter.getShape().getNextDirection()
+                emitterNode.getShape().getNextDirection()
         ).normalizeLocal().multLocal(force);
 
         initialLength = velocity.length();
         initialPosition.set(
-                emitter.getWorldTranslation()
+                emitterNode.getWorldTranslation()
         );
         //	spriteIndex = 0;
         //	spriteCol = 0;
         //	spriteRow = 0;
 
-        for (ParticleInfluencer influencer : emitter.getInfluencers()) {
+        for (ParticleInfluencer influencer : emitterNode.getInfluencers()) {
             influencer.initialize(this);
         }
 
-        switch (emitter.getParticleEmissionPoint()) {
+        switch (emitterNode.getParticleEmissionPoint()) {
             case PARTICLE_EDGE_BOTTOM:
-                tempV3.set(emitter.getShape().getNextDirection()).normalizeLocal();
+                tempV3.set(emitterNode.getShape().getNextDirection()).normalizeLocal();
                 tempV3.multLocal(startSize.getY());
                 position.addLocal(tempV3);
                 break;
             case PARTICLE_EDGE_TOP:
-                tempV3.set(emitter.getShape().getNextDirection()).normalizeLocal();
+                tempV3.set(emitterNode.getShape().getNextDirection()).normalizeLocal();
                 tempV3.multLocal(startSize.getY());
                 position.subtractLocal(tempV3);
                 break;
@@ -278,11 +278,11 @@ public class ParticleData {
      */
     public void reset() {
         active = false;
-        if (emitter.getActiveParticleCount() > 0)
-            emitter.decActiveParticleCount();
-        for (ParticleInfluencer influencer : emitter.getInfluencers()) {
+        if (emitterNode.getActiveParticleCount() > 0)
+            emitterNode.decActiveParticleCount();
+        for (ParticleInfluencer influencer : emitterNode.getInfluencers()) {
             influencer.reset(this);
         }
-        emitter.setNextIndex(index);
+        emitterNode.setNextIndex(index);
     }
 }

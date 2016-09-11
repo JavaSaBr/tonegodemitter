@@ -52,14 +52,14 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
         if (enabled) {
             switch (alignment) {
                 case Emission_Point:
-                    p.emitter.getShape().setNext(p.triangleIndex);
-                    if (p.emitter.getUseRandomEmissionPoint())
-                        store.set(p.emitter.getShape().getNextTranslation().addLocal(p.randomOffset));
+                    p.emitterNode.getShape().setNext(p.triangleIndex);
+                    if (p.emitterNode.getUseRandomEmissionPoint())
+                        store.set(p.emitterNode.getShape().getNextTranslation().addLocal(p.randomOffset));
                     else
-                        store.set(p.emitter.getShape().getNextTranslation());
+                        store.set(p.emitterNode.getShape().getNextTranslation());
                     break;
                 case Emitter_Center:
-                    store.set(p.emitter.getShape().getMesh().getBound().getCenter());
+                    store.set(p.emitterNode.getShape().getMesh().getBound().getCenter());
                     break;
             }
 
@@ -81,7 +81,7 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
 
             switch (upAlignment) {
                 case Normal:
-                    upStore.set(p.emitter.getLocalRotation().inverse().mult(upStore.set(p.emitter.getShape().getNormal())));
+                    upStore.set(p.emitterNode.getLocalRotation().inverse().mult(upStore.set(p.emitterNode.getShape().getNormal())));
                     break;
                 case UNIT_X:
                     upStore.set(Vector3f.UNIT_X);
@@ -95,7 +95,7 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
             }
 
             up.set(store).crossLocal(upStore).normalizeLocal();
-            up.set(p.emitter.getLocalRotation().mult(up));
+            up.set(p.emitterNode.getLocalRotation().mult(up));
             left.set(store).crossLocal(up).normalizeLocal();
 
             tangent.set(store).crossLocal(left).normalizeLocal().multLocal(p.tangentForce).multLocal(tpf);

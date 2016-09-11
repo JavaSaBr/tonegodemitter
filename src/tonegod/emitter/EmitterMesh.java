@@ -1,23 +1,41 @@
 package tonegod.emitter;
 
+import com.jme3.export.InputCapsule;
+import com.jme3.export.JmeExporter;
+import com.jme3.export.JmeImporter;
+import com.jme3.export.OutputCapsule;
+import com.jme3.export.Savable;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Triangle;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
+import com.jme3.util.clone.Cloner;
+import com.jme3.util.clone.JmeCloneable;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
 
 /**
  * @author t0neg0d
  */
-public class EmitterMesh {
-    public static enum DirectionType {
+public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
+
+    public enum DirectionType {
         Normal,
         NormalNegate,
         Random,
         RandomTangent,
         RandomNormalAligned,
-        RandomNormalNegate
+        RandomNormalNegate;
+
+        private static final DirectionType[] VALUES = values();
+
+        public static DirectionType valueOf(final int index) {
+            return VALUES[index];
+        }
     }
 
     private Mesh mesh;
@@ -32,7 +50,7 @@ public class EmitterMesh {
     Node p = new Node(), n1 = new Node(), n2 = new Node(), n3 = new Node();
     private int triCount;
     private int currentTri = 0;
-    Emitter emitter;
+    ParticleEmitterNode emitterNode;
     //	Geometry geom = new Geometry();
     Quaternion q = new Quaternion(), q2 = new Quaternion();
     Vector3f tempDir = new Vector3f();
@@ -46,8 +64,8 @@ public class EmitterMesh {
      *
      * @param mesh The mesh to use as the emitter shape
      */
-    public void setShape(Emitter emitter, Mesh mesh) {
-        this.emitter = emitter;
+    public void setShape(ParticleEmitterNode emitterNode, Mesh mesh) {
+        this.emitterNode = emitterNode;
         this.mesh = mesh;
         //	geom.setMesh(mesh);
         triCount = mesh.getTriangleCount();
@@ -55,6 +73,10 @@ public class EmitterMesh {
         p.attachChild(n1);
         p.attachChild(n2);
         p.attachChild(n3);
+    }
+
+    public void setEmitterNode(ParticleEmitterNode emitterNode) {
+        this.emitterNode = emitterNode;
     }
 
     /**
@@ -66,7 +88,7 @@ public class EmitterMesh {
         return this.mesh;
     }
     /*
-	public void setDirectionType(DirectionType directionType) {
+    public void setDirectionType(DirectionType directionType) {
 		this.directionType = directionType;
 	}
 	
@@ -77,8 +99,8 @@ public class EmitterMesh {
      * Selects a random face as the next particle emission point
      */
     public void setNext() {
-        if (emitter.getUseSequentialEmissionFace()) {
-            if (emitter.getUseSequentialSkipPattern())
+        if (emitterNode.getUseSequentialEmissionFace()) {
+            if (emitterNode.getUseSequentialSkipPattern())
                 currentTri += 2;
             else
                 currentTri++;
@@ -110,8 +132,8 @@ public class EmitterMesh {
         n1.setLocalTranslation(triStore.get1());
         n2.setLocalTranslation(triStore.get2());
         n3.setLocalTranslation(triStore.get3());
-        p.setLocalRotation(emitter.getLocalRotation());
-        p.setLocalScale(emitter.getLocalScale());
+        p.setLocalRotation(emitterNode.getLocalRotation());
+        p.setLocalScale(emitterNode.getLocalScale());
         triStore.set1(n1.getWorldTranslation());
         triStore.set2(n2.getWorldTranslation());
         triStore.set3(n3.getWorldTranslation());
@@ -171,7 +193,7 @@ public class EmitterMesh {
      * @return A Vector3f containing the normal of the selected emission point
      */
     public Vector3f getNextDirection() {
-        switch (emitter.getDirectionType()) {
+        switch (emitterNode.getDirectionType()) {
             case Normal:
                 tempDir.set(getDirectionNormal());
                 break;
@@ -219,5 +241,93 @@ public class EmitterMesh {
         q.fromAngleAxis(FastMath.nextRandomFloat() * 360 * FastMath.DEG_TO_RAD, getNormal());
         tempDir.set(q.mult(tempDir));
         return tempDir;
+    }
+
+    @Override
+    public EmitterMesh clone() {
+        try {
+            return (EmitterMesh) super.clone();
+        } catch (final CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public EmitterMesh jmeClone() {
+        return clone();
+    }
+
+    @Override
+    public void cloneFields(final Cloner cloner, final Object original) {
+        mesh = cloner.clone(mesh);
+        triStore = cloner.clone(triStore);
+        p1 = cloner.clone(p1);
+        p2 = cloner.clone(p2);
+        p3 = cloner.clone(p3);
+        a = cloner.clone(a);
+        b = cloner.clone(b);
+        result = cloner.clone(result);
+        p = cloner.clone(p);
+        n1 = cloner.clone(n1);
+        n2 = cloner.clone(n2);
+        n3 = cloner.clone(n3);
+        q = cloner.clone(q);
+        q2 = cloner.clone(q2);
+        tempDir = cloner.clone(tempDir);
+        up = cloner.clone(up);
+        left = cloner.clone(left);
+    }
+
+
+    @Override
+    public void write(@NotNull final JmeExporter exporter) throws IOException {
+
+        final OutputCapsule capsule = exporter.getCapsule(this);
+        capsule.write(mesh, "mesh", null);
+
+        capsule.write(triStore, "triStore", null);
+
+        capsule.write(p1, "p1", null);
+        capsule.write(p2, "p2", null);
+        capsule.write(p3, "p3", null);
+
+        capsule.write(a, "a", null);
+        capsule.write(b, "b", null);
+        capsule.write(result, "result", null);
+
+        capsule.write(p, "p", null);
+
+        capsule.write(tempDir, "tempDir", null);
+        capsule.write(up, "up", null);
+        capsule.write(left, "left", null);
+
+        capsule.write(triCount, "triCount", 1);
+        capsule.write(currentTri, "currentTri", 0);
+    }
+
+    @Override
+    public void read(@NotNull JmeImporter importer) throws IOException {
+
+        final InputCapsule capsule = importer.getCapsule(this);
+        mesh = (Mesh) capsule.readSavable("mesh", null);
+
+        triStore = (Triangle) capsule.readSavable("triStore", null);
+
+        p1 = (Vector3f) capsule.readSavable("p1", null);
+        p2 = (Vector3f) capsule.readSavable("p2", null);
+        p3 = (Vector3f) capsule.readSavable("p3", null);
+
+        a = (Vector3f) capsule.readSavable("a", null);
+        b = (Vector3f) capsule.readSavable("b", null);
+        result = (Vector3f) capsule.readSavable("result", null);
+
+        p = (Node) capsule.readSavable("p", null);
+
+        tempDir = (Vector3f) capsule.readSavable("tempDir", null);
+        up = (Vector3f) capsule.readSavable("up", null);
+        left = (Vector3f) capsule.readSavable("left", null);
+
+        triCount = capsule.readInt("triCount", 1);
+        currentTri = capsule.readInt("currentTri", 1);
     }
 }

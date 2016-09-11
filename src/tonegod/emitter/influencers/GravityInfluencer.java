@@ -31,7 +31,7 @@ public class GravityInfluencer implements ParticleInfluencer {
     @Override
     public void update(ParticleData p, float tpf) {
         if (enabled) {
-            if (!p.emitter.getUseStaticParticles()) {
+            if (!p.emitterNode.getUseStaticParticles()) {
                 switch (alignment) {
                     case World:
                         store.set(gravity).multLocal(tpf);
@@ -42,16 +42,16 @@ public class GravityInfluencer implements ParticleInfluencer {
                         p.velocity.addLocal(store);
                         break;
                     case Emission_Point:
-                        p.emitter.getShape().setNext(p.triangleIndex);
-                        if (p.emitter.getUseRandomEmissionPoint())
-                            store.set(p.emitter.getShape().getNextTranslation().addLocal(p.randomOffset));
+                        p.emitterNode.getShape().setNext(p.triangleIndex);
+                        if (p.emitterNode.getUseRandomEmissionPoint())
+                            store.set(p.emitterNode.getShape().getNextTranslation().addLocal(p.randomOffset));
                         else
-                            store.set(p.emitter.getShape().getNextTranslation());
+                            store.set(p.emitterNode.getShape().getNextTranslation());
                         store.subtractLocal(p.position).multLocal(p.initialLength * magnitude).multLocal(tpf);
                         p.velocity.addLocal(store);
                         break;
                     case Emitter_Center:
-                        store.set(p.emitter.getShape().getMesh().getBound().getCenter());
+                        store.set(p.emitterNode.getShape().getMesh().getBound().getCenter());
                         store.subtractLocal(p.position).multLocal(p.initialLength * magnitude).multLocal(tpf);
                         p.velocity.addLocal(store);
                         break;

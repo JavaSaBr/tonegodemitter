@@ -11,14 +11,14 @@ import com.jme3.util.BufferUtils;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import tonegod.emitter.Emitter;
+import tonegod.emitter.ParticleEmitterNode;
 
 /**
  * @author t0neg0d
  */
 public class ParticleDataPointMesh extends ParticleDataMesh {
 
-    private Emitter emitter;
+    private ParticleEmitterNode particleEmitterNode;
 
     private int imagesX = 1;
     private int imagesY = 1;
@@ -38,10 +38,10 @@ public class ParticleDataPointMesh extends ParticleDataMesh {
     }
 
     @Override
-    public void initParticleData(Emitter emitter, int numParticles) {
+    public void initParticleData(ParticleEmitterNode particleEmitterNode, int numParticles) {
         setMode(Mode.Points);
 
-        this.emitter = emitter;
+        this.particleEmitterNode = particleEmitterNode;
 
         // set positions
         FloatBuffer pb = BufferUtils.createVector3Buffer(numParticles);

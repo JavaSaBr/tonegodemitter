@@ -1,36 +1,43 @@
 package tonegod.emitter;
 
+import com.jme3.export.JmeExporter;
+import com.jme3.export.JmeImporter;
+import com.jme3.export.Savable;
 import com.jme3.math.FastMath;
+
+import java.io.IOException;
 
 /**
  * @author t0neg0d Based on original code from Nathan Sweet
  */
-public abstract class Interpolation {
-    /**
-     * @param a blend value between 0 and 1.
-     */
-    abstract public float apply(float a);
+public abstract class Interpolation implements Savable {
 
-    /**
-     * @param a blend value between 0 and 1.
-     */
-    public float apply(float start, float end, float a) {
-        return start + (end - start) * apply(a);
-    }
+    static public final Interpolation linear = new LinearInterpolation();
+    static public final Interpolation fade = new FadeInterpolation();
 
-    static public final Interpolation linear = new Interpolation() {
-        @Override
-        public float apply(float a) {
-            return a;
-        }
-    };
+    static public final Interpolation sine = new SineInterpolation();
+    static public final Interpolation sineIn = new SineInInterpolation();
+    static public final Interpolation sineOut = new SineOutInterpolation();
 
-    static public final Interpolation fade = new Interpolation() {
-        @Override
-        public float apply(float a) {
-            return FastMath.clamp(a * a * a * (a * (a * 6 - 15) + 10), 0, 1);
-        }
-    };
+    static public final Interpolation exp10 = new Exp(2, 10);
+    static public final Interpolation exp10In = new ExpIn(2, 10);
+    static public final Interpolation exp10Out = new ExpOut(2, 10);
+
+    static public final Interpolation exp5 = new Exp(2, 5);
+    static public final Interpolation exp5In = new ExpIn(2, 5);
+    static public final Interpolation exp5Out = new ExpOut(2, 5);
+
+    static public final Interpolation circle = new CircleInterpolation();
+    static public final Interpolation circleIn = new CircleInInterpolation();
+    static public final Interpolation circleOut = new CircleOutInterpolation();
+
+    static public final Interpolation swing = new Swing(1.5f);
+    static public final Interpolation swingIn = new SwingIn(2f);
+    static public final Interpolation swingOut = new SwingOut(2f);
+
+    static public final Interpolation bounce = new Bounce(4);
+    static public final Interpolation bounceIn = new BounceIn(4);
+    static public final Interpolation bounceOut = new BounceOut(4);
 
     static public final Pow pow2 = new Pow(2);
     static public final PowIn pow2In = new PowIn(2);
@@ -48,74 +55,21 @@ public abstract class Interpolation {
     static public final PowIn pow5In = new PowIn(5);
     static public final PowOut pow5Out = new PowOut(5);
 
-    static public final Interpolation sine = new Interpolation() {
-        @Override
-        public float apply(float a) {
-            return (1 - FastMath.cos(a * FastMath.PI)) / 2;
-        }
-    };
-
-    static public final Interpolation sineIn = new Interpolation() {
-        @Override
-        public float apply(float a) {
-            return 1 - FastMath.cos(a * FastMath.PI / 2);
-        }
-    };
-
-    static public final Interpolation sineOut = new Interpolation() {
-        @Override
-        public float apply(float a) {
-            return FastMath.sin(a * FastMath.PI / 2);
-        }
-    };
-
-    static public final Interpolation exp10 = new Exp(2, 10);
-    static public final Interpolation exp10In = new ExpIn(2, 10);
-    static public final Interpolation exp10Out = new ExpOut(2, 10);
-
-    static public final Interpolation exp5 = new Exp(2, 5);
-    static public final Interpolation exp5In = new ExpIn(2, 5);
-    static public final Interpolation exp5Out = new ExpOut(2, 5);
-
-    static public final Interpolation circle = new Interpolation() {
-        @Override
-        public float apply(float a) {
-            if (a <= 0.5f) {
-                a *= 2;
-                return (1 - (float) Math.sqrt(1 - a * a)) / 2;
-            }
-            a--;
-            a *= 2;
-            return ((float) Math.sqrt(1 - a * a) + 1) / 2;
-        }
-    };
-
-    static public final Interpolation circleIn = new Interpolation() {
-        @Override
-        public float apply(float a) {
-            return 1 - (float) Math.sqrt(1 - a * a);
-        }
-    };
-
-    static public final Interpolation circleOut = new Interpolation() {
-        @Override
-        public float apply(float a) {
-            a--;
-            return (float) Math.sqrt(1 - a * a);
-        }
-    };
-
     static public final Elastic elastic = new Elastic(2, 10);
     static public final Elastic elasticIn = new ElasticIn(2, 10);
     static public final Elastic elasticOut = new ElasticOut(2, 10);
 
-    static public final Interpolation swing = new Swing(1.5f);
-    static public final Interpolation swingIn = new SwingIn(2f);
-    static public final Interpolation swingOut = new SwingOut(2f);
+    /**
+     * @param a blend value between 0 and 1.
+     */
+    abstract public float apply(float a);
 
-    static public final Interpolation bounce = new Bounce(4);
-    static public final Interpolation bounceIn = new BounceIn(4);
-    static public final Interpolation bounceOut = new BounceOut(4);
+    /**
+     * @param a blend value between 0 and 1.
+     */
+    public float apply(float start, float end, float a) {
+        return start + (end - start) * apply(a);
+    }
 
     //
 
@@ -173,8 +127,6 @@ public abstract class Interpolation {
             return (2 - ((float) Math.pow(value, -power * (a * 2 - 1)) - min) * scale) / 2;
         }
     }
-
-    ;
 
     static public class ExpIn extends Exp {
         public ExpIn(float value, float power) {
@@ -475,5 +427,77 @@ public abstract class Interpolation {
         else if (name.equals("swingIn")) ret = Interpolation.swingIn;
         else if (name.equals("swingOut")) ret = Interpolation.swingOut;
         return ret;
+    }
+
+    @Override
+    public void read(JmeImporter im) throws IOException {
+    }
+
+    @Override
+    public void write(JmeExporter ex) throws IOException {
+    }
+
+    public static class LinearInterpolation extends Interpolation {
+
+        @Override
+        public float apply(float a) {
+            return a;
+        }
+    }
+
+    public static class FadeInterpolation extends Interpolation {
+        @Override
+        public float apply(float a) {
+            return FastMath.clamp(a * a * a * (a * (a * 6 - 15) + 10), 0, 1);
+        }
+    }
+
+    public static class SineInterpolation extends Interpolation {
+        @Override
+        public float apply(float a) {
+            return (1 - FastMath.cos(a * FastMath.PI)) / 2;
+        }
+    }
+
+    public static class SineInInterpolation extends Interpolation {
+        @Override
+        public float apply(float a) {
+            return 1 - FastMath.cos(a * FastMath.PI / 2);
+        }
+    }
+
+    public static class SineOutInterpolation extends Interpolation {
+        @Override
+        public float apply(float a) {
+            return FastMath.sin(a * FastMath.PI / 2);
+        }
+    }
+
+    public static class CircleInterpolation extends Interpolation {
+        @Override
+        public float apply(float a) {
+            if (a <= 0.5f) {
+                a *= 2;
+                return (1 - (float) Math.sqrt(1 - a * a)) / 2;
+            }
+            a--;
+            a *= 2;
+            return ((float) Math.sqrt(1 - a * a) + 1) / 2;
+        }
+    }
+
+    public static class CircleInInterpolation extends Interpolation {
+        @Override
+        public float apply(float a) {
+            return 1 - (float) Math.sqrt(1 - a * a);
+        }
+    }
+
+    public static class CircleOutInterpolation extends Interpolation {
+        @Override
+        public float apply(float a) {
+            a--;
+            return (float) Math.sqrt(1 - a * a);
+        }
     }
 }
