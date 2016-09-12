@@ -57,7 +57,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
     Vector3f up = new Vector3f();
     Vector3f left = new Vector3f();
 
-//	DirectionType directionType = DirectionType.Normal;
+//	DirectionType directionType = DirectionType.NORMAL;
 
     /**
      * Sets the mesh to use as the emitter shape
@@ -99,8 +99,8 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      * Selects a random face as the next particle emission point
      */
     public void setNext() {
-        if (emitterNode.getUseSequentialEmissionFace()) {
-            if (emitterNode.getUseSequentialSkipPattern())
+        if (emitterNode.isUseSequentialEmissionFace()) {
+            if (emitterNode.isUseSequentialSkipPattern())
                 currentTri += 2;
             else
                 currentTri++;

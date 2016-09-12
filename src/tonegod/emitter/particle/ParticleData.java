@@ -206,7 +206,7 @@ public class ParticleData {
         // TODO: Test this!
         if (emitterNode.getUseStaticParticles()) {
             emitterNode.getShape().setNext(triangleIndex);
-            if (emitterNode.getUseRandomEmissionPoint()) {
+            if (emitterNode.isUseRandomEmissionPoint()) {
                 position.set(emitterNode.getShape().getNextTranslation().addLocal(randomOffset));
             } else {
                 position.set(emitterNode.getShape().getNextTranslation());
@@ -233,7 +233,7 @@ public class ParticleData {
             force = emitterNode.getForceMax();
         emitterNode.getShape().setNext();
         triangleIndex = emitterNode.getShape().getTriangleIndex();
-        if (!emitterNode.getUseRandomEmissionPoint()) {
+        if (!emitterNode.isUseRandomEmissionPoint()) {
             position.set(
                     emitterNode.getShape().getNextTranslation()
             );

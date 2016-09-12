@@ -58,31 +58,31 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         /**
          * Facing direction follows the velocity as it changes
          */
-        Velocity,
+        VELOCITY,
         /**
          * Facing direction follows the velocity as it changes, Y of particle always faces Z of
          * velocity
          */
-        Velocity_Z_Up,
+        VELOCITY_Z_UP,
         /**
          * Facing direction follows the velocity as it changes, Y of particle always faces Z of
          * velocity, Up of the particle always faces X
          */
-        Velocity_Z_Up_Y_Left,
+        VELOCITY_Z_UP_Y_LEFT,
         /**
          * Facing direction remains constant to the face of the particle emitter shape that the
          * particle was emitted from
          */
-        Normal,
+        NORMAL,
         /**
          * Facing direction remains constant for X, Z axis' to the face of the particle emitter
          * shape that the particle was emitted from. Y axis maps to UNIT_Y
          */
-        Normal_Y_Up,
+        NORMAL_Y_UP,
         /**
          * ParticleData always faces camera
          */
-        Camera,
+        CAMERA,
         /**
          * ParticleData always faces X axis
          */
@@ -95,7 +95,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
          * ParticleData always faces Z axis
          */
         UNIT_Z;
-
 
         private static final BillboardMode[] VALUES = values();
 
@@ -278,7 +277,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.lifeMin = 0.999f;
         this.lifeMax = 0.999f;
         this.activeParticleCount = 0;
-        this.billboardMode = BillboardMode.Camera;
+        this.billboardMode = BillboardMode.CAMERA;
         this.spriteWidth = -1;
         this.spriteCols = 1;
         this.spriteRows = 1;
@@ -391,10 +390,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Sets the maximum number of particles the emitter will manage
      */
     public void setMaxParticles(final int maxParticles) {
+        if (maxParticles < 0) throw new IllegalArgumentException("maxParticles can't be negative.");
         this.maxParticles = maxParticles;
-        if (emitterInitialized) {
-            //FIXME rebuild emitter
-        }
+        if (!emitterInitialized) return;
+        killAllParticles();
+        initParticles();
     }
 
     private void initMaterials() {
@@ -570,7 +570,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
-     * Defines how particles are emitted from the face of the emitter shape. For example: Normal
+     * Defines how particles are emitted from the face of the emitter shape. For example: NORMAL
      * will emit in the direction of the face's normal NormalNegate will emit the the opposite
      * direction of the face's normal RandomTangent will select a random tagent to the face's
      * normal.
@@ -710,7 +710,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns if particle emission uses a randomly selected point on the emitter shape's selected
      * face or it's absolute center.  Center emission is default.
      */
-    public boolean getUseRandomEmissionPoint() {
+    public boolean isUseRandomEmissionPoint() {
         return useRandomEmissionPoint;
     }
 
@@ -728,7 +728,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns if emission happens in the sequential order the faces of the emitter shape mesh are
      * defined.
      */
-    public boolean getUseSequentialEmissionFace() {
+    public boolean isUseSequentialEmissionFace() {
         return useSequentialEmissionFace;
     }
 
@@ -745,7 +745,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns if the emitter will skip every other face in the sequential order the emitter shape
      * faces are defined.
      */
-    public boolean getUseSequentialSkipPattern() {
+    public boolean isUseSequentialSkipPattern() {
         return useSequentialSkipPattern;
     }
 
@@ -1158,7 +1158,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
-     * Sets the billboard mode to be used by emitted particles.  The default mode is Camera
+     * Sets the billboard mode to be used by emitted particles.  The default mode is CAMERA
      *
      * @param billboardMode The billboard mode to use
      */
@@ -1271,16 +1271,39 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         particleNode.setQueueBucket(RenderQueue.Bucket.Transparent);
     }
 
-    public void setEmitterTestMode(boolean showEmitterShape, boolean showParticleMesh) {
-        this.testEmitter = showEmitterShape;
-        this.testParticles = showParticleMesh;
+    /**
+     * @return true if the test emitter is enabled.
+     */
+    public boolean isEnabledTestEmitter() {
+        return testEmitter;
+    }
 
+    /**
+     * @return true if the test particles is enabled.
+     */
+    public boolean isEnabledTestParticles() {
+        return testParticles;
+    }
+
+    /**
+     * @param testEmitter the flag of enabling test emitter.
+     */
+    public void setEnabledTestEmitter(final boolean testEmitter) {
+        if (isEnabledTestEmitter() == testEmitter) return;
+        this.testEmitter = testEmitter;
         if (testEmitter) attachChild(emitterTestNode);
         else emitterTestNode.removeFromParent();
+        requiresUpdate = true;
+    }
 
+    /**
+     * @param testParticles the flag of enabling test particles.
+     */
+    public void setEnabledTestParticles(final boolean testParticles) {
+        if (isEnabledTestParticles() == testParticles) return;
+        this.testParticles = testParticles;
         if (testParticles) attachChild(particleTestNode);
         else particleTestNode.removeFromParent();
-
         requiresUpdate = true;
     }
 
@@ -1573,7 +1596,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         capsule.write(spriteCols, "spriteCols", 0);
         capsule.write(spriteRows, "spriteRows", 0);
 
-        capsule.write(billboardMode.ordinal(), "billboardMode", BillboardMode.Camera.ordinal());
+        capsule.write(billboardMode.ordinal(), "billboardMode", BillboardMode.CAMERA.ordinal());
 
         capsule.write(particlesFollowEmitter, "particlesFollowEmitter", false);
         capsule.write(enabled, "enabled", false);
@@ -1676,7 +1699,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         spriteCols = capsule.readInt("spriteCols", 0);
         spriteRows = capsule.readInt("spriteRows", 0);
 
-        billboardMode = BillboardMode.valueOf(capsule.readInt("billboardMode", BillboardMode.Camera.ordinal()));
+        billboardMode = BillboardMode.valueOf(capsule.readInt("billboardMode", BillboardMode.CAMERA.ordinal()));
 
         particlesFollowEmitter = capsule.readBoolean("particlesFollowEmitter", false);
         enabled = capsule.readBoolean("enabled", false);
@@ -1715,8 +1738,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             result.setParticleType(particleType, particlesAnimNode);
             result.setParticleAnimation(particlesAnimName, particlesAnimSpeed, particlesAnimBlendTime, particlesAnimLoopMode);
         } else result.setParticleType(particleType, template);
-
-        result.setEmitterTestMode(testEmitter, testParticles);
 
         final Array<ParticleInfluencer> originalInfluencers = influencers;
         influencers = ArrayFactory.newArray(ParticleInfluencer.class, influencers.size());

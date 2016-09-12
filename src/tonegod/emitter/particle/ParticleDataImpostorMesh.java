@@ -215,7 +215,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
             }
 
             switch (emitterNode.getBillboardMode()) {
-                case Velocity:
+                case VELOCITY:
                     if (p.velocity.x != Vector3f.UNIT_Y.x &&
                             p.velocity.y != Vector3f.UNIT_Y.y &&
                             p.velocity.z != Vector3f.UNIT_Y.z)
@@ -225,7 +225,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
                     left.set(p.velocity).crossLocal(up).normalizeLocal();
                     dir.set(p.velocity);
                     break;
-                case Velocity_Z_Up:
+                case VELOCITY_Z_UP:
                     if (p.velocity.x != Vector3f.UNIT_Y.x &&
                             p.velocity.y != Vector3f.UNIT_Y.y &&
                             p.velocity.z != Vector3f.UNIT_Y.z)
@@ -238,7 +238,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
                     left = rotStore.mult(left);
                     up = rotStore.mult(up);
                     break;
-                case Velocity_Z_Up_Y_Left:
+                case VELOCITY_Z_UP_Y_LEFT:
                     up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
                     left.set(p.velocity).crossLocal(up).normalizeLocal();
                     dir.set(p.velocity);
@@ -249,7 +249,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
                     rotStore = tempQ.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
                     up = rotStore.mult(up);
                     break;
-                case Normal:
+                case NORMAL:
                     emitterNode.getShape().setNext(p.triangleIndex);
                     tempV3.set(emitterNode.getShape().getNormal());
                     if (tempV3 == Vector3f.UNIT_Y)
@@ -259,7 +259,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
                     left.set(tempV3).crossLocal(up).normalizeLocal();
                     dir.set(tempV3);
                     break;
-                case Normal_Y_Up:
+                case NORMAL_Y_UP:
                     emitterNode.getShape().setNext(p.triangleIndex);
                     tempV3.set(p.velocity);
                     if (tempV3 == Vector3f.UNIT_Y)
@@ -269,7 +269,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
                     left.set(tempV3).crossLocal(up).normalizeLocal();
                     dir.set(tempV3);
                     break;
-                case Camera:
+                case CAMERA:
                     up.set(cam.getUp());
                     left.set(cam.getLeft());
                     dir.set(cam.getDirection());
@@ -292,12 +292,12 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
             }
             /*
             switch (emitter.getBillboardMode()) {
-				case Velocity:
+				case VELOCITY:
 					up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
 					left.set(p.velocity).crossLocal(up).normalizeLocal();
 					dir.set(p.velocity);
 					break;
-				case Velocity_Z_Up:
+				case VELOCITY_Z_UP:
 					up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
 					left.set(p.velocity).crossLocal(up).normalizeLocal();
 					dir.set(p.velocity);
@@ -305,21 +305,21 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
 					left = rotStore.mult(left);
 					up = rotStore.mult(up);
 					break;
-				case Normal:
+				case NORMAL:
 					emitter.getShape().setNext(p.triangleIndex);
 					tempV3.set(emitter.getShape().getNextDirection());
 					up.set(tempV3).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
 					left.set(tempV3).crossLocal(up).normalizeLocal();
 					dir.set(tempV3);
 					break;
-				case Normal_Y_Up:
+				case NORMAL_Y_UP:
 					emitter.getShape().setNext(p.triangleIndex);
 					tempV3.set(emitter.getShape().getNextDirection());
 					up.set(Vector3f.UNIT_Y);
 					left.set(tempV3).crossLocal(up).normalizeLocal();
 					dir.set(tempV3);
 					break;
-				case Camera:
+				case CAMERA:
 					up.set(cam.getUp());
 					left.set(cam.getLeft());
 					dir.set(cam.getDirection());
@@ -345,7 +345,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
 
             if (p.emitterNode.getUseVelocityStretching()) {
                 up.multLocal(p.velocity.length() * p.emitterNode.getVelocityStretchFactor());
-			/*	
+            /*
 				switch (p.emitter.getForcedStretchAxis()) {
 					case X:
 						left.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());

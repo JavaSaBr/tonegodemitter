@@ -43,7 +43,7 @@ public class GravityInfluencer implements ParticleInfluencer {
                         break;
                     case Emission_Point:
                         p.emitterNode.getShape().setNext(p.triangleIndex);
-                        if (p.emitterNode.getUseRandomEmissionPoint())
+                        if (p.emitterNode.isUseRandomEmissionPoint())
                             store.set(p.emitterNode.getShape().getNextTranslation().addLocal(p.randomOffset));
                         else
                             store.set(p.emitterNode.getShape().getNextTranslation());
