@@ -266,7 +266,7 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
 
                 p.upVec.set(up);
 
-                if (p.emitterNode.getUseVelocityStretching()) {
+                if (p.emitterNode.isUseVelocityStretching()) {
                     up.multLocal(p.velocity.length() * p.emitterNode.getVelocityStretchFactor());
                 }
 
@@ -285,7 +285,7 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                 left = rotStore.mult(left);
                 up = rotStore.mult(up);
 
-                if (emitterNode.getParticlesFollowEmitter()) {
+                if (emitterNode.isParticlesFollowEmitter()) {
                     tempV3.set(p.position);
                 } else {
                     tempV3.set(p.position).subtractLocal(

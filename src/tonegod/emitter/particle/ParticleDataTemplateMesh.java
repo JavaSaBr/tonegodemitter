@@ -268,7 +268,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
                 tempV3 = rotStore.mult(tempV3);
 
                 tempV3.addLocal(p.position);
-                if (!emitterNode.getParticlesFollowEmitter()) {
+                if (!emitterNode.isParticlesFollowEmitter()) {
                     tempV3.subtractLocal(emitterNode.getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
                 }
 

@@ -343,10 +343,10 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
 			*/
             p.upVec.set(up);
 
-            if (p.emitterNode.getUseVelocityStretching()) {
+            if (p.emitterNode.isUseVelocityStretching()) {
                 up.multLocal(p.velocity.length() * p.emitterNode.getVelocityStretchFactor());
             /*
-				switch (p.emitter.getForcedStretchAxis()) {
+                switch (p.emitter.getForcedStretchAxis()) {
 					case X:
 						left.multLocal(p.velocity.length()*p.emitter.getVelocityStretchFactor());
 						break;
@@ -375,7 +375,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
             left = rotStore.mult(left);
             up = rotStore.mult(up);
 
-            if (emitterNode.getParticlesFollowEmitter()) {
+            if (emitterNode.isParticlesFollowEmitter()) {
                 tempV3.set(p.position);
             } else {
                 tempV3.set(p.position).subtractLocal(emitterNode.getParticleNode().getWorldTranslation().subtract(p.initialPosition));//.divide(8f));

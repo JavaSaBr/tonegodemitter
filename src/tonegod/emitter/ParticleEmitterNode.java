@@ -13,6 +13,7 @@ import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
@@ -247,7 +248,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * Creates a new instance of the Emitter
      */
-    public ParticleEmitterNode(final AssetManager assetManager) {
+    public ParticleEmitterNode(@NotNull final AssetManager assetManager) {
         this();
         this.assetManager = assetManager;
     }
@@ -621,7 +622,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * Returns if the emitter will use particle stretching
      */
-    public boolean getUseVelocityStretching() {
+    public boolean isUseVelocityStretching() {
         return useVelocityStretching;
     }
 
@@ -693,7 +694,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return Current state of the follows emitter flag
      */
-    public boolean getParticlesFollowEmitter() {
+    public boolean isParticlesFollowEmitter() {
         return particlesFollowEmitter;
     }
 
@@ -780,6 +781,17 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
+     * Sets the inner and outter bounds of the time a particle will remain alive (active).
+     *
+     * @param life the minimum and maximum time a particle must remian alive once emitted.
+     */
+    public void setLifeMinMax(final Vector2f life) {
+        this.lifeMin = life.getX();
+        this.lifeMax = life.getY();
+        requiresUpdate = true;
+    }
+
+    /**
      * Sets the inner and outter bounds of the time a particle will remain alive (active) to a fixed
      * duration of time
      *
@@ -811,6 +823,16 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
+     * Returns the minimum and maximum time a particle can remain alive once emitted.
+     *
+     * @return the minimum and maximum time a particle can remain alive once emitted.
+     */
+    @NotNull
+    public Vector2f getLifeMinMax() {
+        return new Vector2f(lifeMin, lifeMax);
+    }
+
+    /**
      * Sets the inner bounds of the time a particle will remain alive (active)
      *
      * @param lifeMin The minimum time a particle must remian alive once emitted
@@ -839,6 +861,18 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public void setForceMinMax(final float forceMin, final float forceMax) {
         this.forceMin = forceMin;
         this.forceMax = forceMax;
+        requiresUpdate = true;
+    }
+
+    /**
+     * Sets the inner and outter bounds of the initial force with which the particle is emitted.
+     * This directly effects the initial velocity vector of the particle.
+     *
+     * @param force The minimum and maximum force with which the particle will be emitted.
+     */
+    public void setForceMinMax(final Vector2f force) {
+        this.forceMin = force.getX();
+        this.forceMax = force.getY();
         requiresUpdate = true;
     }
 
@@ -892,6 +926,16 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public float getForceMax() {
         return forceMax;
+    }
+
+    /**
+     * Returns the minimum and maximum force with which the particle can be emitted.
+     *
+     * @return the minimum and maximum force with which the particle can be emitted.
+     */
+    @NotNull
+    public Vector2f getForceMinMax() {
+        return new Vector2f(forceMin, forceMax);
     }
 
     /**
