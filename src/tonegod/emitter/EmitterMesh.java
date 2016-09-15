@@ -24,12 +24,12 @@ import java.io.IOException;
 public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
 
     public enum DirectionType {
-        Normal,
-        NormalNegate,
-        Random,
-        RandomTangent,
-        RandomNormalAligned,
-        RandomNormalNegate;
+        NORMAL,
+        NORMAL_NEGATE,
+        RANDOM,
+        RANDOM_TANGENT,
+        RANDOM_NORMAL_ALIGNED,
+        RANDOM_NORMAL_NEGATE;
 
         private static final DirectionType[] VALUES = values();
 
@@ -194,24 +194,24 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      */
     public Vector3f getNextDirection() {
         switch (emitterNode.getDirectionType()) {
-            case Normal:
+            case NORMAL:
                 tempDir.set(getDirectionNormal());
                 break;
-            case NormalNegate:
+            case NORMAL_NEGATE:
                 tempDir.set(getDirectionNormal().negate());
                 break;
-            case Random:
+            case RANDOM:
                 tempDir.set(getDirectionRandom());
                 break;
-            case RandomTangent:
+            case RANDOM_TANGENT:
                 tempDir.set(getDirectionRandomTangent());
                 break;
-            case RandomNormalAligned:
+            case RANDOM_NORMAL_ALIGNED:
                 tempDir.set(getDirectionRandom());
                 if (tempDir.dot(getDirectionNormal()) < 0)
                     tempDir.negateLocal();
                 break;
-            case RandomNormalNegate:
+            case RANDOM_NORMAL_NEGATE:
                 tempDir.set(getDirectionRandom());
                 if (tempDir.dot(getDirectionNormal()) > 0)
                     tempDir.negateLocal();

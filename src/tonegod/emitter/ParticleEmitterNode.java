@@ -39,6 +39,7 @@ import rlib.util.ClassUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
+import tonegod.emitter.geometry.ParticleEmitterGeometry;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 import tonegod.emitter.particle.ParticleDataMesh;
@@ -265,7 +266,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.velocityStretchFactor = 0.35f;
         this.stretchAxis = ForcedStretchAxis.Y;
         this.particleEmissionPoint = ParticleEmissionPoint.PARTICLE_CENTER;
-        this.directionType = EmitterMesh.DirectionType.Random;
+        this.directionType = EmitterMesh.DirectionType.RANDOM;
         this.interpolation = Interpolation.linear;
         this.influencers = newArray(ParticleInfluencer.class, 1);
         this.particleType = ParticleDataTriMesh.class;
@@ -572,8 +573,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
     /**
      * Defines how particles are emitted from the face of the emitter shape. For example: NORMAL
-     * will emit in the direction of the face's normal NormalNegate will emit the the opposite
-     * direction of the face's normal RandomTangent will select a random tagent to the face's
+     * will emit in the direction of the face's normal NORMAL_NEGATE will emit the the opposite
+     * direction of the face's normal RANDOM_TANGENT will select a random tagent to the face's
      * normal.
      */
     public void setDirectionType(@NotNull final EmitterMesh.DirectionType directionType) {
@@ -1306,7 +1307,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     protected void checkAndInitParticleGeometry() {
         if (!particleNode.getChildren().isEmpty()) return;
 
-        final Geometry geom = new Geometry();
+        final ParticleEmitterGeometry geom = new ParticleEmitterGeometry();
         geom.setMesh(mesh);
         geom.setName("Particle Geometry");
 
@@ -1603,7 +1604,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         capsule.write(stretchAxis.ordinal(), "stretchAxis", ForcedStretchAxis.Y.ordinal());
         capsule.write(particleEmissionPoint.ordinal(), "particleEmissionPoint", ParticleEmissionPoint.PARTICLE_CENTER.ordinal());
-        capsule.write(directionType.ordinal(), "directionType", EmitterMesh.DirectionType.Random.ordinal());
+        capsule.write(directionType.ordinal(), "directionType", EmitterMesh.DirectionType.RANDOM.ordinal());
 
         capsule.write(emitterShape, "emitterShape", null);
 
@@ -1698,7 +1699,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         stretchAxis = ForcedStretchAxis.valueOf(capsule.readInt("stretchAxis", ForcedStretchAxis.Y.ordinal()));
         particleEmissionPoint = ParticleEmissionPoint.valueOf(capsule.readInt("particleEmissionPoint", ParticleEmissionPoint.PARTICLE_CENTER.ordinal()));
-        directionType = EmitterMesh.DirectionType.valueOf(capsule.readInt("directionType", EmitterMesh.DirectionType.Random.ordinal()));
+        directionType = EmitterMesh.DirectionType.valueOf(capsule.readInt("directionType", EmitterMesh.DirectionType.RANDOM.ordinal()));
 
         emitterShape = (EmitterMesh) capsule.readSavable("emitterShape", null);
         emitterShape.setEmitterNode(this);
