@@ -250,8 +250,8 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
                     up = rotStore.mult(up);
                     break;
                 case NORMAL:
-                    emitterNode.getShape().setNext(p.triangleIndex);
-                    tempV3.set(emitterNode.getShape().getNormal());
+                    emitterNode.getEmitterShape().setNext(p.triangleIndex);
+                    tempV3.set(emitterNode.getEmitterShape().getNormal());
                     if (tempV3 == Vector3f.UNIT_Y)
                         tempV3.set(p.velocity);
 
@@ -260,7 +260,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
                     dir.set(tempV3);
                     break;
                 case NORMAL_Y_UP:
-                    emitterNode.getShape().setNext(p.triangleIndex);
+                    emitterNode.getEmitterShape().setNext(p.triangleIndex);
                     tempV3.set(p.velocity);
                     if (tempV3 == Vector3f.UNIT_Y)
                         tempV3.set(Vector3f.UNIT_X);
@@ -306,15 +306,15 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
 					up = rotStore.mult(up);
 					break;
 				case NORMAL:
-					emitter.getShape().setNext(p.triangleIndex);
-					tempV3.set(emitter.getShape().getNextDirection());
+					emitter.getEmitterShape().setNext(p.triangleIndex);
+					tempV3.set(emitter.getEmitterShape().getNextDirection());
 					up.set(tempV3).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
 					left.set(tempV3).crossLocal(up).normalizeLocal();
 					dir.set(tempV3);
 					break;
 				case NORMAL_Y_UP:
-					emitter.getShape().setNext(p.triangleIndex);
-					tempV3.set(emitter.getShape().getNextDirection());
+					emitter.getEmitterShape().setNext(p.triangleIndex);
+					tempV3.set(emitter.getEmitterShape().getNextDirection());
 					up.set(Vector3f.UNIT_Y);
 					left.set(tempV3).crossLocal(up).normalizeLocal();
 					dir.set(tempV3);

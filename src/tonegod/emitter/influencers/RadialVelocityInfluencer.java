@@ -52,14 +52,14 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
         if (enabled) {
             switch (alignment) {
                 case Emission_Point:
-                    p.emitterNode.getShape().setNext(p.triangleIndex);
+                    p.emitterNode.getEmitterShape().setNext(p.triangleIndex);
                     if (p.emitterNode.isUseRandomEmissionPoint())
-                        store.set(p.emitterNode.getShape().getNextTranslation().addLocal(p.randomOffset));
+                        store.set(p.emitterNode.getEmitterShape().getNextTranslation().addLocal(p.randomOffset));
                     else
-                        store.set(p.emitterNode.getShape().getNextTranslation());
+                        store.set(p.emitterNode.getEmitterShape().getNextTranslation());
                     break;
                 case Emitter_Center:
-                    store.set(p.emitterNode.getShape().getMesh().getBound().getCenter());
+                    store.set(p.emitterNode.getEmitterShape().getMesh().getBound().getCenter());
                     break;
             }
 
@@ -81,7 +81,7 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
 
             switch (upAlignment) {
                 case Normal:
-                    upStore.set(p.emitterNode.getLocalRotation().inverse().mult(upStore.set(p.emitterNode.getShape().getNormal())));
+                    upStore.set(p.emitterNode.getLocalRotation().inverse().mult(upStore.set(p.emitterNode.getEmitterShape().getNormal())));
                     break;
                 case UNIT_X:
                     upStore.set(Vector3f.UNIT_X);

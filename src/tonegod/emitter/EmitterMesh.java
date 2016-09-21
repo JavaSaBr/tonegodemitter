@@ -24,17 +24,28 @@ import java.io.IOException;
 public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
 
     public enum DirectionType {
-        NORMAL,
-        NORMAL_NEGATE,
-        RANDOM,
-        RANDOM_TANGENT,
-        RANDOM_NORMAL_ALIGNED,
-        RANDOM_NORMAL_NEGATE;
+        NORMAL("Normal"),
+        NORMAL_NEGATE("Normal negate"),
+        RANDOM("Random"),
+        RANDOM_TANGENT("Random tangent"),
+        RANDOM_NORMAL_ALIGNED("Random normal aligned"),
+        RANDOM_NORMAL_NEGATE("Random normal negate");
 
         private static final DirectionType[] VALUES = values();
 
         public static DirectionType valueOf(final int index) {
             return VALUES[index];
+        }
+
+        private final String uiName;
+
+        DirectionType(final String uiName) {
+            this.uiName = uiName;
+        }
+
+        @Override
+        public String toString() {
+            return uiName;
         }
     }
 
@@ -84,6 +95,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      *
      * @return The particle emitter shape mesh
      */
+    @NotNull
     public Mesh getMesh() {
         return this.mesh;
     }

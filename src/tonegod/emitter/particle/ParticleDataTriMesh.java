@@ -223,8 +223,8 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                         up = rotStore.mult(up);
                         break;
                     case NORMAL:
-                        emitterNode.getShape().setNext(p.triangleIndex);
-                        tempV3.set(emitterNode.getShape().getNormal());
+                        emitterNode.getEmitterShape().setNext(p.triangleIndex);
+                        tempV3.set(emitterNode.getEmitterShape().getNormal());
                         if (tempV3 == Vector3f.UNIT_Y)
                             tempV3.set(p.velocity);
 
@@ -233,7 +233,7 @@ public class ParticleDataTriMesh extends ParticleDataMesh {
                         dir.set(tempV3);
                         break;
                     case NORMAL_Y_UP:
-                        emitterNode.getShape().setNext(p.triangleIndex);
+                        emitterNode.getEmitterShape().setNext(p.triangleIndex);
                         tempV3.set(p.velocity);
                         if (tempV3 == Vector3f.UNIT_Y)
                             tempV3.set(Vector3f.UNIT_X);

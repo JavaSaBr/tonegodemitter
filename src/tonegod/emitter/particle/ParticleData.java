@@ -205,11 +205,11 @@ public class ParticleData {
 
         // TODO: Test this!
         if (emitterNode.getUseStaticParticles()) {
-            emitterNode.getShape().setNext(triangleIndex);
+            emitterNode.getEmitterShape().setNext(triangleIndex);
             if (emitterNode.isUseRandomEmissionPoint()) {
-                position.set(emitterNode.getShape().getNextTranslation().addLocal(randomOffset));
+                position.set(emitterNode.getEmitterShape().getNextTranslation().addLocal(randomOffset));
             } else {
-                position.set(emitterNode.getShape().getNextTranslation());
+                position.set(emitterNode.getEmitterShape().getNextTranslation());
             }
         }
     }
@@ -231,20 +231,20 @@ public class ParticleData {
             force = (emitterNode.getForceMax() - emitterNode.getForceMin()) * FastMath.nextRandomFloat() + emitterNode.getForceMin();
         else
             force = emitterNode.getForceMax();
-        emitterNode.getShape().setNext();
-        triangleIndex = emitterNode.getShape().getTriangleIndex();
+        emitterNode.getEmitterShape().setNext();
+        triangleIndex = emitterNode.getEmitterShape().getTriangleIndex();
         if (!emitterNode.isUseRandomEmissionPoint()) {
             position.set(
-                    emitterNode.getShape().getNextTranslation()
+                    emitterNode.getEmitterShape().getNextTranslation()
             );
         } else {
-            randomOffset.set(emitterNode.getShape().getRandomTranslation());
+            randomOffset.set(emitterNode.getEmitterShape().getRandomTranslation());
             position.set(
-                    emitterNode.getShape().getNextTranslation().add(randomOffset)
+                    emitterNode.getEmitterShape().getNextTranslation().add(randomOffset)
             );
         }
         velocity.set(
-                emitterNode.getShape().getNextDirection()
+                emitterNode.getEmitterShape().getNextDirection()
         ).normalizeLocal().multLocal(force);
 
         initialLength = velocity.length();
@@ -261,12 +261,12 @@ public class ParticleData {
 
         switch (emitterNode.getParticleEmissionPoint()) {
             case PARTICLE_EDGE_BOTTOM:
-                tempV3.set(emitterNode.getShape().getNextDirection()).normalizeLocal();
+                tempV3.set(emitterNode.getEmitterShape().getNextDirection()).normalizeLocal();
                 tempV3.multLocal(startSize.getY());
                 position.addLocal(tempV3);
                 break;
             case PARTICLE_EDGE_TOP:
-                tempV3.set(emitterNode.getShape().getNextDirection()).normalizeLocal();
+                tempV3.set(emitterNode.getEmitterShape().getNextDirection()).normalizeLocal();
                 tempV3.multLocal(startSize.getY());
                 position.subtractLocal(tempV3);
                 break;

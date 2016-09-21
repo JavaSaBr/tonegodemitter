@@ -8,6 +8,7 @@ import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
+import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -41,6 +42,7 @@ import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
 import tonegod.emitter.geometry.ParticleEmitterGeometry;
 import tonegod.emitter.influencers.ParticleInfluencer;
+import tonegod.emitter.material.ParticlesMaterial;
 import tonegod.emitter.particle.ParticleData;
 import tonegod.emitter.particle.ParticleDataMesh;
 import tonegod.emitter.particle.ParticleDataPointMesh;
@@ -60,48 +62,59 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         /**
          * Facing direction follows the velocity as it changes
          */
-        VELOCITY,
+        VELOCITY("Velocity"),
         /**
          * Facing direction follows the velocity as it changes, Y of particle always faces Z of
          * velocity
          */
-        VELOCITY_Z_UP,
+        VELOCITY_Z_UP("Velocity Z up"),
         /**
          * Facing direction follows the velocity as it changes, Y of particle always faces Z of
          * velocity, Up of the particle always faces X
          */
-        VELOCITY_Z_UP_Y_LEFT,
+        VELOCITY_Z_UP_Y_LEFT("Velocity Z up Y left"),
         /**
          * Facing direction remains constant to the face of the particle emitter shape that the
          * particle was emitted from
          */
-        NORMAL,
+        NORMAL("Normal"),
         /**
          * Facing direction remains constant for X, Z axis' to the face of the particle emitter
          * shape that the particle was emitted from. Y axis maps to UNIT_Y
          */
-        NORMAL_Y_UP,
+        NORMAL_Y_UP("Normal Y up"),
         /**
          * ParticleData always faces camera
          */
-        CAMERA,
+        CAMERA("Camera"),
         /**
          * ParticleData always faces X axis
          */
-        UNIT_X,
+        UNIT_X("Unit X"),
         /**
          * ParticleData always faces Y axis
          */
-        UNIT_Y,
+        UNIT_Y("Unit Y"),
         /**
          * ParticleData always faces Z axis
          */
-        UNIT_Z;
+        UNIT_Z("Unit Z");
 
         private static final BillboardMode[] VALUES = values();
 
         public static BillboardMode valueOf(final int index) {
             return VALUES[index];
+        }
+
+        private final String uiName;
+
+        BillboardMode(final String uiName) {
+            this.uiName = uiName;
+        }
+
+        @Override
+        public String toString() {
+            return uiName;
         }
     }
 
@@ -116,14 +129,26 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     public enum ParticleEmissionPoint {
-        PARTICLE_CENTER,
-        PARTICLE_EDGE_TOP,
-        PARTICLE_EDGE_BOTTOM;
+        PARTICLE_CENTER("Center"),
+        PARTICLE_EDGE_TOP("Edge top"),
+        PARTICLE_EDGE_BOTTOM("Edge bottom");
 
         private static final ParticleEmissionPoint[] VALUES = values();
 
+
         public static ParticleEmissionPoint valueOf(final int index) {
             return VALUES[index];
+        }
+
+        private final String uiName;
+
+        ParticleEmissionPoint(final String uiName) {
+            this.uiName = uiName;
+        }
+
+        @Override
+        public String toString() {
+            return uiName;
         }
     }
 
@@ -188,15 +213,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     protected AssetManager assetManager;
 
     protected Material material;
-    protected Material userDefinedMaterial;
     protected Material testMat;
 
     protected boolean applyLightingTransform;
 
-    protected String uniformName = "Texture";
-    protected String texturePath;
-
-    protected Texture texture;
+    protected String textureParamName;
 
     protected float spriteWidth;
     protected float spriteHeight;
@@ -259,6 +280,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public ParticleEmitterNode() {
         setName("Emitter Node");
+        this.textureParamName = "Texture";
         this.inverseRotation = Matrix3f.IDENTITY.clone();
         this.tpfThreshold = 1f / 400f;
         this.targetInterval = 0.00015f;
@@ -402,8 +424,13 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     private void initMaterials() {
         if (material != null && testMat != null) return;
 
+        final Texture texture = assetManager.loadTexture("Common/Textures/MissingTexture.png");
+        texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+        texture.setMagFilter(Texture.MagFilter.Bilinear);
+
         material = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
         material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        material.setTexture("Texture", texture);
 
         testMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         testMat.setColor("Color", ColorRGBA.Blue);
@@ -443,7 +470,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         final TriangleEmitterShape shape = new TriangleEmitterShape();
         shape.init(1F);
 
-        setShape(shape);
+        setEmitterShapeMesh(shape);
 
         requiresUpdate = true;
     }
@@ -453,7 +480,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @param mesh The Mesh to use as the particle emitter shape
      */
-    public final void setShape(@NotNull final Mesh mesh) {
+    public final void setEmitterShapeMesh(@NotNull final Mesh mesh) {
         emitterShape.setShape(this, mesh);
         if (!emitterTestNode.getChildren().isEmpty()) {
             emitterTestNode.getChild(0).removeFromParent();
@@ -476,7 +503,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *                                         to manage animations via the asset in place of
      *                                         calling setEmitterAnimation
      */
-    public final void setShape(@NotNull final Node node, final boolean sceneAlreadyContainsEmitterShape) {
+    public final void setEmitterShapeMesh(@NotNull final Node node, final boolean sceneAlreadyContainsEmitterShape) {
         if (emitterAnimNode != null) emitterAnimNode.removeFromParent();
 
         emitterAnimNode = node;
@@ -484,7 +511,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         if (!emitterNodeExists) emitterAnimNode.setLocalScale(0);
 
         final Mesh shape = ((Geometry) node.getChild(0)).getMesh();
-        setShape(shape);
+        setEmitterShapeMesh(shape);
 
         emitterAnimControl = emitterAnimNode.getControl(AnimControl.class);
 
@@ -502,7 +529,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return The EmitterMesh containing the specified shape Mesh
      */
-    public EmitterMesh getShape() {
+    @NotNull
+    public EmitterMesh getEmitterShape() {
         return emitterShape;
     }
 
@@ -1012,101 +1040,80 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         influencers.clear();
         requiresUpdate = true;
     }
-    //</editor-fold>
-
-    //<editor-fold desc="Material & Particle Texture">
 
     /**
-     * Sets the texture to be used by particles, when calling this method, it is assumed that the
-     * image does not contain multiple sprite images
+     * Change the current texture to the new texture.
      *
-     * @param texturePath The path of the texture to use
+     * @param texturePath the path to texture.
      */
-    public void setSprite(final String texturePath) {
-        setSpriteByCount(texturePath, uniformName, 1, 1);
+    public void changeTexture(final String texturePath) {
+
+        final Texture texture = assetManager.loadTexture(texturePath);
+        texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+        texture.setMagFilter(Texture.MagFilter.Bilinear);
+
+        material.setTexture(textureParamName, texture);
+
+        setSpriteCount(spriteCols, spriteRows);
     }
 
     /**
-     * Sets the texture to be used by particles, this can contain multiple images for random image
-     * selection or sprite animation of particles.
+     * Change the current texture to the new texture.
      *
-     * @param texturePath The path of the texture to use
-     * @param numCols     The number of sprite images per row
-     * @param numRows     The number of rows containing sprite images
+     * @param texture the new texture.
      */
-    public void setSprite(String texturePath, int numCols, int numRows) {
-        setSpriteByCount(texturePath, uniformName, numCols, numRows);
+    public void changeTexture(final Texture texture) {
+
+        texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+        texture.setMagFilter(Texture.MagFilter.Bilinear);
+
+        material.setTexture(textureParamName, texture);
+
+        setSpriteCount(spriteCols, spriteRows);
     }
 
     /**
-     * Sets the texture to be used by particles, when calling this method, it is assumed that the
-     * image
+     * Sets the count of columns and rows in the current texture for splitting for sprites.
      *
-     * @param texturePath The path of the texture to use
-     * @param uniformName The uniform name used when setting the particle texture
+     * @param spriteCount The number of rows and columns containing sprite images.
      */
-    public void setSprite(String texturePath, String uniformName) {
-        setSpriteByCount(texturePath, uniformName, 1, 1);
+    public void setSpriteCount(final Vector2f spriteCount) {
+        setSpriteCount((int) spriteCount.getX(), (int) spriteCount.getY());
     }
 
     /**
-     * Sets the texture to be used by particles, this can contain multiple images for random image
-     * selection or sprite animation of particles.
+     * Sets the count of columns and rows in the current texture for splitting for sprites.
      *
-     * @param texturePath The path of the texture to use
-     * @param uniformName The uniform name used when setting the particle texture
-     * @param numCols     The number of sprite images per row
-     * @param numRows     The number of rows containing sprite images
+     * @param spriteCols The number of columns containing sprite images.
+     * @param spriteRows The number of rows containing sprite images.
      */
-    public void setSprite(String texturePath, String uniformName, int numCols, int numRows) {
-        setSpriteByCount(texturePath, uniformName, numCols, numRows);
-    }
+    public void setSpriteCount(final int spriteCols, final int spriteRows) {
 
-    /**
-     * Sets the texture to be used by particles, this can contain multiple images for random image
-     * selection or sprite animation of particles.
-     *
-     * @param texturePath The path of the texture to use
-     * @param numCols     The number of sprite images per row
-     * @param numRows     The number of rows containing sprite images
-     */
-    public void setSpriteByCount(String texturePath, int numCols, int numRows) {
-        setSpriteByCount(texturePath, uniformName, numCols, numRows);
-    }
-
-    /**
-     * Sets the texture to be used by particles, this can contain multiple images for random image
-     * selection or sprite animation of particles.
-     *
-     * @param texturePath The path of the texture to use
-     * @param uniformName The uniform name used when setting the particle texture
-     * @param numCols     The number of sprite images per row
-     * @param numRows     The number of rows containing sprite images
-     */
-    public void setSpriteByCount(final String texturePath, final String uniformName, final int numCols, final int numRows) {
-        this.texturePath = texturePath;
-        this.spriteCols = numCols;
-        this.spriteRows = numRows;
-        this.uniformName = uniformName;
-
-        if (emitterInitialized) {
-
-            texture = assetManager.loadTexture(texturePath);
-            texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-            texture.setMagFilter(Texture.MagFilter.Bilinear);
-
-            material.setTexture(uniformName, texture);
-
-            Image img = texture.getImage();
-            int width = img.getWidth();
-            int height = img.getHeight();
-
-            spriteWidth = width / spriteCols;
-            spriteHeight = height / spriteRows;
-
-            mesh.setImagesXY(spriteCols, spriteRows);
-            requiresUpdate = true;
+        if(spriteCols < 1 || spriteRows < 1) {
+            throw new IllegalArgumentException("the values " + spriteCols + "-" + spriteRows + " can't be less than 1.");
         }
+
+        this.spriteCols = spriteCols;
+        this.spriteRows = spriteRows;
+        if (!emitterInitialized) return;
+
+        final MatParamTexture textureParam = material.getTextureParam(textureParamName);
+        final Texture texture = textureParam.getTextureValue();
+
+        final Image textureImage = texture.getImage();
+        final int width = textureImage.getWidth();
+        final int height = textureImage.getHeight();
+
+        spriteWidth = width / spriteCols;
+        spriteHeight = height / spriteRows;
+
+        mesh.setImagesXY(spriteCols, spriteRows);
+
+        requiresUpdate = true;
+    }
+
+    public Vector2f getSpriteCount() {
+        return new Vector2f(spriteCols, spriteRows);
     }
 
     /**
@@ -1117,60 +1124,41 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
-     * Can be used to override the default Particle material. NOTE: If the color/diffuse uniform
-     * name differs from "Texture", the new uniform name must be set when calling one of the
-     * setSprite methods.
+     * Set new material for these particles.
      *
-     * @param material The material
+     * @param material the new material.
      */
-    @Override
-    public void setMaterial(final Material material) {
-        setMaterial(material, false);
+    public void setParticlesMaterial(@NotNull final ParticlesMaterial material) {
+        setMaterial(material.getMaterial(), material.getTextureParam(), material.isApplyLightingTransform());
     }
 
     /**
-     * Can be used to override the default Particle material. NOTE: If the color/diffuse uniform
-     * name differs from "Texture", the new uniform name must be set when calling one of the
-     * setSprite methods.
-     *
-     * @param material               The material
-     * @param applyLightingTransform Forces update of normals and should only be used if the emitter
-     *                               material uses a lighting shader
+     * @return the current material of these particles.
      */
-    public void setMaterial(final Material material, final boolean applyLightingTransform) {
-        setMaterial(material, uniformName, applyLightingTransform);
-    }
-
-    /**
-     * Can be used to override the default Particle material.
-     *
-     * @param material    The material
-     * @param uniformName The material uniform name used for applying a color map (ex: Texture,
-     *                    ColorMap, DiffuseMap)
-     */
-    public void setMaterial(final Material material, final String uniformName) {
-        setMaterial(material, uniformName, false);
+    @NotNull
+    public ParticlesMaterial getParticlesMaterial() {
+        return new ParticlesMaterial(material, textureParamName, applyLightingTransform);
     }
 
     /**
      * Can be used to override the default Particle material.
      *
      * @param material               The material
-     * @param uniformName            The material uniform name used for applying a color map (ex:
+     * @param textureParamName       The material uniform name used for applying a color map (ex:
      *                               Texture, ColorMap, DiffuseMap)
      * @param applyLightingTransform Forces update of normals and should only be used if the emitter
      *                               material uses a lighting shader
      */
-    public void setMaterial(final Material material, final String uniformName, final boolean applyLightingTransform) {
-        this.userDefinedMaterial = material;
+    public void setMaterial(final Material material, final String textureParamName, final boolean applyLightingTransform) {
+        this.material = material;
         this.applyLightingTransform = applyLightingTransform;
-        this.uniformName = uniformName;
+        this.textureParamName = textureParamName;
 
         if (emitterInitialized) {
-            texture = assetManager.loadTexture(texturePath);
+            final MatParamTexture textureParam = material.getTextureParam(textureParamName);
+            final Texture texture = textureParam.getTextureValue();
             texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
             texture.setMagFilter(Texture.MagFilter.Bilinear);
-            material.setTexture(uniformName, texture);
         }
 
         particleNode.setMaterial(material);
@@ -1250,24 +1238,16 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.assetManager = assetManager;
 
         initMaterials();
-
-        if (userDefinedMaterial != null) {
-            material = userDefinedMaterial;
-        }
-
         initParticles(particleType, template);
 
         mesh.setImagesXY(spriteCols, spriteRows);
 
-        texture = assetManager.loadTexture(texturePath);
-        texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-        texture.setMagFilter(Texture.MagFilter.Bilinear);
+        final MatParamTexture textureParam = material.getTextureParam(textureParamName);
+        final Texture texture = textureParam.getTextureValue();
 
-        material.setTexture(uniformName, texture);
-
-        Image img = texture.getImage();
-        int width = img.getWidth();
-        int height = img.getHeight();
+        final Image img = texture.getImage();
+        final int width = img.getWidth();
+        final int height = img.getHeight();
 
         spriteWidth = width / spriteCols;
         spriteHeight = height / spriteRows;
@@ -1625,15 +1605,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         // write material information
         capsule.write(material, "material", null);
-        capsule.write(userDefinedMaterial, "userDefinedMaterial", null);
         capsule.write(testMat, "testMat", null);
 
         capsule.write(applyLightingTransform, "applyLightingTransform", false);
 
-        capsule.write(uniformName, "uniformName", null);
-        capsule.write(texturePath, "texturePath", null);
-
-        capsule.write(texture, "texture", null);
+        capsule.write(textureParamName, "textureParamName", null);
 
         capsule.write(spriteWidth, "spriteWidth", 0);
         capsule.write(spriteHeight, "spriteHeight", 0);
@@ -1728,15 +1704,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         // write material information
         material = (Material) capsule.readSavable("material", null);
-        userDefinedMaterial = (Material) capsule.readSavable("userDefinedMaterial", null);
         testMat = (Material) capsule.readSavable("testMat", null);
 
         applyLightingTransform = capsule.readBoolean("applyLightingTransform", false);
 
-        uniformName = capsule.readString("uniformName", null);
-        texturePath = capsule.readString("texturePath", null);
-
-        texture = (Texture) capsule.readSavable("texture", null);
+        textureParamName = capsule.readString("textureParamName", null);
 
         spriteWidth = capsule.readFloat("spriteWidth", 0);
         spriteHeight = capsule.readFloat("spriteHeight", 0);
@@ -1755,7 +1727,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         Objects.requireNonNull(emitterShape);
         Objects.requireNonNull(interpolation);
         Objects.requireNonNull(mesh);
-        Objects.requireNonNull(uniformName);
+        Objects.requireNonNull(textureParamName);
     }
 
     @Override
@@ -1775,9 +1747,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         result.emitterTestNode = cloner.clone(emitterTestNode);
 
         if (emitterAnimNode != null) {
-            result.setShape(emitterAnimNode, emitterNodeExists);
+            result.setEmitterShapeMesh(emitterAnimNode, emitterNodeExists);
             result.setEmitterAnimation(emitterAnimName, emitterAnimSpeed, emitterAnimBlendTime, emitterAnimLoopMode);
-        } else result.setShape(emitterShape.getMesh());
+        } else result.setEmitterShapeMesh(emitterShape.getMesh());
 
         if (particlesAnimNode != null) {
             result.setParticleType(particleType, particlesAnimNode);

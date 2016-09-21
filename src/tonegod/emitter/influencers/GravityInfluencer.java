@@ -42,16 +42,16 @@ public class GravityInfluencer implements ParticleInfluencer {
                         p.velocity.addLocal(store);
                         break;
                     case Emission_Point:
-                        p.emitterNode.getShape().setNext(p.triangleIndex);
+                        p.emitterNode.getEmitterShape().setNext(p.triangleIndex);
                         if (p.emitterNode.isUseRandomEmissionPoint())
-                            store.set(p.emitterNode.getShape().getNextTranslation().addLocal(p.randomOffset));
+                            store.set(p.emitterNode.getEmitterShape().getNextTranslation().addLocal(p.randomOffset));
                         else
-                            store.set(p.emitterNode.getShape().getNextTranslation());
+                            store.set(p.emitterNode.getEmitterShape().getNextTranslation());
                         store.subtractLocal(p.position).multLocal(p.initialLength * magnitude).multLocal(tpf);
                         p.velocity.addLocal(store);
                         break;
                     case Emitter_Center:
-                        store.set(p.emitterNode.getShape().getMesh().getBound().getCenter());
+                        store.set(p.emitterNode.getEmitterShape().getMesh().getBound().getCenter());
                         store.subtractLocal(p.position).multLocal(p.initialLength * magnitude).multLocal(tpf);
                         p.velocity.addLocal(store);
                         break;
