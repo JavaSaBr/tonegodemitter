@@ -12,7 +12,7 @@ import tonegod.emitter.ParticleEmitterNode;
 public abstract class ParticleDataMesh extends Mesh {
 
     /**
-     * The template mesh to use for defining a particle
+     * The particleMeshTemplate mesh to use for defining a particle
      *
      * @param mesh The asset model to extract buffers from
      */
@@ -22,7 +22,7 @@ public abstract class ParticleDataMesh extends Mesh {
      * Initialize mesh data.
      *
      * @param emitterNode  The emitter which will use this <code>ParticleDataMesh</code>.
-     * @param numParticles The maxmimum number of particles to simulate
+     * @param numParticles The maximum number of particles to simulate
      */
     public abstract void initParticleData(ParticleEmitterNode emitterNode, int numParticles);
 

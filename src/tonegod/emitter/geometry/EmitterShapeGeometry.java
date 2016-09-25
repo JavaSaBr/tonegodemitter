@@ -10,16 +10,16 @@ import tonegod.emitter.ParticleEmitterNode;
  *
  * @author JavaSaBr
  */
-public class ParticleEmitterGeometry extends Geometry {
+public class EmitterShapeGeometry extends Geometry {
 
-    public ParticleEmitterGeometry() {
+    public EmitterShapeGeometry() {
     }
 
-    public ParticleEmitterGeometry(final String name) {
+    public EmitterShapeGeometry(final String name) {
         super(name);
     }
 
-    public ParticleEmitterGeometry(final String name, final Mesh mesh) {
+    public EmitterShapeGeometry(final String name, final Mesh mesh) {
         super(name, mesh);
     }
 }
