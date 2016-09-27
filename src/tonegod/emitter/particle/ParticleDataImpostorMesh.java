@@ -343,7 +343,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
 			*/
             p.upVec.set(up);
 
-            if (p.emitterNode.isUseVelocityStretching()) {
+            if (p.emitterNode.isVelocityStretching()) {
                 up.multLocal(p.velocity.length() * p.emitterNode.getVelocityStretchFactor());
             /*
                 switch (p.emitter.getForcedStretchAxis()) {

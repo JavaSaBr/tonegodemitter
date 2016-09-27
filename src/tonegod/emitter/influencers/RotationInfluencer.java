@@ -9,6 +9,8 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,19 +43,25 @@ public class RotationInfluencer implements ParticleInfluencer {
     private Vector3f startRotation = new Vector3f();
     private Vector3f endRotation = new Vector3f();
 
+    @NotNull
     @Override
-    public void update(ParticleData p, float tpf) {
+    public String getName() {
+        return "Rotation influencer";
+    }
+
+    @Override
+    public void update(@NotNull ParticleData particleData, float tpf) {
         if (enabled) {
             if (speeds.size() > 1) {
-                p.rotationInterval += tpf;
-                if (p.rotationInterval >= p.rotationDuration)
-                    updateRotation(p);
+                particleData.rotationInterval += tpf;
+                if (particleData.rotationInterval >= particleData.rotationDuration)
+                    updateRotation(particleData);
 
-                blend = p.rotationInterpolation.apply(p.rotationInterval / p.rotationDuration);
+                blend = particleData.rotationInterpolation.apply(particleData.rotationInterval / particleData.rotationDuration);
 
-                p.rotationSpeed.interpolateLocal(p.startRotationSpeed, p.endRotationSpeed, blend);
+                particleData.rotationSpeed.interpolateLocal(particleData.startRotationSpeed, particleData.endRotationSpeed, blend);
             }
-            p.angles.addLocal(p.rotationSpeed.mult(tpf));
+            particleData.angles.addLocal(particleData.rotationSpeed.mult(tpf));
         }
     }
 
@@ -80,39 +88,39 @@ public class RotationInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void initialize(ParticleData p) {
+    public void initialize(@NotNull ParticleData particleData) {
         if (!initialized) {
             if (speeds.isEmpty()) {
                 addRotationSpeed(new Vector3f(0, 0, 10));
             }
             initialized = true;
         }
-        p.rotationIndex = 0;
-        p.rotationInterval = 0f;
-        p.rotationDuration = (cycle) ? fixedDuration : p.startlife / ((float) speeds.size() - 1);
+        particleData.rotationIndex = 0;
+        particleData.rotationInterval = 0f;
+        particleData.rotationDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) speeds.size() - 1);
 
         if (useRandomDirection) {
-            p.rotateDirectionX = FastMath.rand.nextBoolean();
-            p.rotateDirectionY = FastMath.rand.nextBoolean();
-            p.rotateDirectionZ = FastMath.rand.nextBoolean();
+            particleData.rotateDirectionX = FastMath.rand.nextBoolean();
+            particleData.rotateDirectionY = FastMath.rand.nextBoolean();
+            particleData.rotateDirectionZ = FastMath.rand.nextBoolean();
         }
 
-        getRotationSpeed(p, p.rotationIndex, p.startRotationSpeed);
-        p.rotationSpeed.set(p.startRotationSpeed);
+        getRotationSpeed(particleData, particleData.rotationIndex, particleData.startRotationSpeed);
+        particleData.rotationSpeed.set(particleData.startRotationSpeed);
         if (speeds.size() > 1) {
-            getRotationSpeed(p, p.rotationIndex + 1, p.endRotationSpeed);
+            getRotationSpeed(particleData, particleData.rotationIndex + 1, particleData.endRotationSpeed);
         }
 
-        p.rotationInterpolation = interpolations.getArray()[p.rotationIndex];
+        particleData.rotationInterpolation = interpolations.getArray()[particleData.rotationIndex];
 
         if (useRandomStartRotationX || useRandomStartRotationY || useRandomStartRotationZ) {
-            p.angles.set(
+            particleData.angles.set(
                     useRandomStartRotationX ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0,
                     useRandomStartRotationY ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0,
                     useRandomStartRotationZ ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0
             );
         } else {
-            p.angles.set(0, 0, 0);
+            particleData.angles.set(0, 0, 0);
         }
     }
 
@@ -133,8 +141,8 @@ public class RotationInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void reset(ParticleData p) {
-        p.angles.set(0, 0, 0);
+    public void reset(@NotNull ParticleData particleData) {
+        particleData.angles.set(0, 0, 0);
     }
 
     @Override
@@ -289,6 +297,7 @@ public class RotationInfluencer implements ParticleInfluencer {
         enabled = ic.readBoolean("enabled", true);
     }
 
+    @NotNull
     @Override
     public ParticleInfluencer clone() {
         try {
@@ -302,10 +311,5 @@ public class RotationInfluencer implements ParticleInfluencer {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
-    }
-
-    @Override
-    public Class getInfluencerClass() {
-        return RotationInfluencer.class;
     }
 }

@@ -9,6 +9,8 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,88 +20,115 @@ import tonegod.emitter.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 
 /**
+ * The implementation of the {@link ParticleInfluencer} for influence to destination of particles.
+ *
  * @author t0neg0d
+ * @edit JavaSaBr
  */
 public class DestinationInfluencer implements ParticleInfluencer {
-    private SafeArrayList<Vector3f> destinations = new SafeArrayList(Vector3f.class);
-    private SafeArrayList<Float> weights = new SafeArrayList(Float.class);
-    private SafeArrayList<Interpolation> interpolations = new SafeArrayList(Interpolation.class);
-    private boolean enabled = true;
-    private boolean initialized = false;
+
+    private final SafeArrayList<Vector3f> destinations;
+    private final SafeArrayList<Float> weights;
+    private final SafeArrayList<Interpolation> interpolations;
+
+    private final Vector3f destinationDir;
+
     private float blend;
-    private boolean useRandomStartDestination = false;
-    private float weight = 1f;
-    private boolean cycle = false;
-    ;
-    private float fixedDuration = 0f;
-    private Vector3f destinationDir = new Vector3f();
+    private float weight;
+    private float fixedDuration;
     private float dist;
 
+    private boolean randomStartDestination;
+    private boolean cycle;
+    private boolean enabled;
+    private boolean initialized;
+
+    public DestinationInfluencer() {
+        this.destinations = new SafeArrayList<>(Vector3f.class);
+        this.weights = new SafeArrayList<>(Float.class);
+        this.interpolations = new SafeArrayList<>(Interpolation.class);
+        this.destinationDir = new Vector3f();
+        this.enabled = true;
+        this.weight = 1F;
+    }
+
+    @NotNull
     @Override
-    public void update(ParticleData p, float tpf) {
-        if (enabled) {
-            p.destinationInterval += tpf;
-            if (p.destinationInterval >= p.destinationDuration)
-                updateDestination(p);
+    public String getName() {
+        return "Destination influencer";
+    }
 
-            blend = p.destinationInterpolation.apply(p.destinationInterval / p.destinationDuration);
+    @Override
+    public void update(@NotNull final ParticleData particleData, final float tpf) {
+        if (!enabled) return;
 
-            destinationDir.set(destinations.getArray()[p.destinationIndex].subtract(p.position));
-            dist = p.position.distance(destinations.getArray()[p.destinationIndex]);
-            destinationDir.multLocal(dist);
+        particleData.destinationInterval += tpf;
 
-            weight = weights.getArray()[p.destinationIndex];
-
-            p.velocity.interpolateLocal(destinationDir, blend * tpf * (weight * 10));
+        if (particleData.destinationInterval >= particleData.destinationDuration) {
+            updateDestination(particleData);
         }
+
+        blend = particleData.destinationInterpolation.apply(particleData.destinationInterval / particleData.destinationDuration);
+
+        destinationDir.set(destinations.getArray()[particleData.destinationIndex].subtract(particleData.position));
+        dist = particleData.position.distance(destinations.getArray()[particleData.destinationIndex]);
+        destinationDir.multLocal(dist);
+
+        weight = weights.getArray()[particleData.destinationIndex];
+
+        particleData.velocity.interpolateLocal(destinationDir, blend * tpf * (weight * 10));
     }
 
-    private void updateDestination(ParticleData p) {
-        p.destinationIndex++;
-        if (p.destinationIndex == destinations.size())
-            p.destinationIndex = 0;
-        p.destinationInterpolation = interpolations.getArray()[p.destinationIndex];
-        p.destinationInterval -= p.destinationDuration;
+    private void updateDestination(@NotNull final ParticleData particleData) {
+        particleData.destinationIndex++;
+
+        if (particleData.destinationIndex == destinations.size()) {
+            particleData.destinationIndex = 0;
+        }
+
+        particleData.destinationInterpolation = interpolations.getArray()[particleData.destinationIndex];
+        particleData.destinationInterval -= particleData.destinationDuration;
     }
 
     @Override
-    public void initialize(ParticleData p) {
+    public void initialize(@NotNull final ParticleData particleData) {
+
         if (!initialized) {
             if (destinations.isEmpty()) {
                 addDestination(new Vector3f(0, 0, 0), 0.5f);
             }
             initialized = true;
         }
-        if (useRandomStartDestination) {
-            p.destinationIndex = FastMath.nextRandomInt(0, destinations.size() - 1);
-        } else {
-            p.destinationIndex = 0;
-        }
-        p.destinationInterval = 0f;
-        p.destinationDuration = (cycle) ? fixedDuration : p.startlife / ((float) destinations.size());
 
-        p.destinationInterpolation = interpolations.getArray()[p.destinationIndex];
+        if (randomStartDestination) {
+            particleData.destinationIndex = FastMath.nextRandomInt(0, destinations.size() - 1);
+        } else {
+            particleData.destinationIndex = 0;
+        }
+
+        particleData.destinationInterval = 0f;
+        particleData.destinationDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) destinations.size());
+        particleData.destinationInterpolation = interpolations.getArray()[particleData.destinationIndex];
     }
 
     @Override
-    public void reset(ParticleData p) {
-
+    public void reset(@NotNull final ParticleData particleData) {
     }
 
     /**
      * When enabled, the initial step the particle will start at will be randomly selected from the
      * defined list of directions
      */
-    public void setUseRandomStartDestination(boolean useRandomStartDestination) {
-        this.useRandomStartDestination = useRandomStartDestination;
+    public void setRandomStartDestination(boolean randomStartDestination) {
+        this.randomStartDestination = randomStartDestination;
     }
 
     /**
      * Returns if the influencer will start a newly emitted particle at a random step in the
      * provided list of directions
      */
-    public boolean getUseRandomStartDestination() {
-        return this.useRandomStartDestination;
+    public boolean isRandomStartDestination() {
+        return randomStartDestination;
     }
 
     /**
@@ -121,49 +150,52 @@ public class DestinationInfluencer implements ParticleInfluencer {
      * @param weight      How strong the pull towards the destination should be
      * @interpolation The interpolation method used to blend from the this step value to the next
      */
-    public void addDestination(Vector3f destination, float weight, Interpolation interpolation) {
-        this.destinations.add(destination.clone());
-        this.weights.add(weight);
-        this.interpolations.add(interpolation);
+    public void addDestination(@NotNull final Vector3f destination, final float weight, @NotNull final Interpolation interpolation) {
+        destinations.add(destination.clone());
+        weights.add(weight);
+        interpolations.add(interpolation);
     }
 
     /**
      * Removes the destination step value at the supplied index
      */
-    public void removeDestination(int index) {
-        this.destinations.remove(index);
-        this.weights.remove(index);
-        this.interpolations.remove(index);
+    public void removeDestination(final int index) {
+        destinations.remove(index);
+        weights.remove(index);
+        interpolations.remove(index);
     }
 
     /**
      * Removes all destination step values
      */
     public void removeAll() {
-        this.destinations.clear();
-        this.weights.clear();
-        this.interpolations.clear();
+        destinations.clear();
+        weights.clear();
+        interpolations.clear();
     }
 
     /**
      * Returns an array containing all destination step values
      */
+    @NotNull
     public Vector3f[] getDestinations() {
-        return this.destinations.getArray();
+        return destinations.getArray();
     }
 
     /**
      * Returns an array containing all step value weights
      */
+    @NotNull
     public Interpolation[] getInterpolations() {
-        return this.interpolations.getArray();
+        return interpolations.getArray();
     }
 
     /**
      * Returns an array containing all step value interpolations
      */
+    @NotNull
     public Float[] getWeights() {
-        return this.weights.getArray();
+        return weights.getArray();
     }
 
     @Override
@@ -179,7 +211,7 @@ public class DestinationInfluencer implements ParticleInfluencer {
         }
         oc.writeStringSavableMap(interps, "interpolations", null);
         oc.write(enabled, "enabled", true);
-        oc.write(useRandomStartDestination, "useRandomStartDestination", false);
+        oc.write(randomStartDestination, "randomStartDestination", false);
         oc.write(cycle, "cycle", false);
         oc.write(fixedDuration, "fixedDuration", 0.125f);
     }
@@ -187,19 +219,20 @@ public class DestinationInfluencer implements ParticleInfluencer {
     @Override
     public void read(JmeImporter im) throws IOException {
         InputCapsule ic = im.getCapsule(this);
-        destinations = new SafeArrayList<Vector3f>(Vector3f.class, ic.readSavableArrayList("destinations", null));
-        weights = new SafeArrayList<Float>(Float.class, ic.readSavableArrayList("weights", null));
+        destinations.addAll(new SafeArrayList<>(Vector3f.class, ic.readSavableArrayList("destinations", null)));
+        weights.addAll(new SafeArrayList<>(Float.class, ic.readSavableArrayList("weights", null)));
         Map<String, Vector2f> interps = (Map<String, Vector2f>) ic.readStringSavableMap("interpolations", null);
         for (String in : interps.keySet()) {
             String name = in.substring(0, in.indexOf(":"));
             interpolations.add(Interpolation.getInterpolationByName(name));
         }
         enabled = ic.readBoolean("enabled", true);
-        useRandomStartDestination = ic.readBoolean("useRandomStartDestination", false);
+        randomStartDestination = ic.readBoolean("randomStartDestination", false);
         cycle = ic.readBoolean("cycle", false);
         fixedDuration = ic.readFloat("fixedDuration", 0.125f);
     }
 
+    @NotNull
     @Override
     public ParticleInfluencer clone() {
         try {
@@ -217,7 +250,7 @@ public class DestinationInfluencer implements ParticleInfluencer {
      *
      * @param fixedDuration duration between step value updates
      */
-    public void setFixedDuration(float fixedDuration) {
+    public void setFixedDuration(final float fixedDuration) {
         if (fixedDuration != 0) {
             this.cycle = true;
             this.fixedDuration = fixedDuration;
@@ -231,7 +264,7 @@ public class DestinationInfluencer implements ParticleInfluencer {
      * Returns the current duration used between steps for cycling
      */
     public float getFixedDuration() {
-        return this.fixedDuration;
+        return fixedDuration;
     }
 
     @Override
@@ -241,11 +274,6 @@ public class DestinationInfluencer implements ParticleInfluencer {
 
     @Override
     public boolean isEnabled() {
-        return this.enabled;
-    }
-
-    @Override
-    public Class getInfluencerClass() {
-        return DestinationInfluencer.class;
+        return enabled;
     }
 }

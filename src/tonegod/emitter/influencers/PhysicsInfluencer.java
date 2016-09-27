@@ -15,6 +15,8 @@ import com.jme3.renderer.queue.OpaqueComparator;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 
 import tonegod.emitter.particle.ParticleData;
@@ -23,7 +25,7 @@ import tonegod.emitter.particle.ParticleData;
  * @author t0neg0d
  */
 public class PhysicsInfluencer implements ParticleInfluencer {
-    public static enum CollisionReaction {
+    public enum CollisionReaction {
         Bounce,
         Stick,
         Destroy
@@ -54,16 +56,22 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         geom.updateModelBound();
     }
 
+    @NotNull
     @Override
-    public void update(ParticleData p, float tpf) {
+    public String getName() {
+        return "Physics influencer";
+    }
+
+    @Override
+    public void update(@NotNull ParticleData particleData, float tpf) {
         if (enabled) {
-            if (p.collision == false) {
+            if (particleData.collision == false) {
                 for (int i = 0; i < geoms.size(); i++) {
                     Geometry g = geoms.get(i);
                     try {
                         if (results.size() != 0)
                             results.clear();
-                        updateCollisionShape(p, tpf);
+                        updateCollisionShape(particleData, tpf);
                         g.collideWith(geom.getWorldBound(), results);
                         if (results.size() > 0) {
                             result = results.getClosestCollision();
@@ -72,18 +80,18 @@ public class PhysicsInfluencer implements ParticleInfluencer {
                                     contactSurface = result.getTriangle(null);
                                     contactSurface.calculateNormal();
                                     normal.set(contactSurface.getNormal());
-                                    twoDot = 2.0f * p.velocity.dot(normal);
+                                    twoDot = 2.0f * particleData.velocity.dot(normal);
                                     two.set(twoDot, twoDot, twoDot);
-                                    reflect.set(two.mult(normal).subtract(p.velocity)).negateLocal().normalizeLocal();
-                                    len = p.velocity.length() * (restitution - 0.1f) + (FastMath.nextRandomFloat() * 0.2f);
-                                    p.velocity.set(reflect).multLocal(len);
-                                    p.collision = true;
+                                    reflect.set(two.mult(normal).subtract(particleData.velocity)).negateLocal().normalizeLocal();
+                                    len = particleData.velocity.length() * (restitution - 0.1f) + (FastMath.nextRandomFloat() * 0.2f);
+                                    particleData.velocity.set(reflect).multLocal(len);
+                                    particleData.collision = true;
                                     break;
                                 case Stick:
-                                    p.velocity.set(0, 0, 0);
+                                    particleData.velocity.set(0, 0, 0);
                                     break;
                                 case Destroy:
-                                    p.emitterNode.killParticle(p);
+                                    particleData.emitterNode.killParticle(particleData);
                                     break;
                             }
                         }
@@ -91,10 +99,10 @@ public class PhysicsInfluencer implements ParticleInfluencer {
                     }
                 }
             } else {
-                p.collisionInterval += tpf;
-                if (p.collisionInterval >= collisionThreshold) {
-                    p.collision = false;
-                    p.collisionInterval = 0;
+                particleData.collisionInterval += tpf;
+                if (particleData.collisionInterval >= collisionThreshold) {
+                    particleData.collision = false;
+                    particleData.collisionInterval = 0;
                 }
             }
         }
@@ -151,14 +159,14 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void initialize(ParticleData p) {
+    public void initialize(@NotNull ParticleData particleData) {
 
     }
 
     @Override
-    public void reset(ParticleData p) {
-        p.collision = false;
-        p.collisionInterval = 0;
+    public void reset(@NotNull ParticleData particleData) {
+        particleData.collision = false;
+        particleData.collisionInterval = 0;
     }
 
     /**
@@ -196,6 +204,7 @@ public class PhysicsInfluencer implements ParticleInfluencer {
      * ** Please note the geometry list is specific to each instance of the physics influencer and
      * must be maintained by the user.  This list is NOT cloned from the original influencer.
      */
+    @NotNull
     @Override
     public ParticleInfluencer clone() {
         try {
@@ -218,10 +227,5 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     @Override
     public boolean isEnabled() {
         return this.enabled;
-    }
-
-    @Override
-    public Class getInfluencerClass() {
-        return PhysicsInfluencer.class;
     }
 }

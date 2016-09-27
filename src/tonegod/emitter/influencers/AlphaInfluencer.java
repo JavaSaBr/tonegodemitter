@@ -8,6 +8,8 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.util.SafeArrayList;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,52 +17,81 @@ import java.util.Map;
 import tonegod.emitter.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 
+import static com.jme3.math.FastMath.interpolateLinear;
+
 /**
+ * The implementation of the {@link ParticleInfluencer} for influence to alpha of particles.
+ *
  * @author t0neg0d
+ * @edit JavaSaBr
  */
 public class AlphaInfluencer implements ParticleInfluencer {
-    private SafeArrayList<Float> alphas = new SafeArrayList(Float.class);
-    private SafeArrayList<Interpolation> interpolations = new SafeArrayList(Interpolation.class);
-    private boolean useRandomStartAlpha = false;
-    private boolean initialized = false;
-    private boolean enabled = true;
-    private boolean cycle = false;
-    ;
-    private float startAlpha = 1;
-    private float endAlpha = 0;
+
+    private SafeArrayList<Interpolation> interpolations;
+    private SafeArrayList<Float> alphas;
+
+    private boolean randomStartAlpha;
+    private boolean initialized;
+    private boolean enabled;
+    private boolean cycle;
+
+    private float startAlpha;
+    private float endAlpha;
     private float blend;
-    private float fixedDuration = 0f;
+    private float fixedDuration;
+
+    public AlphaInfluencer() {
+        this.alphas = new SafeArrayList<>(Float.class);
+        this.interpolations = new SafeArrayList<>(Interpolation.class);
+        this.enabled = true;
+        this.startAlpha = 1;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+        return "Alpha influencer";
+    }
 
     @Override
-    public void update(ParticleData p, float tpf) {
-        if (enabled) {
-            p.alphaInterval += tpf;
-            if (p.alphaInterval >= p.alphaDuration)
-                updateAlpha(p);
+    public void update(@NotNull final ParticleData particleData, final float tpf) {
+        if (!enabled) return;
 
-            blend = p.alphaInterpolation.apply(p.alphaInterval / p.alphaDuration);
+        particleData.alphaInterval += tpf;
 
-            startAlpha = alphas.getArray()[p.alphaIndex];
-
-            if (p.alphaIndex == alphas.size() - 1)
-                endAlpha = alphas.getArray()[0];
-            else
-                endAlpha = alphas.getArray()[p.alphaIndex + 1];
-
-            p.alpha = FastMath.interpolateLinear(blend, startAlpha, endAlpha);
+        if (particleData.alphaInterval >= particleData.alphaDuration) {
+            updateAlpha(particleData);
         }
+
+        blend = particleData.alphaInterpolation.apply(particleData.alphaInterval / particleData.alphaDuration);
+
+        final Float[] alphasArray = alphas.getArray();
+
+        startAlpha = alphasArray[particleData.alphaIndex];
+
+        if (particleData.alphaIndex == alphas.size() - 1) {
+            endAlpha = alphasArray[0];
+        } else {
+            endAlpha = alphasArray[particleData.alphaIndex + 1];
+        }
+
+        particleData.alpha = interpolateLinear(blend, startAlpha, endAlpha);
     }
 
-    private void updateAlpha(ParticleData p) {
-        p.alphaIndex++;
-        if (p.alphaIndex >= alphas.size())
-            p.alphaIndex = 0;
-        p.alphaInterpolation = interpolations.getArray()[p.alphaIndex];
-        p.alphaInterval -= p.alphaDuration;
+    private void updateAlpha(final ParticleData particleData) {
+        particleData.alphaIndex++;
+
+        if (particleData.alphaIndex >= alphas.size()) {
+            particleData.alphaIndex = 0;
+        }
+
+        particleData.alphaInterpolation = interpolations.getArray()[particleData.alphaIndex];
+        particleData.alphaInterval -= particleData.alphaDuration;
     }
 
     @Override
-    public void initialize(ParticleData p) {
+    public void initialize(@NotNull final ParticleData particleData) {
+
         if (!initialized) {
             if (alphas.isEmpty()) {
                 addAlpha(1f);
@@ -70,35 +101,36 @@ public class AlphaInfluencer implements ParticleInfluencer {
             }
             initialized = true;
         }
-        if (useRandomStartAlpha) {
-            p.alphaIndex = FastMath.nextRandomInt(0, alphas.size() - 1);
-        } else {
-            p.alphaIndex = 0;
-        }
-        p.alphaInterval = 0f;
-        p.alphaDuration = (cycle) ? fixedDuration : p.startlife / ((float) alphas.size() - 1);
 
-        p.alpha = alphas.getArray()[p.alphaIndex];
-        p.alphaInterpolation = interpolations.getArray()[p.alphaIndex];
+        if (randomStartAlpha) {
+            particleData.alphaIndex = FastMath.nextRandomInt(0, alphas.size() - 1);
+        } else {
+            particleData.alphaIndex = 0;
+        }
+
+        particleData.alphaInterval = 0f;
+        particleData.alphaDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) alphas.size() - 1);
+        particleData.alpha = alphas.getArray()[particleData.alphaIndex];
+        particleData.alphaInterpolation = interpolations.getArray()[particleData.alphaIndex];
     }
 
     @Override
-    public void reset(ParticleData p) {
-        p.alpha = 0;
+    public void reset(@NotNull final ParticleData particleData) {
+        particleData.alpha = 0;
     }
 
     /**
      * Adds a alpha step value using linear interpolation to the chain of values used throughout the
      * particles life span
      */
-    public void addAlpha(float alpha) {
+    public void addAlpha(final float alpha) {
         addAlpha(alpha, Interpolation.linear);
     }
 
     /**
      * Adds a alpha step value to the chain of values used throughout the particles life span
      */
-    public void addAlpha(float alpha, Interpolation interpolation) {
+    public void addAlpha(final float alpha, @NotNull final Interpolation interpolation) {
         this.alphas.add(alpha);
         this.interpolations.add(interpolation);
     }
@@ -106,31 +138,33 @@ public class AlphaInfluencer implements ParticleInfluencer {
     /**
      * Returns an array containing all alpha step values
      */
+    @NotNull
     public Float[] getAlphas() {
-        return this.alphas.getArray();
+        return alphas.getArray();
     }
 
     /**
      * Returns an array containing all interpolation step values
      */
+    @NotNull
     public Interpolation[] getInterpolations() {
-        return this.interpolations.getArray();
+        return interpolations.getArray();
     }
 
     /**
      * Removes the alpha step value at the given index
      */
-    public void removeAlpha(int index) {
-        this.alphas.remove(index);
-        this.interpolations.remove(index);
+    public void removeAlpha(final int index) {
+        alphas.remove(index);
+        interpolations.remove(index);
     }
 
     /**
      * Removes all added alpha step values
      */
     public void removeAll() {
-        this.alphas.clear();
-        this.interpolations.clear();
+        alphas.clear();
+        interpolations.clear();
     }
 
     @Override
@@ -151,7 +185,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
         }
         oc.writeStringSavableMap(interps, "interpolations", null);
         oc.write(enabled, "enabled", true);
-        oc.write(useRandomStartAlpha, "useRandomStartAlpha", false);
+        oc.write(randomStartAlpha, "randomStartAlpha", false);
         oc.write(cycle, "cycle", false);
         oc.write(fixedDuration, "fixedDuration", 0.125f);
     }
@@ -170,11 +204,12 @@ public class AlphaInfluencer implements ParticleInfluencer {
             interpolations.add(Interpolation.getInterpolationByName(name));
         }
         enabled = ic.readBoolean("enabled", true);
-        useRandomStartAlpha = ic.readBoolean("useRandomStartAlpha", false);
+        randomStartAlpha = ic.readBoolean("randomStartAlpha", false);
         cycle = ic.readBoolean("cycle", false);
         fixedDuration = ic.readFloat("fixedDuration", 0.125f);
     }
 
+    @NotNull
     @Override
     public ParticleInfluencer clone() {
         try {
@@ -182,7 +217,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
             clone.alphas.addAll(alphas);
             clone.interpolations.addAll(interpolations);
             clone.enabled = enabled;
-            clone.useRandomStartAlpha = useRandomStartAlpha;
+            clone.randomStartAlpha = randomStartAlpha;
             clone.cycle = cycle;
             clone.fixedDuration = fixedDuration;
             return clone;
@@ -197,7 +232,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
      *
      * @param fixedDuration duration between frame updates
      */
-    public void setFixedDuration(float fixedDuration) {
+    public void setFixedDuration(final float fixedDuration) {
         if (fixedDuration != 0) {
             this.cycle = true;
             this.fixedDuration = fixedDuration;
@@ -211,7 +246,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
      * Returns the current duration used between frames for cycled animation
      */
     public float getFixedDuration() {
-        return this.fixedDuration;
+        return fixedDuration;
     }
 
     @Override
@@ -221,11 +256,6 @@ public class AlphaInfluencer implements ParticleInfluencer {
 
     @Override
     public boolean isEnabled() {
-        return this.enabled;
-    }
-
-    @Override
-    public Class getInfluencerClass() {
-        return AlphaInfluencer.class;
+        return enabled;
     }
 }

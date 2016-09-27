@@ -2,40 +2,50 @@ package tonegod.emitter.influencers;
 
 import com.jme3.export.Savable;
 
+import org.jetbrains.annotations.NotNull;
+
 import tonegod.emitter.particle.ParticleData;
 
 /**
  * @author t0neg0d
  */
 public interface ParticleInfluencer extends Savable, Cloneable {
+
+    /**
+     * @return the name of this influencer.
+     */
+    @NotNull
+    String getName();
+
     /**
      * This method clones the influencer instance.
      *
      * @return cloned instance
      */
-    public ParticleInfluencer clone();
+    @NotNull
+    ParticleInfluencer clone();
 
     /**
      * Update loop for the particle influencer
      *
-     * @param p   The particle to update
-     * @param tpf The time since last frame
+     * @param particleData The particle to update
+     * @param tpf          The time since last frame
      */
-    void update(ParticleData p, float tpf);
+    void update(@NotNull ParticleData particleData, float tpf);
 
     /**
      * Called when a particle is emitted.
      *
-     * @param p The particle being emitted
+     * @param particleData The particle being emitted
      */
-    void initialize(ParticleData p);
+    void initialize(@NotNull ParticleData particleData);
 
     /**
      * Called once the life span of the particle has been reached.
      *
-     * @param p The particle that was removed
+     * @param particleData The particle that was removed
      */
-    void reset(ParticleData p);
+    void reset(@NotNull ParticleData particleData);
 
     /**
      * Enables/disables the influencer without removing it from the chain. It is worth noting that
@@ -47,9 +57,4 @@ public interface ParticleInfluencer extends Savable, Cloneable {
      * Returns if the influencer is currently enabled
      */
     boolean isEnabled();
-
-    /**
-     * Returns the influencer's class
-     */
-    Class getInfluencerClass();
 }

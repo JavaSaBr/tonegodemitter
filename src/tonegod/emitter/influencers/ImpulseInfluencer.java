@@ -7,48 +7,71 @@ import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 
 import tonegod.emitter.particle.ParticleData;
 
 /**
+ * The implementation of the {@link ParticleInfluencer} for impulse influence to particles.
+ *
  * @author t0neg0d
+ * @edit JavaSaBr
  */
 public class ImpulseInfluencer implements ParticleInfluencer {
-    private boolean enabled = true;
-    private transient Vector3f temp = new Vector3f();
-    private transient Vector3f velocityStore = new Vector3f();
-    private float chance = .02f;
-    private float magnitude = .2f;
-    private float strength = 3;
 
+    private final transient Vector3f temp;
+    private final transient Vector3f velocityStore;
+
+    private float chance;
+    private float magnitude;
+    private float strength;
+
+    private boolean enabled;
+
+    public ImpulseInfluencer() {
+        this.temp = new Vector3f();
+        this.velocityStore = new Vector3f();
+        this.chance = 0.02f;
+        this.magnitude = 0.2f;
+        this.strength = 3;
+        this.enabled = true;
+    }
+
+    @NotNull
     @Override
-    public void update(ParticleData p, float tpf) {
-        if (enabled) {
-            if (FastMath.rand.nextFloat() > 1 - (chance + tpf)) {
-                velocityStore.set(p.velocity);
-                temp.set(FastMath.nextRandomFloat() * strength,
-                        FastMath.nextRandomFloat() * strength,
-                        FastMath.nextRandomFloat() * strength
-                );
-                if (FastMath.rand.nextBoolean()) temp.x = -temp.x;
-                if (FastMath.rand.nextBoolean()) temp.y = -temp.y;
-                if (FastMath.rand.nextBoolean()) temp.z = -temp.z;
-                temp.multLocal(velocityStore.length());
-                velocityStore.interpolateLocal(temp, magnitude);
-                p.velocity.interpolateLocal(velocityStore, magnitude);
-            }
-        }
+    public String getName() {
+        return "Impulse influencer";
     }
 
     @Override
-    public void initialize(ParticleData p) {
+    public void update(@NotNull final ParticleData particleData, final float tpf) {
+        if (!enabled) return;
+        if (FastMath.rand.nextFloat() <= 1 - (chance + tpf)) return;
 
+        velocityStore.set(particleData.velocity);
+
+        temp.set(FastMath.nextRandomFloat() * strength,
+                FastMath.nextRandomFloat() * strength,
+                FastMath.nextRandomFloat() * strength
+        );
+
+        if (FastMath.rand.nextBoolean()) temp.x = -temp.x;
+        if (FastMath.rand.nextBoolean()) temp.y = -temp.y;
+        if (FastMath.rand.nextBoolean()) temp.z = -temp.z;
+
+        temp.multLocal(velocityStore.length());
+        velocityStore.interpolateLocal(temp, magnitude);
+        particleData.velocity.interpolateLocal(velocityStore, magnitude);
     }
 
     @Override
-    public void reset(ParticleData p) {
+    public void initialize(@NotNull final ParticleData particleData) {
+    }
 
+    @Override
+    public void reset(@NotNull final ParticleData particleData) {
     }
 
     /**
@@ -56,7 +79,7 @@ public class ImpulseInfluencer implements ParticleInfluencer {
      *
      * @param chance float
      */
-    public void setChance(float chance) {
+    public void setChance(final float chance) {
         this.chance = chance;
     }
 
@@ -75,7 +98,7 @@ public class ImpulseInfluencer implements ParticleInfluencer {
      *
      * @param magnitude float
      */
-    public void setMagnitude(float magnitude) {
+    public void setMagnitude(final float magnitude) {
         this.magnitude = magnitude;
     }
 
@@ -93,7 +116,7 @@ public class ImpulseInfluencer implements ParticleInfluencer {
      *
      * @param strength float
      */
-    public void setStrength(float strength) {
+    public void setStrength(final float strength) {
         this.strength = strength;
     }
 
@@ -124,6 +147,7 @@ public class ImpulseInfluencer implements ParticleInfluencer {
         enabled = ic.readBoolean("enabled", true);
     }
 
+    @NotNull
     @Override
     public ParticleInfluencer clone() {
         try {
@@ -139,17 +163,12 @@ public class ImpulseInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
     @Override
     public boolean isEnabled() {
-        return this.enabled;
-    }
-
-    @Override
-    public Class getInfluencerClass() {
-        return ImpulseInfluencer.class;
+        return enabled;
     }
 }

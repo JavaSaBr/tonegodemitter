@@ -782,7 +782,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Particles are created as staticly placed, with no velocity.  Particles set to static with
      * remain in place and follow the emitter shape's animations.
      */
-    public void setUseStaticParticles(final boolean useStaticParticles) {
+    public void setStaticParticles(final boolean useStaticParticles) {
         this.useStaticParticles = useStaticParticles;
         requiresUpdate = true;
     }
@@ -792,14 +792,14 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return Current state of static particle flag
      */
-    public boolean getUseStaticParticles() {
+    public boolean isStaticParticles() {
         return useStaticParticles;
     }
 
     /**
      * Enable or disable to use of particle stretching
      */
-    public void setUseVelocityStretching(final boolean useVelocityStretching) {
+    public void setVelocityStretching(final boolean useVelocityStretching) {
         this.useVelocityStretching = useVelocityStretching;
         requiresUpdate = true;
     }
@@ -807,7 +807,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * Returns if the emitter will use particle stretching
      */
-    public boolean isUseVelocityStretching() {
+    public boolean isVelocityStretching() {
         return useVelocityStretching;
     }
 
@@ -887,7 +887,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * By default, emission happens from the direct center of the selected emitter shape face.  This
      * flag enables selecting a random point of emission within the selected face.
      */
-    public void setUseRandomEmissionPoint(final boolean useRandomEmissionPoint) {
+    public void setRandomEmissionPoint(final boolean useRandomEmissionPoint) {
         this.useRandomEmissionPoint = useRandomEmissionPoint;
         requiresUpdate = true;
     }
@@ -896,7 +896,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns if particle emission uses a randomly selected point on the emitter shape's selected
      * face or it's absolute center.  Center emission is default.
      */
-    public boolean isUseRandomEmissionPoint() {
+    public boolean isRandomEmissionPoint() {
         return useRandomEmissionPoint;
     }
 
@@ -905,7 +905,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * for emission is random.  Use this to enforce emission in the sequential order the faces are
      * created in the emitter shape mesh.
      */
-    public void setUseSequentialEmissionFace(final boolean useSequentialEmissionFace) {
+    public void setSequentialEmissionFace(final boolean useSequentialEmissionFace) {
         this.useSequentialEmissionFace = useSequentialEmissionFace;
         requiresUpdate = true;
     }
@@ -914,7 +914,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns if emission happens in the sequential order the faces of the emitter shape mesh are
      * defined.
      */
-    public boolean isUseSequentialEmissionFace() {
+    public boolean isSequentialEmissionFace() {
         return useSequentialEmissionFace;
     }
 
@@ -922,7 +922,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Enabling skip pattern will use every other face in the emitter shape.  This stops the
      * clustering of two particles per quad that makes up the the emitter shape.
      */
-    public void setUseSequentialSkipPattern(final boolean useSequentialSkipPattern) {
+    public void setSequentialSkipPattern(final boolean useSequentialSkipPattern) {
         this.useSequentialSkipPattern = useSequentialSkipPattern;
         requiresUpdate = true;
     }
@@ -931,7 +931,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns if the emitter will skip every other face in the sequential order the emitter shape
      * faces are defined.
      */
-    public boolean isUseSequentialSkipPattern() {
+    public boolean isSequentialSkipPattern() {
         return useSequentialSkipPattern;
     }
 
@@ -1144,9 +1144,59 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @param influencer The particle influencer to add to the chain
      */
-    public final void addInfluencer(@NotNull final ParticleInfluencer influencer) {
+    public void addInfluencer(@NotNull final ParticleInfluencer influencer) {
         final UnsafeArray<ParticleInfluencer> unsafe = influencers.asUnsafe();
         unsafe.add(influencer);
+        unsafe.trimToSize();
+        requiresUpdate = true;
+    }
+
+    /**
+     * Adds a new {@link ParticleInfluencer} to the chain of influencers that will effect particles
+     *
+     * @param influencer the particle influencer to add to the chain.
+     * @param index      the index of the position of this influencer.
+     */
+    public void addInfluencer(@NotNull final ParticleInfluencer influencer, final int index) {
+
+        final Array<ParticleInfluencer> temp = ArrayFactory.newArray(ParticleInfluencer.class, influencers.size() + 1);
+
+        for (int i = 0; i < index; i++) {
+            temp.add(influencers.get(i));
+        }
+
+        temp.add(influencer);
+
+        for (int i = index, length = influencers.size(); i < length; i++) {
+            temp.add(influencers.get(i));
+        }
+
+        final UnsafeArray<ParticleInfluencer> unsafe = influencers.asUnsafe();
+        unsafe.clear();
+        unsafe.addAll(temp);
+        unsafe.trimToSize();
+
+        requiresUpdate = true;
+    }
+
+    /**
+     * Get the index of the influencer in the list of the influencers of this emitter.
+     *
+     * @param influencer the influencer for getting its position index.
+     * @return the index of position for the influencer.
+     */
+    public int indexOfInfluencer(@NotNull final ParticleInfluencer influencer) {
+        return influencers.indexOf(influencer);
+    }
+
+    /**
+     * Removes the influencer rom this emitter.
+     *
+     * @param influencer the influencer to remove.
+     */
+    public void removeInfluencer(@NotNull ParticleInfluencer influencer) {
+        final UnsafeArray<ParticleInfluencer> unsafe = influencers.asUnsafe();
+        unsafe.slowRemove(influencer);
         unsafe.trimToSize();
         requiresUpdate = true;
     }
@@ -1167,7 +1217,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     @Nullable
     public <T extends ParticleInfluencer> T getInfluencer(@NotNull final Class<T> type) {
         for (final ParticleInfluencer pi : influencers.array()) {
-            if (pi.getInfluencerClass() == type) return unsafeCast(pi);
+            if (pi.getClass() == type) return unsafeCast(pi);
         }
         return null;
     }
@@ -1179,7 +1229,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void removeInfluencer(@NotNull final Class<?> type) {
         for (final ParticleInfluencer pi : influencers.array()) {
-            if (pi.getInfluencerClass() == type) {
+            if (pi.getClass() == type) {
                 influencers.fastRemove(pi);
                 break;
             }

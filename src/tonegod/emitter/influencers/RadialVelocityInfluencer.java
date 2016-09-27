@@ -8,122 +8,178 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 
+import tonegod.emitter.EmitterMesh;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.particle.ParticleData;
 
 /**
+ * The implementation of the {@link ParticleInfluencer} for radial velocity influence to particles.
+ *
  * @author t0neg0d
+ * @edit JavaSaBr
  */
 public class RadialVelocityInfluencer implements ParticleInfluencer {
-    public static enum RadialPullAlignment {
-        Emission_Point,
-        Emitter_Center
+
+    public enum RadialPullAlignment {
+        EMISSION_POINT,
+        EMITTER_CENTER
     }
 
-    public static enum RadialPullCenter {
-        Absolute,
-        Variable_X,
-        Variable_Y,
-        Variable_Z
+    public enum RadialPullCenter {
+        ABSOLUTE,
+        VARIABLE_X,
+        VARIABLE_Y,
+        VARIABLE_Z
     }
 
-    public static enum RadialUpAlignment {
-        Normal,
+    public enum RadialUpAlignment {
+        NORMAL,
         UNIT_X,
         UNIT_Y,
         UNIT_Z
     }
 
-    private boolean enabled = true;
-    private float radialPull = 1, tangentForce = 1;
-    private Vector3f tangent = new Vector3f();
-    private Vector3f store = new Vector3f();
-    private Vector3f up = Vector3f.UNIT_Y.clone(), left = new Vector3f();
-    private Vector3f upStore = new Vector3f();
-    private boolean useRandomDirection = false;
-    private RadialPullAlignment alignment = RadialPullAlignment.Emission_Point;
-    private RadialPullCenter center = RadialPullCenter.Absolute;
-    private RadialUpAlignment upAlignment = RadialUpAlignment.UNIT_Y;
-    private Quaternion q = new Quaternion();
+    private final Vector3f tangent;
+    private final Vector3f store;
+    private final Vector3f up;
+    private final Vector3f left;
+    private final Vector3f upStore;
+
+    private final Quaternion quaternion;
+
+    private RadialPullAlignment alignment;
+    private RadialPullCenter center;
+    private RadialUpAlignment upAlignment;
+
+    private float radialPull;
+    private float tangentForce;
+
+    private boolean randomDirection;
+    private boolean enabled;
+
+    public RadialVelocityInfluencer() {
+        this.tangent = new Vector3f();
+        this.store = new Vector3f();
+        this.up = Vector3f.UNIT_Y.clone();
+        this.left = new Vector3f();
+        this.upStore = new Vector3f();
+        this.alignment = RadialPullAlignment.EMISSION_POINT;
+        this.center = RadialPullCenter.ABSOLUTE;
+        this.upAlignment = RadialUpAlignment.UNIT_Y;
+        this.quaternion = new Quaternion();
+        this.radialPull = 1;
+        this.tangentForce = 1;
+        this.enabled = true;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+        return "Radial velocity influencer";
+    }
 
     @Override
-    public void update(ParticleData p, float tpf) {
-        if (enabled) {
-            switch (alignment) {
-                case Emission_Point:
-                    p.emitterNode.getEmitterShape().setNext(p.triangleIndex);
-                    if (p.emitterNode.isUseRandomEmissionPoint())
-                        store.set(p.emitterNode.getEmitterShape().getNextTranslation().addLocal(p.randomOffset));
-                    else
-                        store.set(p.emitterNode.getEmitterShape().getNextTranslation());
-                    break;
-                case Emitter_Center:
-                    store.set(p.emitterNode.getEmitterShape().getMesh().getBound().getCenter());
-                    break;
+    public void update(@NotNull final ParticleData particleData, final float tpf) {
+        if (!enabled) return;
+
+        final ParticleEmitterNode emitterNode = particleData.emitterNode;
+        final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+
+        switch (alignment) {
+            case EMISSION_POINT: {
+
+                emitterShape.setNext(particleData.triangleIndex);
+
+                if (emitterNode.isRandomEmissionPoint()) {
+                    store.set(emitterShape.getNextTranslation().addLocal(particleData.randomOffset));
+                } else {
+                    store.set(emitterShape.getNextTranslation());
+                }
+
+                break;
             }
-
-            switch (center) {
-                case Absolute:
-                    break;
-                case Variable_X:
-                    store.setX(p.position.x);
-                    break;
-                case Variable_Y:
-                    store.setY(p.position.y);
-                    break;
-                case Variable_Z:
-                    store.setZ(p.position.z);
-                    break;
+            case EMITTER_CENTER: {
+                store.set(emitterShape.getMesh().getBound().getCenter());
+                break;
             }
+        }
 
-            store.subtractLocal(p.position).normalizeLocal().multLocal(p.initialLength * radialPull).multLocal(tpf);
-
-            switch (upAlignment) {
-                case Normal:
-                    upStore.set(p.emitterNode.getLocalRotation().inverse().mult(upStore.set(p.emitterNode.getEmitterShape().getNormal())));
-                    break;
-                case UNIT_X:
-                    upStore.set(Vector3f.UNIT_X);
-                    break;
-                case UNIT_Y:
-                    upStore.set(Vector3f.UNIT_Y);
-                    break;
-                case UNIT_Z:
-                    upStore.set(Vector3f.UNIT_Z);
-                    break;
+        switch (center) {
+            case ABSOLUTE: {
+                break;
             }
+            case VARIABLE_X: {
+                store.setX(particleData.position.x);
+                break;
+            }
+            case VARIABLE_Y: {
+                store.setY(particleData.position.y);
+                break;
+            }
+            case VARIABLE_Z: {
+                store.setZ(particleData.position.z);
+                break;
+            }
+        }
 
-            up.set(store).crossLocal(upStore).normalizeLocal();
-            up.set(p.emitterNode.getLocalRotation().mult(up));
-            left.set(store).crossLocal(up).normalizeLocal();
+        store.subtractLocal(particleData.position).normalizeLocal().multLocal(particleData.initialLength * radialPull).multLocal(tpf);
 
-            tangent.set(store).crossLocal(left).normalizeLocal().multLocal(p.tangentForce).multLocal(tpf);
-            p.velocity.subtractLocal(tangent);
-            p.velocity.addLocal(store.mult(radialPull));
+        switch (upAlignment) {
+            case NORMAL: {
+                upStore.set(emitterNode.getLocalRotation().inverse().mult(upStore.set(emitterShape.getNormal())));
+                break;
+            }
+            case UNIT_X: {
+                upStore.set(Vector3f.UNIT_X);
+                break;
+            }
+            case UNIT_Y: {
+                upStore.set(Vector3f.UNIT_Y);
+                break;
+            }
+            case UNIT_Z: {
+                upStore.set(Vector3f.UNIT_Z);
+                break;
+            }
+        }
+
+        up.set(store).crossLocal(upStore).normalizeLocal();
+        //FIXME memory problem
+        up.set(emitterNode.getLocalRotation().mult(up));
+        left.set(store).crossLocal(up).normalizeLocal();
+
+        tangent.set(store).crossLocal(left).normalizeLocal().multLocal(particleData.tangentForce).multLocal(tpf);
+
+        particleData.velocity.subtractLocal(tangent);
+        particleData.velocity.addLocal(store.mult(radialPull));
+    }
+
+    @Override
+    public void initialize(@NotNull final ParticleData particleData) {
+        if (!randomDirection) {
+            particleData.tangentForce = tangentForce;
+            return;
+        }
+
+        if (FastMath.rand.nextBoolean()) {
+            particleData.tangentForce = tangentForce;
+        } else {
+            particleData.tangentForce = -tangentForce;
         }
     }
 
     @Override
-    public void initialize(ParticleData p) {
-        if (useRandomDirection) {
-            if (FastMath.rand.nextBoolean())
-                p.tangentForce = tangentForce;
-            else
-                p.tangentForce = -tangentForce;
-        } else
-            p.tangentForce = tangentForce;
-    }
-
-    @Override
-    public void reset(ParticleData p) {
-
+    public void reset(@NotNull final ParticleData particleData) {
     }
 
     /**
      * The tangent force to apply when updating the particles trajectory
      */
-    public void setTangentForce(float force) {
+    public void setTangentForce(final float force) {
         this.tangentForce = force;
     }
 
@@ -131,7 +187,7 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
      * Returns the defined tangent force used when calculating the particles trajectory
      */
     public float getTangentForce() {
-        return this.tangentForce;
+        return tangentForce;
     }
 
     /**
@@ -139,38 +195,40 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
      *
      * @param alignment \
      */
-    public void setRadialPullAlignment(RadialPullAlignment alignment) {
+    public void setRadialPullAlignment(@NotNull final RadialPullAlignment alignment) {
         this.alignment = alignment;
     }
 
     /**
      * Returns the defined point of origin parameter
      */
+    @NotNull
     public RadialPullAlignment getRadialPullAlignment() {
-        return this.alignment;
+        return alignment;
     }
 
     /**
-     * Alters how the particle will orbit it's radial pull alignment.  For example, Variable_Y, will
+     * Alters how the particle will orbit it's radial pull alignment.  For example, VARIABLE_Y, will
      * use the X/Z components of the point of origin vector, but use the individual particles Y
      * component when calculating the updated trajectory.
      */
-    public void setRadialPullCenter(RadialPullCenter center) {
+    public void setRadialPullCenter(@NotNull final RadialPullCenter center) {
         this.center = center;
     }
 
     /**
      * Returns the defined varient for the point of origin vector
      */
+    @NotNull
     public RadialPullCenter getRadialPullCenter() {
-        return this.center;
+        return center;
     }
 
     /**
      * Defines the gravitational force pulling against the tangent force - Or, how the orbit will
      * tighten or decay over time
      */
-    public void setRadialPull(float radialPull) {
+    public void setRadialPull(final float radialPull) {
         this.radialPull = radialPull;
     }
 
@@ -178,36 +236,37 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
      * Returns the defined radial pull used when calculating the particles trajectory
      */
     public float getRadialPull() {
-        return this.radialPull;
+        return radialPull;
     }
 
     /**
      * Defines the up vector used to calculate rotation around a center point
      */
-    public void setRadialUpAlignment(RadialUpAlignment upAlignment) {
+    public void setRadialUpAlignment(@NotNull final RadialUpAlignment upAlignment) {
         this.upAlignment = upAlignment;
     }
 
     /**
      * Returns the defined up vector parameter
      */
+    @NotNull
     public RadialUpAlignment getRadialUpAlignment() {
-        return this.upAlignment;
+        return upAlignment;
     }
 
     /**
      * Allows the influencer to randomly select the negative of the defined tangentForce to reverse
      * the direction of rotation
      */
-    public void setUseRandomDirection(boolean useRandomDirection) {
-        this.useRandomDirection = useRandomDirection;
+    public void setRandomDirection(final boolean randomDirection) {
+        this.randomDirection = randomDirection;
     }
 
     /**
      * Returns if the influencer allows random reverse rotation
      */
-    public boolean getUseRandomDirection() {
-        return this.useRandomDirection;
+    public boolean isRandomDirection() {
+        return randomDirection;
     }
 
     @Override
@@ -216,8 +275,8 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
         oc.write(enabled, "enabled", true);
         oc.write(radialPull, "radialPull", 1.0f);
         oc.write(tangentForce, "tangentForce", 1.0f);
-        oc.write(alignment.name(), "alignment", RadialPullAlignment.Emission_Point.name());
-        oc.write(center.name(), "center", RadialPullCenter.Absolute.name());
+        oc.write(alignment.name(), "alignment", RadialPullAlignment.EMISSION_POINT.name());
+        oc.write(center.name(), "center", RadialPullCenter.ABSOLUTE.name());
         oc.write(upAlignment.name(), "upAlignment", RadialUpAlignment.UNIT_Y.name());
     }
 
@@ -227,11 +286,12 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
         enabled = ic.readBoolean("enabled", true);
         radialPull = ic.readFloat("radialPull", 1.0f);
         tangentForce = ic.readFloat("tangentForce", 1.0f);
-        alignment = RadialPullAlignment.valueOf(ic.readString("alignment", RadialPullAlignment.Emission_Point.name()));
-        center = RadialPullCenter.valueOf(ic.readString("center", RadialPullCenter.Absolute.name()));
+        alignment = RadialPullAlignment.valueOf(ic.readString("alignment", RadialPullAlignment.EMISSION_POINT.name()));
+        center = RadialPullCenter.valueOf(ic.readString("center", RadialPullCenter.ABSOLUTE.name()));
         upAlignment = RadialUpAlignment.valueOf(ic.readString("upAlignment", RadialUpAlignment.UNIT_Y.name()));
     }
 
+    @NotNull
     @Override
     public ParticleInfluencer clone() {
         try {
@@ -255,11 +315,6 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
 
     @Override
     public boolean isEnabled() {
-        return this.enabled;
-    }
-
-    @Override
-    public Class getInfluencerClass() {
-        return RadialVelocityInfluencer.class;
+        return enabled;
     }
 }

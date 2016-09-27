@@ -187,7 +187,7 @@ public class ParticleData {
     }
 
     public void update(float tpf) {
-        if (!emitterNode.getUseStaticParticles()) {
+        if (!emitterNode.isStaticParticles()) {
             life -= tpf;
             if (life <= 0) {
                 reset();
@@ -204,9 +204,9 @@ public class ParticleData {
         position.addLocal(tempV3);
 
         // TODO: Test this!
-        if (emitterNode.getUseStaticParticles()) {
+        if (emitterNode.isStaticParticles()) {
             emitterNode.getEmitterShape().setNext(triangleIndex);
-            if (emitterNode.isUseRandomEmissionPoint()) {
+            if (emitterNode.isRandomEmissionPoint()) {
                 position.set(emitterNode.getEmitterShape().getNextTranslation().addLocal(randomOffset));
             } else {
                 position.set(emitterNode.getEmitterShape().getNextTranslation());
@@ -233,7 +233,7 @@ public class ParticleData {
             force = emitterNode.getForceMax();
         emitterNode.getEmitterShape().setNext();
         triangleIndex = emitterNode.getEmitterShape().getTriangleIndex();
-        if (!emitterNode.isUseRandomEmissionPoint()) {
+        if (!emitterNode.isRandomEmissionPoint()) {
             position.set(
                     emitterNode.getEmitterShape().getNextTranslation()
             );

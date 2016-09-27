@@ -6,88 +6,109 @@ import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.Vector3f;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 
 import tonegod.emitter.particle.ParticleData;
 
 /**
+ * The implementation of the {@link ParticleInfluencer} for gravity influence to particles.
+ *
  * @author t0neg0d
+ * @edit JavaSaBr
  */
 public class GravityInfluencer implements ParticleInfluencer {
-    public static enum GravityAlignment {
-        World,
-        Reverse_Velocity,
-        Emission_Point,
-        Emitter_Center
+
+    public enum GravityAlignment {
+        WORLD,
+        REVERSE_VELOCITY,
+        EMISSION_POINT,
+        EMITTER_CENTER
     }
 
-    private boolean enabled = true;
-    private Vector3f gravity = new Vector3f(0, 1f, 0);
-    private transient Vector3f store = new Vector3f();
-    private boolean useNegativeVelocity = false;
-    private float magnitude = 1;
-    private GravityAlignment alignment = GravityAlignment.World;
+    private final transient Vector3f store;
+    private final Vector3f gravity;
+
+    private GravityAlignment alignment;
+
+    private float magnitude;
+
+    private boolean negativeVelocity;
+    private boolean enabled;
+
+    public GravityInfluencer() {
+        this.alignment = GravityAlignment.WORLD;
+        this.gravity = new Vector3f(0, 1f, 0);
+        this.store = new Vector3f();
+        this.magnitude = 1;
+        this.enabled = true;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+        return "Gravity influencer";
+    }
 
     @Override
-    public void update(ParticleData p, float tpf) {
-        if (enabled) {
-            if (!p.emitterNode.getUseStaticParticles()) {
-                switch (alignment) {
-                    case World:
-                        store.set(gravity).multLocal(tpf);
-                        p.velocity.subtractLocal(store);
-                        break;
-                    case Reverse_Velocity:
-                        store.set(p.reverseVelocity).multLocal(tpf);
-                        p.velocity.addLocal(store);
-                        break;
-                    case Emission_Point:
-                        p.emitterNode.getEmitterShape().setNext(p.triangleIndex);
-                        if (p.emitterNode.isUseRandomEmissionPoint())
-                            store.set(p.emitterNode.getEmitterShape().getNextTranslation().addLocal(p.randomOffset));
-                        else
-                            store.set(p.emitterNode.getEmitterShape().getNextTranslation());
-                        store.subtractLocal(p.position).multLocal(p.initialLength * magnitude).multLocal(tpf);
-                        p.velocity.addLocal(store);
-                        break;
-                    case Emitter_Center:
-                        store.set(p.emitterNode.getEmitterShape().getMesh().getBound().getCenter());
-                        store.subtractLocal(p.position).multLocal(p.initialLength * magnitude).multLocal(tpf);
-                        p.velocity.addLocal(store);
-                        break;
-                }
-            }
+    public void update(@NotNull final ParticleData particleData, final float tpf) {
+        if (!enabled || particleData.emitterNode.isStaticParticles()) return;
+
+        switch (alignment) {
+            case WORLD:
+                store.set(gravity).multLocal(tpf);
+                particleData.velocity.subtractLocal(store);
+                break;
+            case REVERSE_VELOCITY:
+                store.set(particleData.reverseVelocity).multLocal(tpf);
+                particleData.velocity.addLocal(store);
+                break;
+            case EMISSION_POINT:
+                particleData.emitterNode.getEmitterShape().setNext(particleData.triangleIndex);
+                if (particleData.emitterNode.isRandomEmissionPoint())
+                    store.set(particleData.emitterNode.getEmitterShape().getNextTranslation().addLocal(particleData.randomOffset));
+                else
+                    store.set(particleData.emitterNode.getEmitterShape().getNextTranslation());
+                store.subtractLocal(particleData.position).multLocal(particleData.initialLength * magnitude).multLocal(tpf);
+                particleData.velocity.addLocal(store);
+                break;
+            case EMITTER_CENTER:
+                store.set(particleData.emitterNode.getEmitterShape().getMesh().getBound().getCenter());
+                store.subtractLocal(particleData.position).multLocal(particleData.initialLength * magnitude).multLocal(tpf);
+                particleData.velocity.addLocal(store);
+                break;
         }
     }
 
     @Override
-    public void initialize(ParticleData p) {
-        p.reverseVelocity.set(p.velocity.negate().mult(magnitude));
+    public void initialize(@NotNull final ParticleData particleData) {
+        particleData.reverseVelocity.set(particleData.velocity.negate().mult(magnitude));
     }
 
     @Override
-    public void reset(ParticleData p) {
-
+    public void reset(@NotNull final ParticleData particleData) {
     }
 
     /**
      * Aligns the gravity to the specified GravityAlignment
      */
-    public void setAlignment(GravityAlignment alignment) {
+    public void setAlignment(@NotNull final GravityAlignment alignment) {
         this.alignment = alignment;
     }
 
     /**
      * Returns the specified GravityAlignment
      */
+    @NotNull
     public GravityAlignment getAlignment() {
-        return this.alignment;
+        return alignment;
     }
 
     /**
      * Gravity multiplier
      */
-    public void setMagnitude(float magnitude) {
+    public void setMagnitude(final float magnitude) {
         this.magnitude = magnitude;
     }
 
@@ -95,7 +116,7 @@ public class GravityInfluencer implements ParticleInfluencer {
      * Returns the current magnitude
      */
     public float getMagnitude() {
-        return this.magnitude;
+        return magnitude;
     }
 
     /**
@@ -103,7 +124,7 @@ public class GravityInfluencer implements ParticleInfluencer {
      *
      * @param gravity Vector3f representing gravity
      */
-    public void setGravity(Vector3f gravity) {
+    public void setGravity(@NotNull final Vector3f gravity) {
         this.gravity.set(gravity);
     }
 
@@ -114,15 +135,16 @@ public class GravityInfluencer implements ParticleInfluencer {
      * @param y Gravity along the y axis
      * @param z Gravity along the z axis
      */
-    public void setGravity(float x, float y, float z) {
-        this.gravity.set(x, y, z);
+    public void setGravity(final float x, final float y, final float z) {
+        gravity.set(x, y, z);
     }
 
     /**
      * Returns the current gravity as a Vector3f
      */
+    @NotNull
     public Vector3f getGravity() {
-        return this.gravity;
+        return gravity;
     }
 
     @Override
@@ -130,28 +152,29 @@ public class GravityInfluencer implements ParticleInfluencer {
         OutputCapsule oc = ex.getCapsule(this);
         oc.write(gravity, "gravity", new Vector3f(0, 1, 0));
         oc.write(enabled, "enabled", true);
-        oc.write(useNegativeVelocity, "useNegativeVelocity", false);
+        oc.write(negativeVelocity, "negativeVelocity", false);
         oc.write(magnitude, "magnitude", 1f);
-        oc.write(alignment.name(), "alignment", GravityAlignment.World.name());
+        oc.write(alignment.name(), "alignment", GravityAlignment.WORLD.name());
     }
 
     @Override
     public void read(JmeImporter im) throws IOException {
         InputCapsule ic = im.getCapsule(this);
-        gravity = (Vector3f) ic.readSavable("gravity", new Vector3f(0, 1, 0));
+        gravity.set((Vector3f) ic.readSavable("gravity", new Vector3f(0, 1, 0)));
         enabled = ic.readBoolean("enabled", true);
-        useNegativeVelocity = ic.readBoolean("useNegativeVelocity", false);
+        negativeVelocity = ic.readBoolean("negativeVelocity", false);
         magnitude = ic.readFloat("magnitude", 1);
-        alignment = GravityAlignment.valueOf(ic.readString("alignment", GravityAlignment.World.name()));
+        alignment = GravityAlignment.valueOf(ic.readString("alignment", GravityAlignment.WORLD.name()));
     }
 
+    @NotNull
     @Override
     public ParticleInfluencer clone() {
         try {
             GravityInfluencer clone = (GravityInfluencer) super.clone();
             clone.setGravity(gravity);
             clone.enabled = enabled;
-            clone.useNegativeVelocity = false;
+            clone.negativeVelocity = false;
             clone.magnitude = 1;
             clone.alignment = alignment;
             return clone;
@@ -161,17 +184,12 @@ public class GravityInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
     @Override
     public boolean isEnabled() {
-        return this.enabled;
-    }
-
-    @Override
-    public Class getInfluencerClass() {
-        return GravityInfluencer.class;
+        return enabled;
     }
 }

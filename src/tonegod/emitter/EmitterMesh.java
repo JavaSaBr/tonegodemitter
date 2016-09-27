@@ -111,8 +111,8 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      * Selects a random face as the next particle emission point
      */
     public void setNext() {
-        if (emitterNode.isUseSequentialEmissionFace()) {
-            if (emitterNode.isUseSequentialSkipPattern())
+        if (emitterNode.isSequentialEmissionFace()) {
+            if (emitterNode.isSequentialSkipPattern())
                 currentTri += 2;
             else
                 currentTri++;
