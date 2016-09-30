@@ -10,7 +10,8 @@ import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
+import com.jme3.material.RenderState.BlendMode;
+import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
@@ -25,6 +26,8 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
+import com.jme3.texture.Texture.MagFilter;
+import com.jme3.texture.Texture.MinFilter;
 import com.jme3.util.clone.Cloner;
 import com.jme3.util.clone.JmeCloneable;
 
@@ -34,9 +37,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Objects;
 
 import rlib.util.ClassUtils;
+import rlib.util.Util;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
@@ -51,7 +54,9 @@ import tonegod.emitter.particle.ParticleDataMesh;
 import tonegod.emitter.particle.ParticleDataMeshInfo;
 import tonegod.emitter.particle.ParticleDataPointMesh;
 import tonegod.emitter.particle.ParticleDataTriMesh;
+import tonegod.emitter.shapes.TriangleEmitterShape;
 
+import static java.lang.Class.forName;
 import static rlib.util.ClassUtils.unsafeCast;
 import static rlib.util.array.ArrayFactory.newArray;
 
@@ -60,6 +65,8 @@ import static rlib.util.array.ArrayFactory.newArray;
  * @edit JavaSaBr
  */
 public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable {
+
+    public static final ArrayList<Object> EMPTY_INFLUENCERS = new ArrayList<>();
 
     public enum BillboardMode {
         /**
@@ -413,7 +420,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public ParticleEmitterNode(@NotNull final AssetManager assetManager) {
         this();
-        this.assetManager = assetManager;
+        changeEmitterShapeMesh(new TriangleEmitterShape(1));
+        changeParticleMeshType(ParticleDataTriMesh.class, null);
+        initialize(assetManager, true, true);
     }
 
     /**
@@ -431,7 +440,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.particleEmissionPoint = ParticleEmissionPoint.PARTICLE_CENTER;
         this.directionType = EmitterMesh.DirectionType.RANDOM;
         this.interpolation = Interpolation.linear;
-        this.influencers = newArray(ParticleInfluencer.class, 1);
+        this.influencers = newArray(ParticleInfluencer.class, 0);
         this.particleDataMeshType = ParticleDataTriMesh.class;
         this.emitterShape = new EmitterMesh();
         this.emitterShapeTestGeometry = new EmitterShapeGeometry("Emitter Shape Test Geometry");
@@ -440,7 +449,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.particleTestGeometry = new ParticleGeometry("Particle Test Geometry");
         this.particleTestNode = new TestParticleEmitterNode("Particle Test Node");
         this.particleTestNode.attachChild(particleTestGeometry);
-        this.particleTestNode.setQueueBucket(RenderQueue.Bucket.Transparent);
+        //this.particleTestNode.setQueueBucket(RenderQueue.Bucket.Transparent);
         this.particleGeometry = new ParticleGeometry("Particle Geometry");
         this.particleNode = new ParticleNode("Particle Node");
         this.particleNode.attachChild(particleGeometry);
@@ -449,7 +458,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.forceMin = 0.15f;
         this.lifeMin = 0.999f;
         this.lifeMax = 0.999f;
-        this.activeParticleCount = 0;
+        this.particlesPerEmission = 1;
+        this.maxParticles = 100;
         this.billboardMode = BillboardMode.CAMERA;
         this.spriteWidth = -1;
         this.spriteCols = 1;
@@ -463,6 +473,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.particlesAnimBlendTime = 1;
         this.particlesAnimLoopMode = LoopMode.Loop;
         attachChild(particleNode);
+        setEmissionsPerSecond(100);
     }
 
     /**
@@ -554,19 +565,19 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     private void initMaterials() {
         if (material != null && testMat != null) return;
 
-        final Texture texture = assetManager.loadTexture("Common/Textures/MissingTexture.png");
-        texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-        texture.setMagFilter(Texture.MagFilter.Bilinear);
+        final Texture texture = assetManager.loadTexture("textures/default.png");
+        texture.setMinFilter(MinFilter.BilinearNearestMipMap);
+        texture.setMagFilter(MagFilter.Bilinear);
 
         material = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
-        material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.AlphaAdditive);
+        material.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+        material.getAdditionalRenderState().setBlendMode(BlendMode.AlphaAdditive);
         material.getAdditionalRenderState().setDepthTest(false);
         material.setTexture("Texture", texture);
 
         testMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         testMat.setColor("Color", ColorRGBA.Blue);
-        testMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        testMat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
         testMat.getAdditionalRenderState().setWireframe(true);
     }
 
@@ -592,10 +603,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public <T extends ParticleDataMesh> void changeParticleMeshType(@NotNull final Class<T> type, @Nullable final Mesh template) {
         this.particleDataMeshType = type;
         this.particleMeshTemplate = template;
-        if (!emitterInitialized) return;
-
-        if (enabled) killAllParticles();
-
         this.particleDataMesh = ClassUtils.newInstance(type);
 
         if (template != null) {
@@ -604,6 +611,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         particleGeometry.setMesh(particleDataMesh);
         particleTestGeometry.setMesh(particleDataMesh);
+
+        if (!emitterInitialized) return;
+        if (enabled) killAllParticles();
 
         initParticles();
 
@@ -617,8 +627,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             this.particleDataMesh.extractTemplateFromMesh(template);
             this.particleMeshTemplate = template;
         }
-
-        initParticles();
     }
 
     protected void initParticles() {
@@ -841,7 +849,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     @NotNull
     public ForcedStretchAxis getForcedStretchAxis() {
-        return this.stretchAxis;
+        return stretchAxis;
     }
 
     /**
@@ -1253,8 +1261,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public void changeTexture(final String texturePath) {
 
         final Texture texture = assetManager.loadTexture(texturePath);
-        texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-        texture.setMagFilter(Texture.MagFilter.Bilinear);
+        texture.setMinFilter(MinFilter.BilinearNearestMipMap);
+        texture.setMagFilter(MagFilter.Bilinear);
 
         material.setTexture(textureParamName, texture);
 
@@ -1268,8 +1276,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void changeTexture(final Texture texture) {
 
-        texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-        texture.setMagFilter(Texture.MagFilter.Bilinear);
+        texture.setMinFilter(MinFilter.BilinearNearestMipMap);
+        texture.setMagFilter(MagFilter.Bilinear);
 
         material.setTexture(textureParamName, texture);
 
@@ -1361,8 +1369,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         if (emitterInitialized) {
             final MatParamTexture textureParam = material.getTextureParam(textureParamName);
             final Texture texture = textureParam.getTextureValue();
-            texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-            texture.setMagFilter(Texture.MagFilter.Bilinear);
+            texture.setMinFilter(MinFilter.BilinearNearestMipMap);
+            texture.setMagFilter(MagFilter.Bilinear);
         }
 
         particleNode.setMaterial(material);
@@ -1436,13 +1444,15 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Initializes the emitter, materials & particle mesh Must be called prior to adding the control
      * to your scene.
      */
-    public void initialize(@NotNull final AssetManager assetManager) {
+    protected void initialize(@NotNull final AssetManager assetManager, boolean needInitMaterials, boolean needInitMesh) {
         if (emitterInitialized) return;
 
         this.assetManager = assetManager;
 
-        initMaterials();
-        initParticles(particleDataMeshType, particleMeshTemplate);
+        if (needInitMaterials) initMaterials();
+        if (needInitMesh) initParticles(particleDataMeshType, particleMeshTemplate);
+
+        initParticles();
 
         particleDataMesh.setImagesXY(spriteCols, spriteRows);
 
@@ -1472,10 +1482,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         particleGeometry.setMesh(particleDataMesh);
         particleTestGeometry.setMesh(particleDataMesh);
+        emitterShapeTestGeometry.setMesh(emitterShape.getMesh());
 
         particleNode.setMaterial(material);
         particleTestNode.setMaterial(testMat);
-        emitterShapeTestGeometry.setMaterial(testMat);
+        emitterTestNode.setMaterial(testMat);
 
         emitterInitialized = true;
     }
@@ -1500,7 +1511,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public void setEnabledTestEmitter(final boolean testEmitter) {
         if (isEnabledTestEmitter() == testEmitter) return;
         this.testEmitter = testEmitter;
-        if (testEmitter) particleNode.attachChild(emitterTestNode);
+        if (testEmitter) attachChild(emitterTestNode);
         else emitterTestNode.removeFromParent();
         requiresUpdate = true;
     }
@@ -1527,11 +1538,25 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     @Override
+    public void updateGeometricState() {
+
+        if (emitterInitialized && (enabled || postRequiresUpdate)) {
+            particleGeometry.updateModelBound();
+            if (testParticles) {
+                particleTestGeometry.updateModelBound();
+            }
+            postRequiresUpdate = false;
+        }
+
+        super.updateGeometricState();
+    }
+
+    @Override
     public void updateLogicalState(final float tpf) {
         super.updateLogicalState(tpf);
-        if (enabled && !emitterInitialized) initialize(assetManager);
 
         if (enabled && emitterInitialized) {
+
             for (ParticleData p : particles) {
                 if (p.active) p.update(tpf);
             }
@@ -1545,15 +1570,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
                 }
                 currentInterval -= targetInterval;
             }
+
         } else {
             currentInterval = 0;
-        }
-
-        if (emitterInitialized && (enabled || postRequiresUpdate)) {
-            getChild(0).updateModelBound();
-            if (testParticles)
-                particleTestNode.getChild(0).updateModelBound();
-            postRequiresUpdate = false;
         }
     }
 
@@ -1721,183 +1740,61 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
     @Override
     public void write(@NotNull final JmeExporter ex) throws IOException {
+
+        final int childIndex = getChildIndex(particleNode);
+        detachChild(particleNode);
+
         super.write(ex);
 
+        attachChildAt(particleNode, childIndex);
+
         final OutputCapsule capsule = ex.getCapsule(this);
+        final ArrayList<ParticleInfluencer> writeInfluencers = new ArrayList<>(influencers.size());
 
-        final ArrayList<ParticleInfluencer> toExport = new ArrayList<>(influencers.size());
+        Collections.addAll(writeInfluencers, influencers.array());
 
-        Collections.addAll(toExport, influencers.array());
+        capsule.writeSavableArrayList(writeInfluencers, "influencers", EMPTY_INFLUENCERS);
+        capsule.write(enabled, "enabled", true);
 
-        capsule.writeSavableArrayList(toExport, "influencers", null);
-        capsule.write(particleMeshTemplate, "particleMeshTemplate", null);
-
-        // write emitter info
-        capsule.write(targetInterval, "targetInterval", 0);
-        capsule.write(currentInterval, "currentInterval", 0);
-
-        capsule.write(emissionsPerSecond, "emissionsPerSecond", 0);
-        capsule.write(totalParticlesThisEmission, "totalParticlesThisEmission", 0);
-        capsule.write(particlesPerEmission, "particlesPerEmission", 0);
-
-        capsule.write(tpfThreshold, "tpfThreshold", 0);
-
-        capsule.write(inverseRotation, "inverseRotation", null);
-
-        capsule.write(useStaticParticles, "useStaticParticles", false);
-        capsule.write(useRandomEmissionPoint, "useRandomEmissionPoint", false);
-        capsule.write(useSequentialEmissionFace, "useSequentialEmissionFace", false);
-        capsule.write(useSequentialSkipPattern, "useSequentialSkipPattern", false);
-        capsule.write(useVelocityStretching, "useVelocityStretching", false);
-
-        capsule.write(velocityStretchFactor, "velocityStretchFactor", 0);
-
-        capsule.write(stretchAxis.ordinal(), "stretchAxis", ForcedStretchAxis.Y.ordinal());
-        capsule.write(particleEmissionPoint.ordinal(), "particleEmissionPoint", ParticleEmissionPoint.PARTICLE_CENTER.ordinal());
-        capsule.write(directionType.ordinal(), "directionType", EmitterMesh.DirectionType.RANDOM.ordinal());
-
+        // EMITTER
         capsule.write(emitterShape, "emitterShape", null);
 
-        // write particleData info
+        //PARTICLES
         capsule.write(particleDataMeshType.getName(), "particleDataMeshType", ParticleDataTriMesh.class.getName());
-        capsule.write(particleDataMesh, "mesh", null);
-
-        capsule.write(activeParticleCount, "activeParticleCount", 0);
-        capsule.write(maxParticles, "maxParticles", 0);
-
-        capsule.write(forceMax, "forceMax", 0);
-        capsule.write(forceMin, "forceMin", 0);
-
-        capsule.write(lifeMin, "lifeMin", 0);
-        capsule.write(lifeMax, "lifeMax", 0);
-
-        capsule.write(interpolation, "interpolation", null);
-
-        // write material information
-        capsule.write(material, "material", null);
-        capsule.write(testMat, "testMat", null);
-
-        capsule.write(applyLightingTransform, "applyLightingTransform", false);
-
-        capsule.write(textureParamName, "textureParamName", null);
-
-        capsule.write(spriteWidth, "spriteWidth", 0);
-        capsule.write(spriteHeight, "spriteHeight", 0);
-
-        capsule.write(spriteCols, "spriteCols", 0);
-        capsule.write(spriteRows, "spriteRows", 0);
-
-        capsule.write(billboardMode.ordinal(), "billboardMode", BillboardMode.CAMERA.ordinal());
-
-        capsule.write(particlesFollowEmitter, "particlesFollowEmitter", false);
-        capsule.write(enabled, "enabled", false);
-        capsule.write(requiresUpdate, "requiresUpdate", false);
-
-        // write emitter animation
-        //FIXME
-
-        // write particle animation
-        //FIXME
-
-        capsule.write(testEmitter, "testEmitter", false);
-        capsule.write(testParticles, "testParticles", false);
-
-        capsule.write(name, "name", null);
+        capsule.write(particleMeshTemplate, "particleMeshTemplate", null);
     }
 
     @Override
     public void read(@NotNull final JmeImporter im) throws IOException {
+
+        final int particleIndex = getChildIndex(particleNode);
+        final int testIndex = getChildIndex(emitterTestNode);
+        detachChild(particleNode);
+        if (testIndex != -1) detachChild(emitterTestNode);
+
         super.read(im);
 
-        this.assetManager = im.getAssetManager();
+        attachChildAt(particleNode, particleIndex);
+        if (testIndex != -1) attachChildAt(emitterTestNode, testIndex);
 
         final InputCapsule capsule = im.getCapsule(this);
-        final ArrayList<ParticleInfluencer> imported = capsule.readSavableArrayList("influencers", null);
+        final ArrayList<ParticleInfluencer> readInfluencers = capsule.readSavableArrayList("influencers", EMPTY_INFLUENCERS);
 
-        influencers = newArray(ParticleInfluencer.class, imported == null ? 1 : imported.size());
+        this.enabled = capsule.readBoolean("enabled", true);
 
-        if (imported != null) {
-            influencers.addAll(imported);
-        }
-
-        influencers.asUnsafe().trimToSize();
-        particleMeshTemplate = (Mesh) capsule.readSavable("particleMeshTemplate", null);
-
-        // read emitter info
-        targetInterval = capsule.readFloat("targetInterval", 0);
-        currentInterval = capsule.readFloat("currentInterval", 0);
-
-        emissionsPerSecond = capsule.readInt("emissionsPerSecond", 0);
-        totalParticlesThisEmission = capsule.readInt("totalParticlesThisEmission", 0);
-        particlesPerEmission = capsule.readInt("particlesPerEmission", 0);
-
-        tpfThreshold = capsule.readFloat("tpfThreshold", 0);
-
-        inverseRotation = (Matrix3f) capsule.readSavable("inverseRotation", null);
-
-        useStaticParticles = capsule.readBoolean("useStaticParticles", false);
-        useRandomEmissionPoint = capsule.readBoolean("useRandomEmissionPoint", false);
-        useSequentialEmissionFace = capsule.readBoolean("useSequentialEmissionFace", false);
-        useSequentialSkipPattern = capsule.readBoolean("useSequentialSkipPattern", false);
-        useVelocityStretching = capsule.readBoolean("useVelocityStretching", false);
-
-        velocityStretchFactor = capsule.readFloat("velocityStretchFactor", 0);
-
-        stretchAxis = ForcedStretchAxis.valueOf(capsule.readInt("stretchAxis", ForcedStretchAxis.Y.ordinal()));
-        particleEmissionPoint = ParticleEmissionPoint.valueOf(capsule.readInt("particleEmissionPoint", ParticleEmissionPoint.PARTICLE_CENTER.ordinal()));
-        directionType = EmitterMesh.DirectionType.valueOf(capsule.readInt("directionType", EmitterMesh.DirectionType.RANDOM.ordinal()));
-
+        // EMITTER
         emitterShape = (EmitterMesh) capsule.readSavable("emitterShape", null);
         emitterShape.setEmitterNode(this);
 
-        // read particleData info
+        //PARTICLES
+        final Class<? extends ParticleDataMesh> meshType = Util.safeGet(capsule, first ->
+                unsafeCast(forName(first.readString("particleDataMeshType", ParticleDataTriMesh.class.getName()))));
+        final Mesh template = (Mesh) capsule.readSavable("particleMeshTemplate", null);
 
-        // Reconstruct particle mesh
-        try {
-            particleDataMeshType = (Class<? extends ParticleDataMesh>) Class.forName(capsule.readString("particleDataMeshType", ParticleDataTriMesh.class.getName()));
-        } catch (IOException | ClassNotFoundException ex) {
-            particleDataMeshType = ParticleDataTriMesh.class;
-        }
+        changeParticleMeshType(meshType, template);
 
-        particleDataMesh = (ParticleDataMesh) capsule.readSavable("mesh", null);
-
-        activeParticleCount = capsule.readInt("activeParticleCount", 0);
-        maxParticles = capsule.readInt("maxParticles", 0);
-
-        forceMax = capsule.readFloat("forceMax", 0);
-        forceMin = capsule.readFloat("forceMin", 0);
-
-        lifeMin = capsule.readFloat("lifeMin", 0);
-        lifeMax = capsule.readFloat("lifeMax", 0);
-
-        interpolation = (Interpolation) capsule.readSavable("interpolation", null);
-
-        // write material information
-        material = (Material) capsule.readSavable("material", null);
-        testMat = (Material) capsule.readSavable("testMat", null);
-
-        applyLightingTransform = capsule.readBoolean("applyLightingTransform", false);
-
-        textureParamName = capsule.readString("textureParamName", null);
-
-        spriteWidth = capsule.readFloat("spriteWidth", 0);
-        spriteHeight = capsule.readFloat("spriteHeight", 0);
-
-        spriteCols = capsule.readInt("spriteCols", 0);
-        spriteRows = capsule.readInt("spriteRows", 0);
-
-        billboardMode = BillboardMode.valueOf(capsule.readInt("billboardMode", BillboardMode.CAMERA.ordinal()));
-
-        particlesFollowEmitter = capsule.readBoolean("particlesFollowEmitter", false);
-        enabled = capsule.readBoolean("enabled", false);
-        postRequiresUpdate = capsule.readBoolean("postRequiresUpdate", false);
-
-        name = capsule.readString("name", "Restored name");
-
-        Objects.requireNonNull(emitterShape);
-        Objects.requireNonNull(interpolation);
-        Objects.requireNonNull(particleDataMesh);
-        Objects.requireNonNull(textureParamName);
+        addInfluencers(readInfluencers.toArray(new ParticleInfluencer[readInfluencers.size()]));
+        initialize(im.getAssetManager(), true, true);
     }
 
     @Override
@@ -1907,31 +1804,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
     @Override
     public void cloneFields(final Cloner cloner, final Object original) {
-
-        final ParticleEmitterNode result = this;
-        result.emitterAnimNode = cloner.clone(emitterAnimNode);
-        result.emitterShape = cloner.clone(emitterShape);
-        result.particleNode = cloner.clone(particleNode);
-        result.particlesAnimNode = cloner.clone(particlesAnimNode);
-        result.particleTestNode = cloner.clone(particleTestNode);
-        result.emitterTestNode = cloner.clone(emitterTestNode);
-
-        if (emitterAnimNode != null) {
-            result.setEmitterShapeMesh(emitterAnimNode, emitterNodeExists);
-            result.setEmitterAnimation(emitterAnimName, emitterAnimSpeed, emitterAnimBlendTime, emitterAnimLoopMode);
-        } else result.changeEmitterShapeMesh(emitterShape.getMesh());
-
-        if (particlesAnimNode != null) {
-            result.setParticleType(particleDataMeshType, particlesAnimNode);
-            result.setParticleAnimation(particlesAnimName, particlesAnimSpeed, particlesAnimBlendTime, particlesAnimLoopMode);
-        }// else result.setParticleType(particleDataMeshType, particleMeshTemplate);
-
-        final Array<ParticleInfluencer> originalInfluencers = influencers;
-        influencers = ArrayFactory.newArray(ParticleInfluencer.class, influencers.size());
-
-        for (final ParticleInfluencer influencer : originalInfluencers) {
-            result.addInfluencer(influencer.clone());
-        }
+        super.cloneFields(cloner, original);
     }
 
     @Override

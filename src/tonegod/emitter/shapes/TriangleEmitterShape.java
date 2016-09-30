@@ -10,6 +10,8 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
@@ -20,14 +22,25 @@ import java.nio.ShortBuffer;
  */
 public class TriangleEmitterShape extends Mesh {
 
+    @NotNull
     protected final FloatBuffer vertexes;
+
+    @NotNull
     protected final ShortBuffer indexes;
+
+    @NotNull
     protected final FloatBuffer normals;
 
+    @NotNull
     protected final Vector3f firstPoint;
+
+    @NotNull
     protected final Vector3f secondPoint;
+
+    @NotNull
     protected final Vector3f thirdPoint;
 
+    @NotNull
     protected final Triangle triangle;
 
     protected float size;
@@ -42,12 +55,17 @@ public class TriangleEmitterShape extends Mesh {
         this.triangle = new Triangle();
     }
 
+    public TriangleEmitterShape(final float size) {
+        this();
+        updateTo(size);
+    }
+
     /**
      * Re-init this mesh using the size.
      *
      * @param size the new size of this mesh.
      */
-    public void init(final float size) {
+    public void updateTo(final float size) {
         this.size = size;
 
         firstPoint.set(-(size / 2), 0, (size / 2));
@@ -107,7 +125,7 @@ public class TriangleEmitterShape extends Mesh {
         super.read(importer);
         final InputCapsule capsule = importer.getCapsule(this);
         final float size = capsule.readFloat("size", 1F);
-        init(size);
+        updateTo(size);
     }
 
     @Override

@@ -5,7 +5,6 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,8 +48,6 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
     private final Vector3f left;
     private final Vector3f upStore;
 
-    private final Quaternion quaternion;
-
     private RadialPullAlignment alignment;
     private RadialPullCenter center;
     private RadialUpAlignment upAlignment;
@@ -70,7 +67,6 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
         this.alignment = RadialPullAlignment.EMISSION_POINT;
         this.center = RadialPullCenter.ABSOLUTE;
         this.upAlignment = RadialUpAlignment.UNIT_Y;
-        this.quaternion = new Quaternion();
         this.radialPull = 1;
         this.tangentForce = 1;
         this.enabled = true;
