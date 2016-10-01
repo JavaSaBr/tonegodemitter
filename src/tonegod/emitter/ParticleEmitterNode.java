@@ -162,6 +162,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
     }
 
+    /** ------------INFLUENCERS------------ **/
+
     protected Array<ParticleInfluencer> influencers;
 
     /**
@@ -208,11 +210,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     protected Matrix3f inverseRotation;
 
-    protected boolean useStaticParticles;
-    protected boolean useRandomEmissionPoint;
-    protected boolean useSequentialEmissionFace;
-    protected boolean useSequentialSkipPattern;
-    protected boolean useVelocityStretching;
+    protected boolean staticParticles;
+    protected boolean randomEmissionPoint;
+    protected boolean sequentialEmissionFace;
+    protected boolean sequentialSkipPattern;
+    protected boolean velocityStretching;
 
     /**
      * The velocity stretch factor.
@@ -791,7 +793,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * remain in place and follow the emitter shape's animations.
      */
     public void setStaticParticles(final boolean useStaticParticles) {
-        this.useStaticParticles = useStaticParticles;
+        this.staticParticles = useStaticParticles;
         requiresUpdate = true;
     }
 
@@ -801,14 +803,14 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @return Current state of static particle flag
      */
     public boolean isStaticParticles() {
-        return useStaticParticles;
+        return staticParticles;
     }
 
     /**
      * Enable or disable to use of particle stretching
      */
     public void setVelocityStretching(final boolean useVelocityStretching) {
-        this.useVelocityStretching = useVelocityStretching;
+        this.velocityStretching = useVelocityStretching;
         requiresUpdate = true;
     }
 
@@ -816,7 +818,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns if the emitter will use particle stretching
      */
     public boolean isVelocityStretching() {
-        return useVelocityStretching;
+        return velocityStretching;
     }
 
     /**
@@ -896,7 +898,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * flag enables selecting a random point of emission within the selected face.
      */
     public void setRandomEmissionPoint(final boolean useRandomEmissionPoint) {
-        this.useRandomEmissionPoint = useRandomEmissionPoint;
+        this.randomEmissionPoint = useRandomEmissionPoint;
         requiresUpdate = true;
     }
 
@@ -905,7 +907,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * face or it's absolute center.  Center emission is default.
      */
     public boolean isRandomEmissionPoint() {
-        return useRandomEmissionPoint;
+        return randomEmissionPoint;
     }
 
     /**
@@ -914,7 +916,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * created in the emitter shape mesh.
      */
     public void setSequentialEmissionFace(final boolean useSequentialEmissionFace) {
-        this.useSequentialEmissionFace = useSequentialEmissionFace;
+        this.sequentialEmissionFace = useSequentialEmissionFace;
         requiresUpdate = true;
     }
 
@@ -923,7 +925,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * defined.
      */
     public boolean isSequentialEmissionFace() {
-        return useSequentialEmissionFace;
+        return sequentialEmissionFace;
     }
 
     /**
@@ -931,7 +933,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * clustering of two particles per quad that makes up the the emitter shape.
      */
     public void setSequentialSkipPattern(final boolean useSequentialSkipPattern) {
-        this.useSequentialSkipPattern = useSequentialSkipPattern;
+        this.sequentialSkipPattern = useSequentialSkipPattern;
         requiresUpdate = true;
     }
 
@@ -940,7 +942,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * faces are defined.
      */
     public boolean isSequentialSkipPattern() {
-        return useSequentialSkipPattern;
+        return sequentialSkipPattern;
     }
 
     /**
@@ -1713,8 +1715,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param index The index of the particle that was just reset
      */
     public void setNextIndex(int index) {
-        if (index < nextIndex || nextIndex == -1)
-            nextIndex = index;
+        if (index >= nextIndex && nextIndex != -1) return;
+        nextIndex = index;
     }
 
     @Override
@@ -1758,10 +1760,38 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         // EMITTER
         capsule.write(emitterShape, "emitterShape", null);
+        capsule.write(emissionsPerSecond, "emissionsPerSecond", 0);
+        capsule.write(particlesPerEmission, "particlesPerEmission", 0);
+        capsule.write(staticParticles, "staticParticles", false);
+        capsule.write(randomEmissionPoint, "randomEmissionPoint", false);
+        capsule.write(sequentialEmissionFace, "sequentialEmissionFace", false);
+        capsule.write(sequentialSkipPattern, "sequentialSkipPattern", false);
+        capsule.write(velocityStretching, "velocityStretching", false);
+        capsule.write(velocityStretchFactor, "velocityStretchFactor", 0);
+        capsule.write(stretchAxis.ordinal(), "stretchAxis", 0);
+        capsule.write(particleEmissionPoint.ordinal(), "particleEmissionPoint", 0);
+        capsule.write(directionType.ordinal(), "directionType", 0);
 
-        //PARTICLES
+        // PARTICLES
+        capsule.write(billboardMode.ordinal(), "billboardMode", 0);
+        capsule.write(particlesFollowEmitter, "particlesFollowEmitter", false);
+
+        // PARTICLES MESH DATA
         capsule.write(particleDataMeshType.getName(), "particleDataMeshType", ParticleDataTriMesh.class.getName());
         capsule.write(particleMeshTemplate, "particleMeshTemplate", null);
+        capsule.write(maxParticles, "maxParticles", 0);
+        capsule.write(forceMin, "forceMin", 0);
+        capsule.write(forceMax, "forceMax", 0);
+        capsule.write(lifeMin, "lifeMin", 0);
+        capsule.write(lifeMax, "lifeMax", 0);
+        capsule.write(interpolation, "interpolation", Interpolation.linear);
+
+        // MATERIALS
+        capsule.write(textureParamName, "textureParamName", null);
+        capsule.write(material, "material", null);
+        capsule.write(applyLightingTransform, "applyLightingTransform", false);
+        capsule.write(spriteCols, "spriteCols", 0);
+        capsule.write(spriteRows, "spriteRows", 0);
     }
 
     @Override
@@ -1770,6 +1800,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         final int particleIndex = getChildIndex(particleNode);
         final int testIndex = getChildIndex(emitterTestNode);
         detachChild(particleNode);
+
         if (testIndex != -1) detachChild(emitterTestNode);
 
         super.read(im);
@@ -1786,12 +1817,40 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         emitterShape = (EmitterMesh) capsule.readSavable("emitterShape", null);
         emitterShape.setEmitterNode(this);
 
-        //PARTICLES
+        setEmissionsPerSecond(capsule.readInt("emissionsPerSecond", 0));
+        setParticlesPerEmission(capsule.readInt("particlesPerEmission", 0));
+        setStaticParticles(capsule.readBoolean("staticParticles", false));
+        setRandomEmissionPoint(capsule.readBoolean("randomEmissionPoint", false));
+        setSequentialEmissionFace(capsule.readBoolean("sequentialEmissionFace", false));
+        setSequentialSkipPattern(capsule.readBoolean("sequentialSkipPattern", false));
+        setVelocityStretching(capsule.readBoolean("velocityStretching", false));
+        setVelocityStretchFactor(capsule.readFloat("velocityStretchFactor", 0F));
+        setForcedStretchAxis(ForcedStretchAxis.valueOf(capsule.readInt("stretchAxis", 0)));
+        setParticleEmissionPoint(ParticleEmissionPoint.valueOf(capsule.readInt("particleEmissionPoint", 0)));
+        setDirectionType(EmitterMesh.DirectionType.valueOf(capsule.readInt("directionType", 0)));
+
+        // PARTICLES
+        setBillboardMode(BillboardMode.valueOf(capsule.readInt("billboardMode", 0)));
+        setParticlesFollowEmitter(capsule.readBoolean("particlesFollowEmitter", false));
+
+        // PARTICLES MESH DATA
         final Class<? extends ParticleDataMesh> meshType = Util.safeGet(capsule, first ->
                 unsafeCast(forName(first.readString("particleDataMeshType", ParticleDataTriMesh.class.getName()))));
         final Mesh template = (Mesh) capsule.readSavable("particleMeshTemplate", null);
 
         changeParticleMeshType(meshType, template);
+        setMaxParticles(capsule.readInt("maxParticles", 0));
+        setForceMinMax(capsule.readFloat("forceMin", 0F), capsule.readFloat("forceMax", 0F));
+        setLifeMinMax(capsule.readFloat("lifeMin", 0F), capsule.readFloat("lifeMax", 0F));
+        setInterpolation((Interpolation) capsule.readSavable("interpolation", Interpolation.linear));
+
+        // MATERIALS
+        final String textureParamName = capsule.readString("textureParamName", null);
+        final Material material = (Material) capsule.readSavable("material", null);
+        final boolean applyLightingTransform = capsule.readBoolean("applyLightingTransform", false);
+
+        setMaterial(material, textureParamName, applyLightingTransform);
+        setSpriteCount(capsule.readInt("spriteCols", 0), capsule.readInt("spriteRows", 0));
 
         addInfluencers(readInfluencers.toArray(new ParticleInfluencer[readInfluencers.size()]));
         initialize(im.getAssetManager(), true, true);
@@ -1805,6 +1864,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     @Override
     public void cloneFields(final Cloner cloner, final Object original) {
         super.cloneFields(cloner, original);
+
+        particles = cloner.clone(particles);
     }
 
     @Override

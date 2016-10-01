@@ -14,7 +14,7 @@ import tonegod.emitter.influencers.ParticleInfluencer;
 /**
  * @author t0neg0d
  */
-public class ParticleData {
+public class ParticleData implements Cloneable {
 
     /**
      * ParticleData velocity.
@@ -184,6 +184,11 @@ public class ParticleData {
      */
     public Object getData(String key) {
         return this.data.get(key);
+    }
+
+    @Override
+    public ParticleData clone() throws CloneNotSupportedException {
+        return (ParticleData) super.clone();
     }
 
     public void update(float tpf) {
