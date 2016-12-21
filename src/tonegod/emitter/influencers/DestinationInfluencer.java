@@ -16,7 +16,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import tonegod.emitter.Interpolation;
+import tonegod.emitter.interpolation.Interpolation;
+import tonegod.emitter.interpolation.InterpolationManager;
 import tonegod.emitter.particle.ParticleData;
 
 /**
@@ -139,7 +140,7 @@ public class DestinationInfluencer implements ParticleInfluencer {
      * @param weight      How strong the pull towards the destination should be
      */
     public void addDestination(Vector3f destination, float weight) {
-        addDestination(destination, weight, Interpolation.linear);
+        addDestination(destination, weight, Interpolation.LINEAR);
     }
 
     /**
@@ -206,7 +207,7 @@ public class DestinationInfluencer implements ParticleInfluencer {
         Map<String, Vector2f> interps = new HashMap<String, Vector2f>();
         int index = 0;
         for (Interpolation in : interpolations.getArray()) {
-            interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index), null);
+            interps.put(in.getName() + ":" + String.valueOf(index), null);
             index++;
         }
         oc.writeStringSavableMap(interps, "interpolations", null);
@@ -224,7 +225,7 @@ public class DestinationInfluencer implements ParticleInfluencer {
         Map<String, Vector2f> interps = (Map<String, Vector2f>) ic.readStringSavableMap("interpolations", null);
         for (String in : interps.keySet()) {
             String name = in.substring(0, in.indexOf(":"));
-            interpolations.add(Interpolation.getInterpolationByName(name));
+            interpolations.add(InterpolationManager.getInterpolation(name));
         }
         enabled = ic.readBoolean("enabled", true);
         randomStartDestination = ic.readBoolean("randomStartDestination", false);

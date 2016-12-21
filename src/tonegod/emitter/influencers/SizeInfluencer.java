@@ -16,7 +16,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import tonegod.emitter.Interpolation;
+import tonegod.emitter.interpolation.Interpolation;
+import tonegod.emitter.interpolation.InterpolationManager;
 import tonegod.emitter.particle.ParticleData;
 
 /**
@@ -154,11 +155,11 @@ public class SizeInfluencer implements ParticleInfluencer {
     }
 
     public void addSize(final float size) {
-        addSize(size, Interpolation.linear);
+        addSize(size, Interpolation.LINEAR);
     }
 
     public void addSize(@NotNull final Vector3f size) {
-        addSize(size, Interpolation.linear);
+        addSize(size, Interpolation.LINEAR);
     }
 
     public void addSize(final float size, @NotNull final Interpolation interpolation) {
@@ -213,7 +214,7 @@ public class SizeInfluencer implements ParticleInfluencer {
         Map<String, Vector2f> interps = new HashMap<String, Vector2f>();
         int index = 0;
         for (Interpolation in : interpolations.getArray()) {
-            interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index), null);
+            interps.put(in.getName() + ":" + String.valueOf(index), null);
             index++;
         }
         oc.writeStringSavableMap(interps, "interpolations", null);
@@ -230,7 +231,7 @@ public class SizeInfluencer implements ParticleInfluencer {
         Map<String, Vector2f> interps = (Map<String, Vector2f>) ic.readStringSavableMap("interpolations", null);
         for (String in : interps.keySet()) {
             String name = in.substring(0, in.indexOf(":"));
-            interpolations.add(Interpolation.getInterpolationByName(name));
+            interpolations.add(InterpolationManager.getInterpolation(name));
         }
         randomSize = ic.readBoolean("randomSize", false);
         randomSizeTolerance = ic.readFloat("randomSizeTolerance", 0.5f);

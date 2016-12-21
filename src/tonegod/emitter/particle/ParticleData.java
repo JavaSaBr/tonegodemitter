@@ -7,9 +7,9 @@ import com.jme3.math.Vector3f;
 import java.util.HashMap;
 import java.util.Map;
 
-import tonegod.emitter.Interpolation;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
+import tonegod.emitter.interpolation.Interpolation;
 
 /**
  * @author t0neg0d

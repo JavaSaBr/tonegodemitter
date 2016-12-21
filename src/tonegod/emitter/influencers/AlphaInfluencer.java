@@ -1,5 +1,7 @@
 package tonegod.emitter.influencers;
 
+import static com.jme3.math.FastMath.interpolateLinear;
+
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
@@ -14,10 +16,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import tonegod.emitter.Interpolation;
+import tonegod.emitter.interpolation.Interpolation;
+import tonegod.emitter.interpolation.InterpolationManager;
 import tonegod.emitter.particle.ParticleData;
-
-import static com.jme3.math.FastMath.interpolateLinear;
 
 /**
  * The implementation of the {@link ParticleInfluencer} for influence to alpha of particles.
@@ -124,7 +125,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
      * particles life span
      */
     public void addAlpha(final float alpha) {
-        addAlpha(alpha, Interpolation.linear);
+        addAlpha(alpha, Interpolation.LINEAR);
     }
 
     /**
@@ -180,7 +181,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
         Map<String, Vector2f> interps = new HashMap<String, Vector2f>();
         index = 0;
         for (Interpolation in : interpolations.getArray()) {
-            interps.put(Interpolation.getInterpolationName(in) + ":" + String.valueOf(index), null);
+            interps.put(in.getName() + ":" + String.valueOf(index), null);
             index++;
         }
         oc.writeStringSavableMap(interps, "interpolations", null);
@@ -201,7 +202,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
         Map<String, Vector2f> interps = (Map<String, Vector2f>) ic.readStringSavableMap("interpolations", null);
         for (String in : interps.keySet()) {
             String name = in.substring(0, in.indexOf(":"));
-            interpolations.add(Interpolation.getInterpolationByName(name));
+            interpolations.add(InterpolationManager.getInterpolation(name));
         }
         enabled = ic.readBoolean("enabled", true);
         randomStartAlpha = ic.readBoolean("randomStartAlpha", false);

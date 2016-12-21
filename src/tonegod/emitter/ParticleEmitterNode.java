@@ -1,5 +1,9 @@
 package tonegod.emitter;
 
+import static java.lang.Class.forName;
+import static rlib.util.ClassUtils.unsafeCast;
+import static rlib.util.array.ArrayFactory.newArray;
+
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
@@ -55,10 +59,6 @@ import tonegod.emitter.particle.ParticleDataMeshInfo;
 import tonegod.emitter.particle.ParticleDataPointMesh;
 import tonegod.emitter.particle.ParticleDataTriMesh;
 import tonegod.emitter.shapes.TriangleEmitterShape;
-
-import static java.lang.Class.forName;
-import static rlib.util.ClassUtils.unsafeCast;
-import static rlib.util.array.ArrayFactory.newArray;
 
 /**
  * @author t0neg0d
@@ -162,7 +162,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
     }
 
-    /** ------------INFLUENCERS------------ **/
+    /**
+     * ------------INFLUENCERS------------
+     **/
 
     protected Array<ParticleInfluencer> influencers;
 
@@ -338,7 +340,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * The interpolation.
      */
-    protected Interpolation interpolation;
+    protected tonegod.emitter.interpolation.Interpolation interpolation;
 
     /** ------------PARTICLES MATERIAL------------ **/
 
@@ -441,7 +443,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.stretchAxis = ForcedStretchAxis.Y;
         this.particleEmissionPoint = ParticleEmissionPoint.PARTICLE_CENTER;
         this.directionType = EmitterMesh.DirectionType.RANDOM;
-        this.interpolation = Interpolation.linear;
+        this.interpolation = tonegod.emitter.interpolation.Interpolation.LINEAR;
         this.influencers = newArray(ParticleInfluencer.class, 0);
         this.particleDataMeshType = ParticleDataTriMesh.class;
         this.emitterShape = new EmitterMesh();
@@ -948,7 +950,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * Sets the default interpolation for the emitter will use
      */
-    public void setInterpolation(@NotNull final Interpolation interpolation) {
+    public void setInterpolation(@NotNull final tonegod.emitter.interpolation.Interpolation interpolation) {
         this.interpolation = interpolation;
         requiresUpdate = true;
     }
@@ -957,7 +959,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns the default interpolation used by the emitter
      */
     @NotNull
-    public Interpolation getInterpolation() {
+    public tonegod.emitter.interpolation.Interpolation getInterpolation() {
         return interpolation;
     }
 
@@ -1784,7 +1786,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         capsule.write(forceMax, "forceMax", 0);
         capsule.write(lifeMin, "lifeMin", 0);
         capsule.write(lifeMax, "lifeMax", 0);
-        capsule.write(interpolation, "interpolation", Interpolation.linear);
+        capsule.write(interpolation, "interpolation", tonegod.emitter.interpolation.Interpolation.LINEAR);
 
         // MATERIALS
         capsule.write(textureParamName, "textureParamName", null);
@@ -1842,7 +1844,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setMaxParticles(capsule.readInt("maxParticles", 0));
         setForceMinMax(capsule.readFloat("forceMin", 0F), capsule.readFloat("forceMax", 0F));
         setLifeMinMax(capsule.readFloat("lifeMin", 0F), capsule.readFloat("lifeMax", 0F));
-        setInterpolation((Interpolation) capsule.readSavable("interpolation", Interpolation.linear));
+        setInterpolation((tonegod.emitter.interpolation.Interpolation) capsule.readSavable("interpolation", tonegod.emitter.interpolation.Interpolation.LINEAR));
 
         // MATERIALS
         final String textureParamName = capsule.readString("textureParamName", null);
