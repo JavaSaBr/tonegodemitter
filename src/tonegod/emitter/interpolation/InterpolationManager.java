@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+import rlib.util.array.Array;
+import rlib.util.array.ArrayFactory;
 import rlib.util.dictionary.DictionaryFactory;
 import rlib.util.dictionary.IntegerDictionary;
 import rlib.util.dictionary.ObjectDictionary;
@@ -18,6 +20,7 @@ public class InterpolationManager {
     private static final ObjectDictionary<Interpolation, Integer> INTER_TO_ID;
     private static final ObjectDictionary<String, Interpolation> NAME_TO_INTER;
     private static final IntegerDictionary<Interpolation> ID_TO_INTER;
+    private static final Array<Interpolation> INTERPOLATIONS;
 
     static {
         INTER_TO_ID = DictionaryFactory.newObjectDictionary();
@@ -60,6 +63,12 @@ public class InterpolationManager {
         NAME_TO_INTER = DictionaryFactory.newObjectDictionary();
         INTER_TO_ID.forEach((interpolation, id) -> ID_TO_INTER.put(id, interpolation));
         INTER_TO_ID.forEach((interpolation, id) -> NAME_TO_INTER.put(interpolation.getName(), interpolation));
+        INTERPOLATIONS = ArrayFactory.newArray(Interpolation.class);
+        NAME_TO_INTER.values(INTERPOLATIONS);
+    }
+
+    public static Array<Interpolation> getAvailable() {
+        return INTERPOLATIONS;
     }
 
     public static Interpolation getInterpolation(@NotNull final String name) {

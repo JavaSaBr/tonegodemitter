@@ -9,7 +9,7 @@ import java.util.ResourceBundle;
  */
 public class Messages {
 
-    public static final String BUNDLE_NAME = "messages/messages";
+    public static final String BUNDLE_NAME = "tonegod/emitter/messages/messages";
 
     public static final String INTERPOLATION_LINEAR;
     public static final String INTERPOLATION_FADE;

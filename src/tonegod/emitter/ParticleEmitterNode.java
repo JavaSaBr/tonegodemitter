@@ -50,6 +50,7 @@ import rlib.util.array.UnsafeArray;
 import tonegod.emitter.geometry.EmitterShapeGeometry;
 import tonegod.emitter.geometry.ParticleGeometry;
 import tonegod.emitter.influencers.ParticleInfluencer;
+import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.material.ParticlesMaterial;
 import tonegod.emitter.node.ParticleNode;
 import tonegod.emitter.node.TestParticleEmitterNode;
@@ -443,7 +444,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.stretchAxis = ForcedStretchAxis.Y;
         this.particleEmissionPoint = ParticleEmissionPoint.PARTICLE_CENTER;
         this.directionType = EmitterMesh.DirectionType.RANDOM;
-        this.interpolation = tonegod.emitter.interpolation.Interpolation.LINEAR;
+        this.interpolation = Interpolation.LINEAR;
         this.influencers = newArray(ParticleInfluencer.class, 0);
         this.particleDataMeshType = ParticleDataTriMesh.class;
         this.emitterShape = new EmitterMesh();

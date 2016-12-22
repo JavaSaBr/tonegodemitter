@@ -27,17 +27,38 @@ import tonegod.emitter.particle.ParticleData;
  * @author t0neg0d
  * @edit JavaSaBr
  */
-public class ColorInfluencer implements ParticleInfluencer {
+public final class ColorInfluencer implements ParticleInfluencer {
 
+    /**
+     * The list of interpolations.
+     */
     private final UnsafeArray<Interpolation> interpolations;
+
+    /**
+     * The list of colors.
+     */
     private final UnsafeArray<ColorRGBA> colors;
 
     private final transient ColorRGBA resetColor;
 
+    /**
+     * The start color.
+     */
     private final ColorRGBA startColor;
+
+    /**
+     * The end color.
+     */
     private final ColorRGBA endColor;
 
+    /**
+     * The blend value.
+     */
     private float blend;
+
+    /**
+     * The fixed duration.
+     */
     private float fixedDuration;
 
     private boolean initialized;
@@ -46,10 +67,8 @@ public class ColorInfluencer implements ParticleInfluencer {
     private boolean cycle;
 
     public ColorInfluencer() {
-        final Array<ColorRGBA> colors = ArrayFactory.newArray(ColorRGBA.class);
-        final Array<Interpolation> interpolations = ArrayFactory.newArray(Interpolation.class);
-        this.colors = colors.asUnsafe();
-        this.interpolations = interpolations.asUnsafe();
+        this.colors = ArrayFactory.newUnsafeArray(ColorRGBA.class);
+        this.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
         this.resetColor = new ColorRGBA(0, 0, 0, 0);
         this.startColor = new ColorRGBA(ColorRGBA.Red);
         this.endColor = new ColorRGBA(ColorRGBA.Yellow);
@@ -156,12 +175,67 @@ public class ColorInfluencer implements ParticleInfluencer {
         this.interpolations.clear();
     }
 
-    public ColorRGBA[] getColors() {
-        return colors.array();
+    /**
+     * @return the list of colors.
+     */
+    @NotNull
+    public Array<ColorRGBA> getColors() {
+        return colors;
     }
 
-    public Interpolation[] getInterpolations() {
-        return interpolations.array();
+    /**
+     * @param index the index.
+     * @return the color for the index.
+     */
+    @NotNull
+    public ColorRGBA getColor(final int index) {
+        return colors.get(index);
+    }
+
+    /**
+     * @param index the index.
+     * @return the interpolation for the index.
+     */
+    @NotNull
+    public Interpolation getInterpolation(final int index) {
+        return interpolations.get(index);
+    }
+
+    /**
+     * Change a color for the index.
+     *
+     * @param color the new color.
+     * @param index the index.
+     */
+    public void updateColor(final @NotNull ColorRGBA color, final int index) {
+        colors.set(index, color);
+    }
+
+    /**
+     * Change a interpolation for the index.
+     *
+     * @param interpolation the new interpolation.
+     * @param index         the index.
+     */
+    public void updateInterpolation(final @NotNull Interpolation interpolation, final int index) {
+        interpolations.set(index, interpolation);
+    }
+
+    /**
+     * Remove last a color and interpolation.
+     */
+    public void removeLast() {
+        if (colors.isEmpty()) return;
+        interpolations.fastRemove(interpolations.size() - 1);
+        colors.fastRemove(colors.size() - 1);
+    }
+
+    /**
+     * @return the list of interpolations.
+     */
+    @NotNull
+    public Array<Interpolation> getInterpolations() {
+        return interpolations;
     }
 
     @Override

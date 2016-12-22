@@ -7,15 +7,15 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
-import com.jme3.math.Vector2f;
-import com.jme3.util.SafeArrayList;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
+import rlib.util.ArrayUtils;
+import rlib.util.array.Array;
+import rlib.util.array.ArrayFactory;
+import rlib.util.array.UnsafeArray;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.interpolation.InterpolationManager;
 import tonegod.emitter.particle.ParticleData;
@@ -28,22 +28,29 @@ import tonegod.emitter.particle.ParticleData;
  */
 public class AlphaInfluencer implements ParticleInfluencer {
 
-    private SafeArrayList<Interpolation> interpolations;
-    private SafeArrayList<Float> alphas;
+    /**
+     * The list of interpolations.
+     */
+    private final UnsafeArray<Interpolation> interpolations;
 
-    private boolean randomStartAlpha;
-    private boolean initialized;
-    private boolean enabled;
-    private boolean cycle;
+    /**
+     * The list of alphas.
+     */
+    private final UnsafeArray<Float> alphas;
 
     private float startAlpha;
     private float endAlpha;
     private float blend;
     private float fixedDuration;
 
+    private boolean randomStartAlpha;
+    private boolean initialized;
+    private boolean enabled;
+    private boolean cycle;
+
     public AlphaInfluencer() {
-        this.alphas = new SafeArrayList<>(Float.class);
-        this.interpolations = new SafeArrayList<>(Interpolation.class);
+        this.alphas = ArrayFactory.newUnsafeArray(Float.class);
+        this.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
         this.enabled = true;
         this.startAlpha = 1;
     }
@@ -66,7 +73,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
 
         blend = particleData.alphaInterpolation.apply(particleData.alphaInterval / particleData.alphaDuration);
 
-        final Float[] alphasArray = alphas.getArray();
+        final Float[] alphasArray = alphas.array();
 
         startAlpha = alphasArray[particleData.alphaIndex];
 
@@ -79,14 +86,14 @@ public class AlphaInfluencer implements ParticleInfluencer {
         particleData.alpha = interpolateLinear(blend, startAlpha, endAlpha);
     }
 
-    private void updateAlpha(final ParticleData particleData) {
+    private void updateAlpha(@NotNull final ParticleData particleData) {
         particleData.alphaIndex++;
 
         if (particleData.alphaIndex >= alphas.size()) {
             particleData.alphaIndex = 0;
         }
 
-        particleData.alphaInterpolation = interpolations.getArray()[particleData.alphaIndex];
+        particleData.alphaInterpolation = interpolations.get(particleData.alphaIndex);
         particleData.alphaInterval -= particleData.alphaDuration;
     }
 
@@ -111,8 +118,8 @@ public class AlphaInfluencer implements ParticleInfluencer {
 
         particleData.alphaInterval = 0f;
         particleData.alphaDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) alphas.size() - 1);
-        particleData.alpha = alphas.getArray()[particleData.alphaIndex];
-        particleData.alphaInterpolation = interpolations.getArray()[particleData.alphaIndex];
+        particleData.alpha = alphas.get(particleData.alphaIndex);
+        particleData.alphaInterpolation = interpolations.get(particleData.alphaIndex);
     }
 
     @Override
@@ -132,32 +139,79 @@ public class AlphaInfluencer implements ParticleInfluencer {
      * Adds a alpha step value to the chain of values used throughout the particles life span
      */
     public void addAlpha(final float alpha, @NotNull final Interpolation interpolation) {
-        this.alphas.add(alpha);
-        this.interpolations.add(interpolation);
+        alphas.add(alpha);
+        interpolations.add(interpolation);
     }
 
     /**
      * Returns an array containing all alpha step values
      */
     @NotNull
-    public Float[] getAlphas() {
-        return alphas.getArray();
+    public Array<Float> getAlphas() {
+        return alphas;
+    }
+
+    /**
+     * @param index the index.
+     * @return the alpha for the index.
+     */
+    @NotNull
+    public Float getAlpha(final int index) {
+        return alphas.get(index);
     }
 
     /**
      * Returns an array containing all interpolation step values
      */
     @NotNull
-    public Interpolation[] getInterpolations() {
-        return interpolations.getArray();
+    public Array<Interpolation> getInterpolations() {
+        return interpolations;
+    }
+
+    /**
+     * @param index the index.
+     * @return the interpolation for the index.
+     */
+    @NotNull
+    public Interpolation getInterpolation(final int index) {
+        return interpolations.get(index);
+    }
+
+    /**
+     * Change an alpha for the index.
+     *
+     * @param alpha the new alpha.
+     * @param index the index.
+     */
+    public void updateAlpha(final @NotNull Float alpha, final int index) {
+        alphas.set(index, alpha);
+    }
+
+    /**
+     * Remove last an alpha and interpolation.
+     */
+    public void removeLast() {
+        if (alphas.isEmpty()) return;
+        interpolations.fastRemove(interpolations.size() - 1);
+        alphas.fastRemove(alphas.size() - 1);
+    }
+
+    /**
+     * Change a interpolation for the index.
+     *
+     * @param interpolation the new interpolation.
+     * @param index         the index.
+     */
+    public void updateInterpolation(final @NotNull Interpolation interpolation, final int index) {
+        interpolations.set(index, interpolation);
     }
 
     /**
      * Removes the alpha step value at the given index
      */
     public void removeAlpha(final int index) {
-        alphas.remove(index);
-        interpolations.remove(index);
+        alphas.slowRemove(index);
+        interpolations.slowRemove(index);
     }
 
     /**
@@ -169,52 +223,48 @@ public class AlphaInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void write(JmeExporter ex) throws IOException {
-        OutputCapsule oc = ex.getCapsule(this);
-        Map<String, Vector2f> as = new HashMap<String, Vector2f>();
-        int index = 0;
-        for (Float alpha : alphas.getArray()) {
-            as.put(String.valueOf(alpha) + ":" + String.valueOf(index), null);
-            index++;
-        }
-        oc.writeStringSavableMap(as, "alphas", null);
-        Map<String, Vector2f> interps = new HashMap<String, Vector2f>();
-        index = 0;
-        for (Interpolation in : interpolations.getArray()) {
-            interps.put(in.getName() + ":" + String.valueOf(index), null);
-            index++;
-        }
-        oc.writeStringSavableMap(interps, "interpolations", null);
-        oc.write(enabled, "enabled", true);
-        oc.write(randomStartAlpha, "randomStartAlpha", false);
-        oc.write(cycle, "cycle", false);
-        oc.write(fixedDuration, "fixedDuration", 0.125f);
+    public void write(@NotNull final JmeExporter exporter) throws IOException {
+
+        final int[] interpolationIds = interpolations.stream()
+                .mapToInt(InterpolationManager::getId).toArray();
+
+        final double[] alphasToSave = alphas.stream().
+                mapToDouble(value -> value).toArray();
+
+        final OutputCapsule capsule = exporter.getCapsule(this);
+        capsule.write(alphasToSave, "alphas", null);
+        capsule.write(interpolationIds, "interpolations", null);
+        capsule.write(enabled, "enabled", true);
+        capsule.write(randomStartAlpha, "randomStartAlpha", false);
+        capsule.write(cycle, "cycle", false);
+        capsule.write(fixedDuration, "fixedDuration", 0.125f);
     }
 
     @Override
-    public void read(JmeImporter im) throws IOException {
-        InputCapsule ic = im.getCapsule(this);
-        Map<String, Vector2f> as = (Map<String, Vector2f>) ic.readStringSavableMap("alphas", null);
-        for (String in : as.keySet()) {
-            String val = in.substring(0, in.indexOf(":"));
-            alphas.add(Float.valueOf(val));
-        }
-        Map<String, Vector2f> interps = (Map<String, Vector2f>) ic.readStringSavableMap("interpolations", null);
-        for (String in : interps.keySet()) {
-            String name = in.substring(0, in.indexOf(":"));
-            interpolations.add(InterpolationManager.getInterpolation(name));
-        }
-        enabled = ic.readBoolean("enabled", true);
-        randomStartAlpha = ic.readBoolean("randomStartAlpha", false);
-        cycle = ic.readBoolean("cycle", false);
-        fixedDuration = ic.readFloat("fixedDuration", 0.125f);
+    public void read(@NotNull final JmeImporter importer) throws IOException {
+
+        final InputCapsule capsule = importer.getCapsule(this);
+
+        final double[] loadedAlphas = capsule.readDoubleArray("alphas", null);
+
+        ArrayUtils.forEach(loadedAlphas, alphas, (element, toStore) -> toStore.add((float) element));
+
+        final int[] loadedInterpolations = capsule.readIntArray("interpolations", null);
+
+        ArrayUtils.forEach(loadedInterpolations, interpolations,
+                (id, toStore) -> toStore.add(InterpolationManager.getInterpolation(id)));
+
+        enabled = capsule.readBoolean("enabled", true);
+        randomStartAlpha = capsule.readBoolean("randomStartAlpha", false);
+        cycle = capsule.readBoolean("cycle", false);
+        fixedDuration = capsule.readFloat("fixedDuration", 0.125f);
     }
 
     @NotNull
     @Override
     public ParticleInfluencer clone() {
         try {
-            AlphaInfluencer clone = (AlphaInfluencer) super.clone();
+            final AlphaInfluencer clone = (AlphaInfluencer) super.clone();
             clone.alphas.addAll(alphas);
             clone.interpolations.addAll(interpolations);
             clone.enabled = enabled;
@@ -222,7 +272,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
             clone.cycle = cycle;
             clone.fixedDuration = fixedDuration;
             return clone;
-        } catch (CloneNotSupportedException e) {
+        } catch (final CloneNotSupportedException e) {
             throw new AssertionError();
         }
     }
