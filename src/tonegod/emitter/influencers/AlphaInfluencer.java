@@ -38,8 +38,16 @@ public class AlphaInfluencer implements ParticleInfluencer {
      */
     private final UnsafeArray<Float> alphas;
 
+    /**
+     * The start alhpa.
+     */
     private float startAlpha;
+
+    /**
+     * The end alpha.
+     */
     private float endAlpha;
+
     private float blend;
     private float fixedDuration;
 
@@ -183,7 +191,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
      * @param alpha the new alpha.
      * @param index the index.
      */
-    public void updateAlpha(final @NotNull Float alpha, final int index) {
+    public void updateAlpha(@NotNull final Float alpha, final int index) {
         alphas.set(index, alpha);
     }
 

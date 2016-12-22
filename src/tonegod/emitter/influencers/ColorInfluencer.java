@@ -39,6 +39,9 @@ public final class ColorInfluencer implements ParticleInfluencer {
      */
     private final UnsafeArray<ColorRGBA> colors;
 
+    /**
+     * The reset color.
+     */
     private final transient ColorRGBA resetColor;
 
     /**
@@ -136,7 +139,7 @@ public final class ColorInfluencer implements ParticleInfluencer {
         }
 
         particleData.colorInterval = 0F;
-        particleData.colorDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) colors.size() - 1);
+        particleData.colorDuration = cycle ? fixedDuration : particleData.startlife / ((float) colors.size() - 1);
         particleData.color.set(colors.get(particleData.colorIndex));
         particleData.colorInterpolation = interpolations.get(particleData.colorIndex);
     }
@@ -148,28 +151,53 @@ public final class ColorInfluencer implements ParticleInfluencer {
         particleData.colorInterval = 0;
     }
 
+    /**
+     * @param randomStartColor true for enabling random color.
+     */
     public void setRandomStartColor(final boolean randomStartColor) {
         this.randomStartColor = randomStartColor;
     }
 
+    /**
+     * @return true if random start color is enabled.
+     */
     public boolean isRandomStartColor() {
         return randomStartColor;
     }
 
+    /**
+     * Add a new color with Linear {@link Interpolation}.
+     *
+     * @param color the new color.
+     */
     public void addColor(@NotNull final ColorRGBA color) {
         addColor(color, Interpolation.LINEAR);
     }
 
+    /**
+     * Add new color.
+     *
+     * @param color         the color.
+     * @param interpolation the interpolation.
+     */
     public void addColor(@NotNull final ColorRGBA color, final @NotNull Interpolation interpolation) {
         colors.add(color.clone());
         interpolations.add(interpolation);
     }
 
+    /**
+     * Remove a color and interpolation for the index.
+     *
+     * @param index the index.
+     */
     public void removeColor(final int index) {
         colors.slowRemove(index);
         interpolations.slowRemove(index);
     }
 
+    /**
+     * Remove all colors with interpolations.
+     */
     public void removeAll() {
         this.colors.clear();
         this.interpolations.clear();
