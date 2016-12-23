@@ -4,45 +4,67 @@ import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
+import com.jme3.export.Savable;
 import com.jme3.math.FastMath;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.util.SafeArrayList;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
+import rlib.util.ArrayUtils;
+import rlib.util.array.Array;
+import rlib.util.array.ArrayFactory;
+import rlib.util.array.UnsafeArray;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.interpolation.InterpolationManager;
 import tonegod.emitter.particle.ParticleData;
 
 /**
  * @author t0neg0d
+ * @edit JavaSaBr
  */
 public class RotationInfluencer implements ParticleInfluencer {
-    private SafeArrayList<Vector3f> speeds = new SafeArrayList(Vector3f.class);
-    private SafeArrayList<Interpolation> interpolations = new SafeArrayList(Interpolation.class);
-    private boolean initialized = false;
-    private boolean enabled = true;
-    private boolean cycle = false;
 
-    private Vector3f speedFactor = Vector3f.ZERO.clone();
-    private boolean useRandomDirection = true;
-    private boolean useRandomSpeed = true;
-    private boolean direction = true;
+    /**
+     * The list of speeds.
+     */
+    private final UnsafeArray<Vector3f> speeds;
 
-    private boolean useRandomStartRotationX = false;
-    private boolean useRandomStartRotationY = false;
-    private boolean useRandomStartRotationZ = false;
+    /**
+     * The list of interpolations.
+     */
+    private final UnsafeArray<Interpolation> interpolations;
+
+    /**
+     * The speed factor.
+     */
+    private final Vector3f speedFactor;
+
     private float blend;
-    private float fixedDuration = 0f;
+    private float fixedDuration;
 
-    private Vector3f startRotation = new Vector3f();
-    private Vector3f endRotation = new Vector3f();
+    private boolean randomDirection;
+    private boolean randomSpeed;
+    private boolean direction;
+    private boolean initialized;
+    private boolean enabled;
+    private boolean cycle;
+
+    private boolean randomStartRotationX;
+    private boolean randomStartRotationY;
+    private boolean randomStartRotationZ;
+
+    public RotationInfluencer() {
+        this.speeds = ArrayFactory.newUnsafeArray(Vector3f.class);
+        this.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
+        this.speedFactor = Vector3f.ZERO.clone();
+        this.fixedDuration = 0f;
+        this.randomDirection = true;
+        this.randomSpeed = true;
+        this.direction = true;
+        this.enabled = true;
+    }
 
     @NotNull
     @Override
@@ -51,103 +73,117 @@ public class RotationInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull ParticleData particleData, float tpf) {
-        if (enabled) {
-            if (speeds.size() > 1) {
-                particleData.rotationInterval += tpf;
-                if (particleData.rotationInterval >= particleData.rotationDuration)
-                    updateRotation(particleData);
+    public void update(@NotNull final ParticleData particleData, final float tpf) {
+        if (!enabled) return;
 
-                blend = particleData.rotationInterpolation.apply(particleData.rotationInterval / particleData.rotationDuration);
+        if (speeds.size() > 1) {
 
-                particleData.rotationSpeed.interpolateLocal(particleData.startRotationSpeed, particleData.endRotationSpeed, blend);
+            particleData.rotationInterval += tpf;
+
+            if (particleData.rotationInterval >= particleData.rotationDuration) {
+                updateRotation(particleData);
             }
-            particleData.angles.addLocal(particleData.rotationSpeed.mult(tpf));
+
+            blend = particleData.rotationInterpolation.apply(particleData.rotationInterval / particleData.rotationDuration);
+
+            particleData.rotationSpeed.interpolateLocal(particleData.startRotationSpeed, particleData.endRotationSpeed, blend);
         }
+
+        particleData.angles.addLocal(particleData.rotationSpeed.mult(tpf));
     }
 
-    private void updateRotation(ParticleData p) {
-        p.rotationIndex++;
+    private void updateRotation(@NotNull final ParticleData particleData) {
+        particleData.rotationIndex++;
+
         if (!cycle) {
-            if (p.rotationIndex == speeds.size() - 1)
-                p.rotationIndex = 0;
+            if (particleData.rotationIndex == speeds.size() - 1) {
+                particleData.rotationIndex = 0;
+            }
         } else {
-            if (p.rotationIndex == speeds.size())
-                p.rotationIndex = 0;
+            if (particleData.rotationIndex == speeds.size()) {
+                particleData.rotationIndex = 0;
+            }
         }
 
-        getRotationSpeed(p, p.rotationIndex, p.startRotationSpeed);
+        getRotationSpeed(particleData, particleData.rotationIndex, particleData.startRotationSpeed);
 
-        int index = p.rotationIndex + 1;
-        if (index == speeds.size())
+        int index = particleData.rotationIndex + 1;
+
+        if (index == speeds.size()) {
             index = 0;
+        }
 
-        getRotationSpeed(p, index, p.endRotationSpeed);
+        getRotationSpeed(particleData, index, particleData.endRotationSpeed);
 
-        p.rotationInterpolation = interpolations.getArray()[p.rotationIndex];
-        p.rotationInterval -= p.rotationDuration;
+        particleData.rotationInterpolation = interpolations.get(particleData.rotationIndex);
+        particleData.rotationInterval -= particleData.rotationDuration;
     }
 
     @Override
-    public void initialize(@NotNull ParticleData particleData) {
+    public void initialize(@NotNull final ParticleData particleData) {
+
         if (!initialized) {
             if (speeds.isEmpty()) {
                 addRotationSpeed(new Vector3f(0, 0, 10));
             }
             initialized = true;
         }
+
         particleData.rotationIndex = 0;
         particleData.rotationInterval = 0f;
         particleData.rotationDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) speeds.size() - 1);
 
-        if (useRandomDirection) {
+        if (randomDirection) {
             particleData.rotateDirectionX = FastMath.rand.nextBoolean();
             particleData.rotateDirectionY = FastMath.rand.nextBoolean();
             particleData.rotateDirectionZ = FastMath.rand.nextBoolean();
         }
 
         getRotationSpeed(particleData, particleData.rotationIndex, particleData.startRotationSpeed);
+
         particleData.rotationSpeed.set(particleData.startRotationSpeed);
+
         if (speeds.size() > 1) {
             getRotationSpeed(particleData, particleData.rotationIndex + 1, particleData.endRotationSpeed);
         }
 
-        particleData.rotationInterpolation = interpolations.getArray()[particleData.rotationIndex];
+        particleData.rotationInterpolation = interpolations.get(particleData.rotationIndex);
 
-        if (useRandomStartRotationX || useRandomStartRotationY || useRandomStartRotationZ) {
+        if (randomStartRotationX || randomStartRotationY || randomStartRotationZ) {
             particleData.angles.set(
-                    useRandomStartRotationX ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0,
-                    useRandomStartRotationY ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0,
-                    useRandomStartRotationZ ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0
+                    randomStartRotationX ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0,
+                    randomStartRotationY ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0,
+                    randomStartRotationZ ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0
             );
         } else {
             particleData.angles.set(0, 0, 0);
         }
     }
 
-    private void getRotationSpeed(ParticleData p, int index, Vector3f store) {
-        store.set(speeds.getArray()[index]);
-        if (useRandomSpeed) {
+    private void getRotationSpeed(@NotNull final ParticleData particleData, final int index, final Vector3f store) {
+        store.set(speeds.get(index));
+
+        if (randomSpeed) {
             store.set(
                     FastMath.nextRandomFloat() * store.x,
                     FastMath.nextRandomFloat() * store.y,
                     FastMath.nextRandomFloat() * store.z
             );
         }
-        if (useRandomDirection) {
-            store.x = p.rotateDirectionX ? store.x : -store.x;
-            store.y = p.rotateDirectionY ? store.y : -store.y;
-            store.z = p.rotateDirectionZ ? store.z : -store.z;
+        if (randomDirection) {
+            store.x = particleData.rotateDirectionX ? store.x : -store.x;
+            store.y = particleData.rotateDirectionY ? store.y : -store.y;
+            store.z = particleData.rotateDirectionZ ? store.z : -store.z;
         }
     }
 
     @Override
-    public void reset(@NotNull ParticleData particleData) {
+    public void reset(@NotNull final ParticleData particleData) {
         particleData.angles.set(0, 0, 0);
     }
 
     @Override
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -156,41 +192,113 @@ public class RotationInfluencer implements ParticleInfluencer {
         return enabled;
     }
 
-    public void addRotationSpeed(Vector3f speeds) {
-        addRotationSpeed(speeds, Interpolation.LINEAR);
+    /**
+     * Add rotation speed.
+     *
+     * @param speed the new rotation speed.
+     */
+    public void addRotationSpeed(@NotNull final Vector3f speed) {
+        addRotationSpeed(speed, Interpolation.LINEAR);
     }
 
-    public void addRotationSpeed(Vector3f speed, Interpolation interpolation) {
-        this.speeds.add(speed.clone());
-        this.interpolations.add(interpolation);
+    /**
+     * Add rotation speed.
+     *
+     * @param speed         the new rotation speed.
+     * @param interpolation the interpolation.
+     */
+    public void addRotationSpeed(@NotNull final Vector3f speed, @NotNull final Interpolation interpolation) {
+        speeds.add(speed.clone());
+        interpolations.add(interpolation);
     }
 
-    public void removeRotation(int index) {
-        this.speeds.remove(index);
-        this.interpolations.remove(index);
+    /**
+     * Remove rotation speed and interpolation for the index.
+     *
+     * @param index the index.
+     */
+    public void removeRotationSpeed(final int index) {
+        speeds.slowRemove(index);
+        interpolations.slowRemove(index);
     }
 
+    /**
+     * Remove all rotation speeds.
+     */
     public void removeAll() {
         this.speeds.clear();
         this.interpolations.clear();
     }
 
-    public Vector3f[] getRotations() {
-        return this.speeds.getArray();
+    /**
+     * @return the list of rotations.
+     */
+    public Array<Vector3f> getRotationSpeeds() {
+        return speeds;
     }
 
-    public Interpolation[] getInterpolations() {
-        return this.interpolations.getArray();
+    /**
+     * @param index the index.
+     * @return the rotation speed for the index.
+     */
+    @NotNull
+    public Vector3f getRotationSpeed(final int index) {
+        return speeds.get(index);
+    }
+
+    /**
+     * @return the list of interpolations.
+     */
+    public Array<Interpolation> getInterpolations() {
+        return interpolations;
+    }
+
+    /**
+     * @param index the index.
+     * @return the interpolation for the index.
+     */
+    @NotNull
+    public Interpolation getInterpolation(final int index) {
+        return interpolations.get(index);
+    }
+
+    /**
+     * Change a rotation speed for the index.
+     *
+     * @param rotationSpeed the new rotation speed.
+     * @param index         the index.
+     */
+    public void updateRotationSpeed(final @NotNull Vector3f rotationSpeed, final int index) {
+        speeds.set(index, rotationSpeed);
+    }
+
+    /**
+     * Change a interpolation for the index.
+     *
+     * @param interpolation the new interpolation.
+     * @param index         the index.
+     */
+    public void updateInterpolation(final @NotNull Interpolation interpolation, final int index) {
+        interpolations.set(index, interpolation);
+    }
+
+    /**
+     * Remove last a rotation speed and interpolation.
+     */
+    public void removeLast() {
+        if (speeds.isEmpty()) return;
+        interpolations.fastRemove(interpolations.size() - 1);
+        speeds.fastRemove(speeds.size() - 1);
     }
 
     /**
      * Allows the influencer to choose a random rotation direction per axis as the particle is
      * emitted.
      *
-     * @param useRandomDirection boolean
+     * @param randomDirection boolean
      */
-    public void setUseRandomDirection(boolean useRandomDirection) {
-        this.useRandomDirection = useRandomDirection;
+    public void setRandomDirection(final boolean randomDirection) {
+        this.randomDirection = randomDirection;
     }
 
     /**
@@ -199,18 +307,18 @@ public class RotationInfluencer implements ParticleInfluencer {
      *
      * @return boolean
      */
-    public boolean getUseRandomDirection() {
-        return this.useRandomDirection;
+    public boolean isRandomDirection() {
+        return randomDirection;
     }
 
     /**
      * Allows the influencer to select a random rotation speed from 0 to the provided maximum speeds
      * per axis
      *
-     * @param useRandomSpeed boolean
+     * @param randomSpeed boolean
      */
-    public void setUseRandomSpeed(boolean useRandomSpeed) {
-        this.useRandomSpeed = useRandomSpeed;
+    public void setRandomSpeed(final boolean randomSpeed) {
+        this.randomSpeed = randomSpeed;
     }
 
     /**
@@ -218,26 +326,38 @@ public class RotationInfluencer implements ParticleInfluencer {
      *
      * @return boolean
      */
-    public boolean getUseRandomSpeed() {
-        return this.useRandomSpeed;
+    public boolean isRandomSpeed() {
+        return randomSpeed;
     }
 
-    public void setUseRandomStartRotation(boolean xRotation, boolean yRotation, boolean zRotation) {
-        useRandomStartRotationX = xRotation;
-        useRandomStartRotationY = yRotation;
-        useRandomStartRotationZ = zRotation;
+    public void setRandomStartRotation(final boolean xRotation, final boolean yRotation, final boolean zRotation) {
+        randomStartRotationX = xRotation;
+        randomStartRotationY = yRotation;
+        randomStartRotationZ = zRotation;
     }
 
-    public boolean getUseRandomStartRotationX() {
-        return this.useRandomStartRotationX;
+    public void setRandomStartRotationX(final boolean randomStartRotationX) {
+        this.randomStartRotationX = randomStartRotationX;
     }
 
-    public boolean getUseRandomStartRotationY() {
-        return this.useRandomStartRotationY;
+    public void setRandomStartRotationY(final boolean randomStartRotationY) {
+        this.randomStartRotationY = randomStartRotationY;
     }
 
-    public boolean getUseRandomStartRotationZ() {
-        return this.useRandomStartRotationZ;
+    public void setRandomStartRotationZ(final boolean randomStartRotationZ) {
+        this.randomStartRotationZ = randomStartRotationZ;
+    }
+
+    public boolean isRandomStartRotationX() {
+        return randomStartRotationX;
+    }
+
+    public boolean isRandomStartRotationY() {
+        return randomStartRotationY;
+    }
+
+    public boolean isRandomStartRotationZ() {
+        return randomStartRotationZ;
     }
 
     /**
@@ -245,57 +365,59 @@ public class RotationInfluencer implements ParticleInfluencer {
      *
      * @param direction boolean
      */
-    public void setDirection(boolean direction) {
+    public void setDirection(final boolean direction) {
         this.direction = direction;
     }
 
     /**
      * Returns if the rotation direction will always remain constant per particle
      */
-    public boolean getDirection() {
-        return this.direction;
+    public boolean isDirection() {
+        return direction;
     }
 
     @Override
-    public void write(JmeExporter ex) throws IOException {
-        OutputCapsule oc = ex.getCapsule(this);
-        oc.writeSavableArrayList(new ArrayList(speeds), "speeds", null);
-        Map<String, Vector2f> interps = new HashMap<String, Vector2f>();
-        int index = 0;
-        for (Interpolation in : interpolations.getArray()) {
-            interps.put(in.getName() + ":" + String.valueOf(index), null);
-            index++;
-        }
-        oc.writeStringSavableMap(interps, "interpolations", null);
-        oc.write(speedFactor, "speedFactor", Vector3f.ZERO);
-        oc.write(useRandomDirection, "useRandomDirection", true);
-        oc.write(useRandomSpeed, "useRandomSpeed", true);
-        oc.write(direction, "direction", true);
-        oc.write(useRandomStartRotationX, "useRandomStartRotationX", false);
-        oc.write(useRandomStartRotationY, "useRandomStartRotationY", false);
-        oc.write(useRandomStartRotationZ, "useRandomStartRotationZ", false);
-        oc.write(fixedDuration, "fixedDuration", 0f);
-        oc.write(enabled, "enabled", true);
+    public void write(@NotNull final JmeExporter exporter) throws IOException {
+
+        final int[] interpolationIds = interpolations.stream()
+                .mapToInt(InterpolationManager::getId).toArray();
+
+        final OutputCapsule capsule = exporter.getCapsule(this);
+        capsule.write(speeds.toArray(new Vector3f[speeds.size()]), "speeds", null);
+        capsule.write(interpolationIds, "interpolations", null);
+        capsule.write(speedFactor, "speedFactor", Vector3f.ZERO);
+        capsule.write(randomDirection, "randomDirection", true);
+        capsule.write(randomSpeed, "randomSpeed", true);
+        capsule.write(direction, "direction", true);
+        capsule.write(randomStartRotationX, "randomStartRotationX", false);
+        capsule.write(randomStartRotationY, "randomStartRotationY", false);
+        capsule.write(randomStartRotationZ, "randomStartRotationZ", false);
+        capsule.write(fixedDuration, "fixedDuration", 0f);
+        capsule.write(enabled, "enabled", true);
     }
 
     @Override
-    public void read(JmeImporter im) throws IOException {
-        InputCapsule ic = im.getCapsule(this);
-        speeds = new SafeArrayList<Vector3f>(Vector3f.class, ic.readSavableArrayList("speeds", null));
-        Map<String, Vector2f> interps = (Map<String, Vector2f>) ic.readStringSavableMap("interpolations", null);
-        for (String in : interps.keySet()) {
-            String name = in.substring(0, in.indexOf(":"));
-            interpolations.add(InterpolationManager.getInterpolation(name));
-        }
-        speedFactor = (Vector3f) ic.readSavable("speedFactor", Vector3f.ZERO.clone());
-        useRandomDirection = ic.readBoolean("useRandomDirection", true);
-        useRandomSpeed = ic.readBoolean("useRandomSpeed", true);
-        direction = ic.readBoolean("direction", true);
-        useRandomStartRotationX = ic.readBoolean("useRandomStartRotationX", false);
-        useRandomStartRotationY = ic.readBoolean("useRandomStartRotationY", false);
-        useRandomStartRotationZ = ic.readBoolean("useRandomStartRotationZ", false);
-        fixedDuration = ic.readFloat("fixedDuration", 0f);
-        enabled = ic.readBoolean("enabled", true);
+    public void read(@NotNull final JmeImporter importer) throws IOException {
+
+        final InputCapsule capsule = importer.getCapsule(this);
+        final Savable[] loadedSpeeds = capsule.readSavableArray("speeds", null);
+
+        ArrayUtils.forEach(loadedSpeeds, speeds, (savable, toStore) -> toStore.add((Vector3f) savable));
+
+        final int[] loadedInterpolations = capsule.readIntArray("interpolations", null);
+
+        ArrayUtils.forEach(loadedInterpolations, interpolations,
+                (id, toStore) -> toStore.add(InterpolationManager.getInterpolation(id)));
+
+        speedFactor.set((Vector3f) capsule.readSavable("speedFactor", Vector3f.ZERO.clone()));
+        randomDirection = capsule.readBoolean("randomDirection", true);
+        randomSpeed = capsule.readBoolean("randomSpeed", true);
+        direction = capsule.readBoolean("direction", true);
+        randomStartRotationX = capsule.readBoolean("randomStartRotationX", false);
+        randomStartRotationY = capsule.readBoolean("randomStartRotationY", false);
+        randomStartRotationZ = capsule.readBoolean("randomStartRotationZ", false);
+        fixedDuration = capsule.readFloat("fixedDuration", 0f);
+        enabled = capsule.readBoolean("enabled", true);
     }
 
     @NotNull
@@ -304,9 +426,9 @@ public class RotationInfluencer implements ParticleInfluencer {
         try {
             RotationInfluencer clone = (RotationInfluencer) super.clone();
             clone.setDirection(direction);
-            clone.setUseRandomDirection(useRandomDirection);
-            clone.setUseRandomSpeed(useRandomSpeed);
-            clone.setUseRandomStartRotation(useRandomStartRotationX, useRandomStartRotationY, useRandomStartRotationZ);
+            clone.setRandomDirection(randomDirection);
+            clone.setRandomSpeed(randomSpeed);
+            clone.setRandomStartRotation(randomStartRotationX, randomStartRotationY, randomStartRotationZ);
             clone.setEnabled(enabled);
             return clone;
         } catch (CloneNotSupportedException e) {

@@ -322,7 +322,7 @@ public class ParticleDataImpostorMesh extends ParticleDataMesh {
 				case CAMERA:
 					up.set(cam.getUp());
 					left.set(cam.getLeft());
-					dir.set(cam.getDirection());
+					dir.set(cam.isDirection());
 					break;
 				case UNIT_X:
 					up.set(Vector3f.UNIT_Y);
