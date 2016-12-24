@@ -32,13 +32,19 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     public enum CollisionReaction {
         BOUNCE,
         STICK,
-        DESTROY
+        DESTROY;
+
+        private static final CollisionReaction[] VALUES = values();
+
+        public static CollisionReaction valueOf(final int index) {
+            return VALUES[index];
+        }
     }
 
-    private final GeometryList geoms;
-    private final GeometryList tempGeoms;
+    private final GeometryList geometries;
+    private final GeometryList tempGeometries;
 
-    private final Quad q;
+    private final Quad quad;
     private final Geometry geom;
     private final Quaternion quat;
 
@@ -61,9 +67,9 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     private boolean enabled;
 
     public PhysicsInfluencer() {
-        this.geoms = new GeometryList(new OpaqueComparator());
-        this.tempGeoms = new GeometryList(new OpaqueComparator());
-        this.q = new Quad(1, 1);
+        this.geometries = new GeometryList(new OpaqueComparator());
+        this.tempGeometries = new GeometryList(new OpaqueComparator());
+        this.quad = new Quad(1, 1);
         this.geom = new Geometry();
         this.quat = new Quaternion();
         this.results = new CollisionResults();
@@ -74,8 +80,8 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         this.collisionThreshold = 0.1f;
         this.restitution = 0.5f;
         this.enabled = true;
-        geom.setMesh(q);
-        q.updateBound();
+        geom.setMesh(quad);
+        quad.updateBound();
         geom.updateModelBound();
     }
 
@@ -88,39 +94,8 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     @Override
     public void update(@NotNull final ParticleData particleData, final float tpf) {
         if (!enabled) return;
-
         if (!particleData.collision) {
-            for (int i = 0; i < geoms.size(); i++) {
-                final Geometry geometry = geoms.get(i);
-                try {
-                    if (results.size() != 0) results.clear();
-                    updateCollisionShape(particleData, tpf);
-                    geometry.collideWith(geom.getWorldBound(), results);
-                    if (results.size() > 0) {
-                        result = results.getClosestCollision();
-                        switch (collisionReaction) {
-                            case BOUNCE:
-                                contactSurface = result.getTriangle(null);
-                                contactSurface.calculateNormal();
-                                normal.set(contactSurface.getNormal());
-                                twoDot = 2.0f * particleData.velocity.dot(normal);
-                                two.set(twoDot, twoDot, twoDot);
-                                reflect.set(two.mult(normal).subtract(particleData.velocity)).negateLocal().normalizeLocal();
-                                len = particleData.velocity.length() * (restitution - 0.1f) + (FastMath.nextRandomFloat() * 0.2f);
-                                particleData.velocity.set(reflect).multLocal(len);
-                                particleData.collision = true;
-                                break;
-                            case STICK:
-                                particleData.velocity.set(0, 0, 0);
-                                break;
-                            case DESTROY:
-                                particleData.emitterNode.killParticle(particleData);
-                                break;
-                        }
-                    }
-                } catch (final Exception ex) {
-                }
-            }
+            findCollisions(particleData, tpf);
         } else {
             particleData.collisionInterval += tpf;
             if (particleData.collisionInterval >= collisionThreshold) {
@@ -130,11 +105,47 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         }
     }
 
-    private void updateCollisionShape(@NotNull final ParticleData particleData, final float tpf) {
+    private void findCollisions(final @NotNull ParticleData particleData, final float tpf) {
+        for (int i = 0; i < geometries.size(); i++) {
+            final Geometry geometry = geometries.get(i);
+            try {
 
+                if (results.size() != 0) results.clear();
+
+                updateCollisionShape(particleData, tpf);
+                geometry.collideWith(geom.getWorldBound(), results);
+
+                if (results.size() > 0) {
+                    result = results.getClosestCollision();
+                    switch (collisionReaction) {
+                        case BOUNCE:
+                            contactSurface = result.getTriangle(null);
+                            contactSurface.calculateNormal();
+                            normal.set(contactSurface.getNormal());
+                            twoDot = 2.0f * particleData.velocity.dot(normal);
+                            two.set(twoDot, twoDot, twoDot);
+                            reflect.set(two.mult(normal).subtract(particleData.velocity)).negateLocal().normalizeLocal();
+                            len = particleData.velocity.length() * (restitution - 0.1f) + (FastMath.nextRandomFloat() * 0.2f);
+                            particleData.velocity.set(reflect).multLocal(len);
+                            particleData.collision = true;
+                            break;
+                        case STICK:
+                            particleData.velocity.set(0, 0, 0);
+                            break;
+                        case DESTROY:
+                            particleData.emitterNode.killParticle(particleData);
+                            break;
+                    }
+                }
+            } catch (final Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void updateCollisionShape(@NotNull final ParticleData particleData, final float tpf) {
         final Vector3f angles = particleData.angles;
         quat.fromAngles(angles.x, angles.y, angles.z);
-
         geom.setLocalTranslation(particleData.position.add(particleData.emitterNode.getLocalTranslation()));
         geom.setLocalRotation(quat);
         geom.setLocalScale(particleData.size);
@@ -144,29 +155,48 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     }
 
     public void addCollidable(@NotNull final Geometry geometry) {
-        for (int i = 0; i < geoms.size(); i++) {
-            if (geoms.get(i) == geometry) return;
+
+        for (int i = 0; i < geometries.size(); i++) {
+            if (geometries.get(i) == geometry) {
+                throw new RuntimeException("The geometry " + geometry + " is already exists.");
+            }
         }
-        geoms.add(geometry);
+
+        geometries.add(geometry);
     }
 
-    public void removeCollidable(final Geometry geometry) {
+    public void removeCollidable(@NotNull final Geometry geometry) {
         boolean wasEnabled = enabled;
-        this.enabled = false;
-        tempGeoms.clear();
-        for (int i = 0; i < geoms.size(); i++) {
-            if (geoms.get(i) != geometry)
-                tempGeoms.add(geoms.get(i));
+        setEnabled(false);
+        try {
+
+            tempGeometries.clear();
+
+            for (int i = 0; i < geometries.size(); i++) {
+                if (geometries.get(i) != geometry) {
+                    tempGeometries.add(geometries.get(i));
+                }
+            }
+
+            geometries.clear();
+
+            for (int i = 0; i < tempGeometries.size(); i++) {
+                geometries.add(tempGeometries.get(i));
+            }
+
+        } finally {
+            setEnabled(wasEnabled);
         }
-        geoms.clear();
-        for (int i = 0; i < tempGeoms.size(); i++) {
-            geoms.add(tempGeoms.get(i));
-        }
-        this.enabled = wasEnabled;
     }
 
+    /**
+     * The collidable geometry list.
+     *
+     * @return the list of collidable geometries.
+     */
+    @NotNull
     public GeometryList getGeometries() {
-        return geoms;
+        return geometries;
     }
 
     /**
@@ -178,13 +208,15 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         this.restitution = restitution;
     }
 
+    /**
+     * @return the bounciness of the particle
+     */
     public float getRestitution() {
         return restitution;
     }
 
     @Override
     public void initialize(@NotNull final ParticleData particleData) {
-
     }
 
     @Override
@@ -200,26 +232,37 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         this.collisionReaction = collisionReaction;
     }
 
+    /**
+     * @return the collision reaction.
+     */
     public CollisionReaction getCollisionReaction() {
         return collisionReaction;
     }
 
-    @Override
-    public void write(JmeExporter ex) throws IOException {
-        OutputCapsule oc = ex.getCapsule(this);
-        oc.write(enabled, "enabled", true);
-        oc.write(collisionThreshold, "collisionThreshold", 0.1f);
-        oc.write(restitution, "restitution", 0.5f);
-        oc.write(collisionReaction.name(), "collisionReaction", CollisionReaction.BOUNCE.name());
+    public float getCollisionThreshold() {
+        return collisionThreshold;
+    }
+
+    public void setCollisionThreshold(final float collisionThreshold) {
+        this.collisionThreshold = collisionThreshold;
     }
 
     @Override
-    public void read(JmeImporter im) throws IOException {
-        InputCapsule ic = im.getCapsule(this);
-        enabled = ic.readBoolean("enabled", true);
-        collisionThreshold = ic.readFloat("collisionThreshold", 0.1f);
-        restitution = ic.readFloat("restitution", 0.5f);
-        collisionReaction = CollisionReaction.valueOf(ic.readString("collisionReaction", CollisionReaction.BOUNCE.name()));
+    public void write(@NotNull final JmeExporter exporter) throws IOException {
+        final OutputCapsule capsule = exporter.getCapsule(this);
+        capsule.write(enabled, "enabled", true);
+        capsule.write(collisionThreshold, "collisionThreshold", 0.1f);
+        capsule.write(restitution, "restitution", 0.5f);
+        capsule.write(collisionReaction.ordinal(), "collisionReaction", CollisionReaction.BOUNCE.ordinal());
+    }
+
+    @Override
+    public void read(@NotNull final JmeImporter importer) throws IOException {
+        final InputCapsule capsule = importer.getCapsule(this);
+        enabled = capsule.readBoolean("enabled", true);
+        collisionThreshold = capsule.readFloat("collisionThreshold", 0.1f);
+        restitution = capsule.readFloat("restitution", 0.5f);
+        collisionReaction = CollisionReaction.valueOf(capsule.readInt("collisionReaction", CollisionReaction.BOUNCE.ordinal()));
     }
 
     /**
@@ -232,11 +275,11 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     @Override
     public ParticleInfluencer clone() {
         try {
-            PhysicsInfluencer clone = (PhysicsInfluencer) super.clone();
+            final PhysicsInfluencer clone = (PhysicsInfluencer) super.clone();
             clone.setEnabled(enabled);
             clone.setCollisionReaction(collisionReaction);
             clone.setRestitution(restitution);
-            clone.collisionThreshold = collisionThreshold;
+            clone.setCollisionThreshold(collisionThreshold);
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
@@ -244,7 +287,7 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 

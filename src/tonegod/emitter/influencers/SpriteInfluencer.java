@@ -16,14 +16,26 @@ import tonegod.emitter.particle.ParticleData;
  * @author t0neg0d
  */
 public class SpriteInfluencer implements ParticleInfluencer {
-    private boolean enabled = true;
-    private boolean useRandomImage = false;
-    private boolean animate = true;
-    private int totalFrames = -1;
-    private float fixedDuration = 0f;
-    private boolean cycle = false;
+
     private transient float targetInterval;
-    private int[] frameSequence = null;
+
+    private int[] frameSequence;
+
+    private float fixedDuration;
+
+    private int totalFrames;
+
+    private boolean enabled;
+    private boolean randomImage;
+    private boolean animate;
+    private boolean cycle;
+
+    public SpriteInfluencer() {
+        this.fixedDuration = 0f;
+        this.totalFrames = -1;
+        this.animate = true;
+        this.enabled = true;
+    }
 
     @NotNull
     @Override
@@ -32,50 +44,60 @@ public class SpriteInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull ParticleData particleData, float tpf) {
-        if (enabled) {
-            if (animate) {
-                particleData.spriteInterval += tpf;
-                targetInterval = (cycle) ? fixedDuration : particleData.spriteDuration;
-                if (particleData.spriteInterval >= targetInterval) {
-                    updateFrame(particleData);
-                }
-            }
+    public void update(@NotNull final ParticleData particleData, final float tpf) {
+        if (!enabled || !animate) return;
+
+        particleData.spriteInterval += tpf;
+
+        targetInterval = (cycle) ? fixedDuration : particleData.spriteDuration;
+
+        if (particleData.spriteInterval >= targetInterval) {
+            updateFrame(particleData);
         }
     }
 
-    private void updateFrame(ParticleData p) {
+    private void updateFrame(@NotNull final ParticleData particleData) {
         if (frameSequence == null) {
-            p.spriteCol++;
-            if (p.spriteCol == p.emitterNode.getSpriteColCount()) {
-                p.spriteCol = 0;
-                p.spriteRow++;
-                if (p.spriteRow == p.emitterNode.getSpriteRowCount())
-                    p.spriteRow = 0;
+
+            particleData.spriteCol++;
+
+            if (particleData.spriteCol == particleData.emitterNode.getSpriteColCount()) {
+                particleData.spriteCol = 0;
+                particleData.spriteRow++;
+
+                if (particleData.spriteRow == particleData.emitterNode.getSpriteRowCount()) {
+                    particleData.spriteRow = 0;
+                }
             }
+
         } else {
-            p.spriteIndex++;
-            if (p.spriteIndex == frameSequence.length)
-                p.spriteIndex = 0;
-            p.spriteRow = (int) FastMath.floor(frameSequence[p.spriteIndex] / p.emitterNode.getSpriteRowCount()) - 2;
-            p.spriteCol = (int) frameSequence[p.spriteIndex] % p.emitterNode.getSpriteColCount();
+
+            particleData.spriteIndex++;
+
+            if (particleData.spriteIndex == frameSequence.length) {
+                particleData.spriteIndex = 0;
+            }
+
+            particleData.spriteRow = (int) FastMath.floor(frameSequence[particleData.spriteIndex] / particleData.emitterNode.getSpriteRowCount()) - 2;
+            particleData.spriteCol = (int) frameSequence[particleData.spriteIndex] % particleData.emitterNode.getSpriteColCount();
         }
-        p.spriteInterval -= targetInterval;
+
+        particleData.spriteInterval -= targetInterval;
     }
 
     @Override
-    public void initialize(@NotNull ParticleData particleData) {
+    public void initialize(@NotNull final ParticleData particleData) {
+
         if (totalFrames == -1) {
             totalFrames = particleData.emitterNode.getSpriteColCount() * particleData.emitterNode.getSpriteRowCount();
             if (totalFrames == 1) setAnimate(false);
         }
-        if (useRandomImage) {
+
+        if (randomImage) {
             if (frameSequence == null) {
                 particleData.spriteIndex = FastMath.nextRandomInt(0, totalFrames - 1);
                 particleData.spriteRow = (int) FastMath.floor(particleData.spriteIndex / particleData.emitterNode.getSpriteRowCount()) - 1;
                 particleData.spriteCol = (int) particleData.spriteIndex % particleData.emitterNode.getSpriteColCount();
-                //	p.spriteCol = FastMath.nextRandomInt(0,frameSequence.length-1);
-                //	p.spriteRow = FastMath.nextRandomInt(0,frameSequence.length-1);
             } else {
                 particleData.spriteIndex = FastMath.nextRandomInt(0, frameSequence.length - 1);
                 particleData.spriteRow = (int) FastMath.floor(frameSequence[particleData.spriteIndex] / particleData.emitterNode.getSpriteRowCount()) - 1;
@@ -92,19 +114,22 @@ public class SpriteInfluencer implements ParticleInfluencer {
                 particleData.spriteCol = 0;
             }
         }
-        if (animate) {
-            particleData.spriteInterval = 0;
-            if (!cycle) {
-                if (frameSequence == null)
-                    particleData.spriteDuration = particleData.startlife / (float) totalFrames;
-                else
-                    particleData.spriteDuration = particleData.startlife / (float) frameSequence.length;
-            }
+
+        if (!animate) return;
+
+        particleData.spriteInterval = 0;
+
+        if (cycle) return;
+
+        if (frameSequence == null) {
+            particleData.spriteDuration = particleData.startlife / (float) totalFrames;
+        } else {
+            particleData.spriteDuration = particleData.startlife / (float) frameSequence.length;
         }
     }
 
     @Override
-    public void reset(@NotNull ParticleData particleData) {
+    public void reset(@NotNull final ParticleData particleData) {
         particleData.spriteIndex = 0;
         particleData.spriteCol = 0;
         particleData.spriteRow = 0;
@@ -125,7 +150,7 @@ public class SpriteInfluencer implements ParticleInfluencer {
      *
      * @param animate boolean
      */
-    public void setAnimate(boolean animate) {
+    public void setAnimate(final boolean animate) {
         this.animate = animate;
     }
 
@@ -134,34 +159,32 @@ public class SpriteInfluencer implements ParticleInfluencer {
      *
      * @return Returns if particles use sprite animation
      */
-    public boolean getAnimate() {
-        return this.animate;
+    public boolean isAnimate() {
+        return animate;
     }
 
     /**
      * Sets if particles should select a random start image from the provided sprite texture
      *
-     * @param useRandomImage boolean
+     * @param randomImage boolean
      */
-    public void setUseRandomStartImage(boolean useRandomImage) {
-        this.useRandomImage = useRandomImage;
+    public void setRandomStartImage(final boolean randomImage) {
+        this.randomImage = randomImage;
     }
 
     /**
      * Returns if particles currently select a random start image from the provided sprite texture
-     *
-     * @param useRandomImage boolean
      */
-    public boolean getUseRandomStartImage() {
-        return this.useRandomImage;
+    public boolean isRandomStartImage() {
+        return randomImage;
     }
 
-    public void setFrameSequence(int... frame) {
+    public void setFrameSequence(final int... frame) {
         frameSequence = frame;
     }
 
     public int[] getFrameSequence() {
-        return this.frameSequence;
+        return frameSequence;
     }
 
     public void clearFrameSequence() {
@@ -188,42 +211,35 @@ public class SpriteInfluencer implements ParticleInfluencer {
      * Returns the current duration used between frames for cycled animation
      */
     public float getFixedDuration() {
-        return this.fixedDuration;
+        return fixedDuration;
     }
 
     @Override
-    public void write(JmeExporter ex) throws IOException {
-        /*
-        private boolean enabled = true;
-		private boolean useRandomImage = false;
-		private boolean animate = true;
-		private float fixedDuration = 0f;
-		private int[] frameSequence = null;
-		 */
-        OutputCapsule oc = ex.getCapsule(this);
-        oc.write(useRandomImage, "useRandomImage", false);
-        oc.write(animate, "animate", true);
-        oc.write(fixedDuration, "fixedDuration", 0f);
-        oc.write(enabled, "enabled", true);
+    public void write(@NotNull final JmeExporter exporter) throws IOException {
+        final OutputCapsule capsule = exporter.getCapsule(this);
+        capsule.write(randomImage, "randomImage", false);
+        capsule.write(animate, "animate", true);
+        capsule.write(fixedDuration, "fixedDuration", 0f);
+        capsule.write(enabled, "enabled", true);
     }
 
     @Override
-    public void read(JmeImporter im) throws IOException {
-        InputCapsule ic = im.getCapsule(this);
-        useRandomImage = ic.readBoolean("useRandomImage", false);
-        animate = ic.readBoolean("animate", true);
-        fixedDuration = ic.readFloat("fixedDuration", 0f);
-        enabled = ic.readBoolean("enabled", true);
+    public void read(@NotNull final JmeImporter importer) throws IOException {
+        final InputCapsule capsule = importer.getCapsule(this);
+        randomImage = capsule.readBoolean("randomImage", false);
+        animate = capsule.readBoolean("animate", true);
+        fixedDuration = capsule.readFloat("fixedDuration", 0f);
+        enabled = capsule.readBoolean("enabled", true);
     }
 
     @NotNull
     @Override
     public ParticleInfluencer clone() {
         try {
-            SpriteInfluencer clone = (SpriteInfluencer) super.clone();
+            final SpriteInfluencer clone = (SpriteInfluencer) super.clone();
             clone.setAnimate(animate);
             clone.setFixedDuration(fixedDuration);
-            clone.setUseRandomStartImage(useRandomImage);
+            clone.setRandomStartImage(randomImage);
             clone.setFrameSequence(frameSequence);
             clone.setEnabled(enabled);
             return clone;
