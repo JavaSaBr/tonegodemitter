@@ -287,8 +287,8 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void setEnabled(final boolean enabled) {
-        this.enabled = enabled;
+    public void setEnabled(final boolean enable) {
+        this.enabled = enable;
     }
 
     @Override

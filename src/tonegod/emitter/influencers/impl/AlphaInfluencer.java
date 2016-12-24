@@ -1,4 +1,4 @@
-package tonegod.emitter.influencers;
+package tonegod.emitter.influencers.impl;
 
 import static com.jme3.math.FastMath.interpolateLinear;
 
@@ -16,8 +16,8 @@ import rlib.util.ArrayUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
+import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
-import tonegod.emitter.interpolation.InterpolationManager;
 import tonegod.emitter.particle.ParticleData;
 
 /**
@@ -26,12 +26,7 @@ import tonegod.emitter.particle.ParticleData;
  * @author t0neg0d
  * @edit JavaSaBr
  */
-public class AlphaInfluencer implements ParticleInfluencer {
-
-    /**
-     * The list of interpolations.
-     */
-    private final UnsafeArray<Interpolation> interpolations;
+public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluencer {
 
     /**
      * The list of alphas.
@@ -48,18 +43,28 @@ public class AlphaInfluencer implements ParticleInfluencer {
      */
     private float endAlpha;
 
+    /**
+     * The blend value.
+     */
     private float blend;
+
+    /**
+     * The fixed duration.
+     */
     private float fixedDuration;
 
-    private boolean randomStartAlpha;
-    private boolean initialized;
-    private boolean enabled;
+    /**
+     * The flag of cycling changing colors.
+     */
     private boolean cycle;
+
+    /**
+     * The flag of using random start alpha.
+     */
+    private boolean randomStartAlpha;
 
     public AlphaInfluencer() {
         this.alphas = ArrayFactory.newUnsafeArray(Float.class);
-        this.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
-        this.enabled = true;
         this.startAlpha = 1;
     }
 
@@ -70,8 +75,7 @@ public class AlphaInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
-        if (!enabled) return;
+    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
         particleData.alphaInterval += tpf;
 
@@ -92,6 +96,8 @@ public class AlphaInfluencer implements ParticleInfluencer {
         }
 
         particleData.alpha = interpolateLinear(blend, startAlpha, endAlpha);
+
+        super.updateImpl(particleData, tpf);
     }
 
     private void updateAlpha(@NotNull final ParticleData particleData) {
@@ -101,24 +107,17 @@ public class AlphaInfluencer implements ParticleInfluencer {
             particleData.alphaIndex = 0;
         }
 
+        final Array<Interpolation> interpolations = getInterpolations();
         particleData.alphaInterpolation = interpolations.get(particleData.alphaIndex);
         particleData.alphaInterval -= particleData.alphaDuration;
     }
 
     @Override
-    public void initialize(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(@NotNull final ParticleData particleData) {
 
-        if (!initialized) {
-            if (alphas.isEmpty()) {
-                addAlpha(1f);
-                addAlpha(0f);
-            } else if (alphas.size() == 1) {
-                setEnabled(false);
-            }
-            initialized = true;
-        }
+        final Array<Interpolation> interpolations = getInterpolations();
 
-        if (randomStartAlpha) {
+        if (isRandomStartAlpha()) {
             particleData.alphaIndex = FastMath.nextRandomInt(0, alphas.size() - 1);
         } else {
             particleData.alphaIndex = 0;
@@ -128,6 +127,13 @@ public class AlphaInfluencer implements ParticleInfluencer {
         particleData.alphaDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) alphas.size() - 1);
         particleData.alpha = alphas.get(particleData.alphaIndex);
         particleData.alphaInterpolation = interpolations.get(particleData.alphaIndex);
+    }
+
+    /**
+     * @return true if using random start alpha.
+     */
+    public boolean isRandomStartAlpha() {
+        return randomStartAlpha;
     }
 
     @Override
@@ -147,8 +153,8 @@ public class AlphaInfluencer implements ParticleInfluencer {
      * Adds a alpha step value to the chain of values used throughout the particles life span
      */
     public void addAlpha(final float alpha, @NotNull final Interpolation interpolation) {
+        addInterpolation(interpolation);
         alphas.add(alpha);
-        interpolations.add(interpolation);
     }
 
     /**
@@ -169,23 +175,6 @@ public class AlphaInfluencer implements ParticleInfluencer {
     }
 
     /**
-     * Returns an array containing all interpolation step values
-     */
-    @NotNull
-    public Array<Interpolation> getInterpolations() {
-        return interpolations;
-    }
-
-    /**
-     * @param index the index.
-     * @return the interpolation for the index.
-     */
-    @NotNull
-    public Interpolation getInterpolation(final int index) {
-        return interpolations.get(index);
-    }
-
-    /**
      * Change an alpha for the index.
      *
      * @param alpha the new alpha.
@@ -199,50 +188,41 @@ public class AlphaInfluencer implements ParticleInfluencer {
      * Remove last an alpha and interpolation.
      */
     public void removeLast() {
-        if (alphas.isEmpty()) return;
-        interpolations.fastRemove(interpolations.size() - 1);
-        alphas.fastRemove(alphas.size() - 1);
-    }
 
-    /**
-     * Change a interpolation for the index.
-     *
-     * @param interpolation the new interpolation.
-     * @param index         the index.
-     */
-    public void updateInterpolation(final @NotNull Interpolation interpolation, final int index) {
-        interpolations.set(index, interpolation);
+        final Array<Float> alphas = getAlphas();
+        if (alphas.isEmpty()) return;
+
+        final int index = alphas.size() - 1;
+
+        removeInterpolation(index);
+        alphas.fastRemove(index);
     }
 
     /**
      * Removes the alpha step value at the given index
      */
     public void removeAlpha(final int index) {
+        removeInterpolation(index);
         alphas.slowRemove(index);
-        interpolations.slowRemove(index);
     }
 
     /**
      * Removes all added alpha step values
      */
     public void removeAll() {
+        clearInterpolations();
         alphas.clear();
-        interpolations.clear();
     }
 
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
-
-        final int[] interpolationIds = interpolations.stream()
-                .mapToInt(InterpolationManager::getId).toArray();
+        super.write(exporter);
 
         final double[] alphasToSave = alphas.stream().
                 mapToDouble(value -> value).toArray();
 
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(alphasToSave, "alphas", null);
-        capsule.write(interpolationIds, "interpolations", null);
-        capsule.write(enabled, "enabled", true);
         capsule.write(randomStartAlpha, "randomStartAlpha", false);
         capsule.write(cycle, "cycle", false);
         capsule.write(fixedDuration, "fixedDuration", 0.125f);
@@ -250,19 +230,13 @@ public class AlphaInfluencer implements ParticleInfluencer {
 
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
+        super.read(importer);
 
         final InputCapsule capsule = importer.getCapsule(this);
 
-        final double[] loadedAlphas = capsule.readDoubleArray("alphas", null);
+        ArrayUtils.forEach(capsule.readDoubleArray("alphas", null), alphas,
+                (element, toStore) -> toStore.add((float) element));
 
-        ArrayUtils.forEach(loadedAlphas, alphas, (element, toStore) -> toStore.add((float) element));
-
-        final int[] loadedInterpolations = capsule.readIntArray("interpolations", null);
-
-        ArrayUtils.forEach(loadedInterpolations, interpolations,
-                (id, toStore) -> toStore.add(InterpolationManager.getInterpolation(id)));
-
-        enabled = capsule.readBoolean("enabled", true);
         randomStartAlpha = capsule.readBoolean("randomStartAlpha", false);
         cycle = capsule.readBoolean("cycle", false);
         fixedDuration = capsule.readFloat("fixedDuration", 0.125f);
@@ -271,18 +245,12 @@ public class AlphaInfluencer implements ParticleInfluencer {
     @NotNull
     @Override
     public ParticleInfluencer clone() {
-        try {
-            final AlphaInfluencer clone = (AlphaInfluencer) super.clone();
-            clone.alphas.addAll(alphas);
-            clone.interpolations.addAll(interpolations);
-            clone.enabled = enabled;
-            clone.randomStartAlpha = randomStartAlpha;
-            clone.cycle = cycle;
-            clone.fixedDuration = fixedDuration;
-            return clone;
-        } catch (final CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+        final AlphaInfluencer clone = (AlphaInfluencer) super.clone();
+        clone.alphas.addAll(alphas);
+        clone.randomStartAlpha = randomStartAlpha;
+        clone.cycle = cycle;
+        clone.fixedDuration = fixedDuration;
+        return clone;
     }
 
     /**
@@ -306,15 +274,5 @@ public class AlphaInfluencer implements ParticleInfluencer {
      */
     public float getFixedDuration() {
         return fixedDuration;
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
     }
 }

@@ -1,4 +1,4 @@
-package tonegod.emitter.influencers;
+package tonegod.emitter.influencers.impl;
 
 import static com.jme3.math.FastMath.nextRandomInt;
 
@@ -6,7 +6,6 @@ import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
-import com.jme3.export.Savable;
 import com.jme3.math.ColorRGBA;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,8 +16,8 @@ import rlib.util.ArrayUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
+import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
-import tonegod.emitter.interpolation.InterpolationManager;
 import tonegod.emitter.particle.ParticleData;
 
 /**
@@ -27,12 +26,7 @@ import tonegod.emitter.particle.ParticleData;
  * @author t0neg0d
  * @edit JavaSaBr
  */
-public final class ColorInfluencer implements ParticleInfluencer {
-
-    /**
-     * The list of interpolations.
-     */
-    private final UnsafeArray<Interpolation> interpolations;
+public final class ColorInfluencer extends AbstractInterpolatedParticleInfluencer {
 
     /**
      * The list of colors.
@@ -64,18 +58,21 @@ public final class ColorInfluencer implements ParticleInfluencer {
      */
     private float fixedDuration;
 
-    private boolean initialized;
-    private boolean enabled;
+    /**
+     * The flag of using random start color.
+     */
     private boolean randomStartColor;
+
+    /**
+     * The flag of cycling changing colors.
+     */
     private boolean cycle;
 
     public ColorInfluencer() {
         this.colors = ArrayFactory.newUnsafeArray(ColorRGBA.class);
-        this.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
         this.resetColor = new ColorRGBA(0, 0, 0, 0);
         this.startColor = new ColorRGBA(ColorRGBA.Red);
         this.endColor = new ColorRGBA(ColorRGBA.Yellow);
-        this.enabled = true;
     }
 
     @NotNull
@@ -85,27 +82,27 @@ public final class ColorInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, float tpf) {
-        if (!enabled) return;
-
+    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
         particleData.colorInterval += tpf;
 
         if (particleData.colorInterval >= particleData.colorDuration) {
             updateColor(particleData);
         }
 
-        final ColorRGBA[] colorsArray = colors.array();
+        final ColorRGBA[] array = colors.array();
 
         blend = particleData.colorInterpolation.apply(particleData.colorInterval / particleData.colorDuration);
-        startColor.set(colorsArray[particleData.colorIndex]);
+        startColor.set(array[particleData.colorIndex]);
 
         if (particleData.colorIndex == colors.size() - 1) {
-            endColor.set(colorsArray[0]);
+            endColor.set(array[0]);
         } else {
-            endColor.set(colorsArray[particleData.colorIndex + 1]);
+            endColor.set(array[particleData.colorIndex + 1]);
         }
 
         particleData.color.interpolateLocal(startColor, endColor, blend);
+
+        super.updateImpl(particleData, tpf);
     }
 
     private void updateColor(@NotNull final ParticleData particleData) {
@@ -115,24 +112,25 @@ public final class ColorInfluencer implements ParticleInfluencer {
             particleData.colorIndex = 0;
         }
 
+        final Array<Interpolation> interpolations = getInterpolations();
         particleData.colorInterpolation = interpolations.get(particleData.colorIndex);
         particleData.colorInterval -= particleData.colorDuration;
     }
 
     @Override
-    public void initialize(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(@NotNull final ParticleData particleData) {
 
-        if (!initialized) {
-            if (colors.isEmpty()) {
-                addColor(ColorRGBA.Red);
-                addColor(ColorRGBA.Yellow);
-            } else if (colors.size() == 1) {
-                setEnabled(false);
-            }
-            initialized = true;
+        final Array<Interpolation> interpolations = getInterpolations();
+        final Array<ColorRGBA> colors = getColors();
+
+        if (colors.isEmpty()) {
+            addColor(ColorRGBA.Red);
+            addColor(ColorRGBA.Yellow);
+        } else if (colors.size() == 1) {
+            setEnabled(false);
         }
 
-        if (randomStartColor) {
+        if (isRandomStartColor()) {
             particleData.colorIndex = nextRandomInt(0, colors.size() - 1);
         } else {
             particleData.colorIndex = 0;
@@ -181,8 +179,8 @@ public final class ColorInfluencer implements ParticleInfluencer {
      * @param interpolation the interpolation.
      */
     public void addColor(@NotNull final ColorRGBA color, final @NotNull Interpolation interpolation) {
+        addInterpolation(interpolation);
         colors.add(color.clone());
-        interpolations.add(interpolation);
     }
 
     /**
@@ -191,16 +189,16 @@ public final class ColorInfluencer implements ParticleInfluencer {
      * @param index the index.
      */
     public void removeColor(final int index) {
+        removeInterpolation(index);
         colors.slowRemove(index);
-        interpolations.slowRemove(index);
     }
 
     /**
      * Remove all colors with interpolations.
      */
     public void removeAll() {
-        this.colors.clear();
-        this.interpolations.clear();
+        clearInterpolations();
+        colors.clear();
     }
 
     /**
@@ -221,15 +219,6 @@ public final class ColorInfluencer implements ParticleInfluencer {
     }
 
     /**
-     * @param index the index.
-     * @return the interpolation for the index.
-     */
-    @NotNull
-    public Interpolation getInterpolation(final int index) {
-        return interpolations.get(index);
-    }
-
-    /**
      * Change a color for the index.
      *
      * @param color the new color.
@@ -240,42 +229,24 @@ public final class ColorInfluencer implements ParticleInfluencer {
     }
 
     /**
-     * Change a interpolation for the index.
-     *
-     * @param interpolation the new interpolation.
-     * @param index         the index.
-     */
-    public void updateInterpolation(final @NotNull Interpolation interpolation, final int index) {
-        interpolations.set(index, interpolation);
-    }
-
-    /**
      * Remove last a color and interpolation.
      */
     public void removeLast() {
-        if (colors.isEmpty()) return;
-        interpolations.fastRemove(interpolations.size() - 1);
-        colors.fastRemove(colors.size() - 1);
-    }
 
-    /**
-     * @return the list of interpolations.
-     */
-    @NotNull
-    public Array<Interpolation> getInterpolations() {
-        return interpolations;
+        final Array<ColorRGBA> colors = getColors();
+        if (this.colors.isEmpty()) return;
+
+        final int index = colors.size() - 1;
+        removeInterpolation(index);
+        colors.fastRemove(index);
     }
 
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
-
-        final int[] interpolationIds = interpolations.stream()
-                .mapToInt(InterpolationManager::getId).toArray();
+        super.write(exporter);
 
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(colors.toArray(new ColorRGBA[colors.size()]), "colors", null);
-        capsule.write(interpolationIds, "interpolations", null);
-        capsule.write(enabled, "enabled", true);
         capsule.write(randomStartColor, "randomStartColor", false);
         capsule.write(cycle, "cycle", false);
         capsule.write(fixedDuration, "fixedDuration", 0.125f);
@@ -283,18 +254,13 @@ public final class ColorInfluencer implements ParticleInfluencer {
 
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
+        super.read(importer);
 
         final InputCapsule capsule = importer.getCapsule(this);
-        final Savable[] loadedColors = capsule.readSavableArray("colors", null);
 
-        ArrayUtils.forEach(loadedColors, colors, (savable, toStore) -> toStore.add((ColorRGBA) savable));
+        ArrayUtils.forEach(capsule.readSavableArray("colors", null), colors,
+                (savable, toStore) -> toStore.add((ColorRGBA) savable));
 
-        final int[] loadedInterpolations = capsule.readIntArray("interpolations", null);
-
-        ArrayUtils.forEach(loadedInterpolations, interpolations,
-                (id, toStore) -> toStore.add(InterpolationManager.getInterpolation(id)));
-
-        enabled = capsule.readBoolean("enabled", true);
         randomStartColor = capsule.readBoolean("randomStartColor", false);
         cycle = capsule.readBoolean("cycle", false);
         fixedDuration = capsule.readFloat("fixedDuration", 0.125f);
@@ -303,18 +269,12 @@ public final class ColorInfluencer implements ParticleInfluencer {
     @NotNull
     @Override
     public ParticleInfluencer clone() {
-        try {
-            final ColorInfluencer clone = (ColorInfluencer) super.clone();
-            clone.colors.addAll(colors);
-            clone.interpolations.addAll(interpolations);
-            clone.enabled = enabled;
-            clone.randomStartColor = randomStartColor;
-            clone.cycle = cycle;
-            clone.fixedDuration = fixedDuration;
-            return clone;
-        } catch (final CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+        final ColorInfluencer clone = (ColorInfluencer) super.clone();
+        clone.colors.addAll(colors);
+        clone.randomStartColor = randomStartColor;
+        clone.cycle = cycle;
+        clone.fixedDuration = fixedDuration;
+        return clone;
     }
 
     /**
@@ -338,15 +298,5 @@ public final class ColorInfluencer implements ParticleInfluencer {
      */
     public float getFixedDuration() {
         return fixedDuration;
-    }
-
-    @Override
-    public void setEnabled(final boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
     }
 }

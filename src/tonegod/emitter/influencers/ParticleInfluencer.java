@@ -7,7 +7,10 @@ import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.particle.ParticleData;
 
 /**
+ * The interface for implementing particle influencers.
+ *
  * @author t0neg0d
+ * @edit JavaSaBr
  */
 public interface ParticleInfluencer extends Savable, Cloneable {
 
@@ -51,7 +54,7 @@ public interface ParticleInfluencer extends Savable, Cloneable {
      * Enables/disables the influencer without removing it from the chain. It is worth noting that
      * initialize can still be used whether or not the influencer has been disabled.
      */
-    void setEnabled(boolean enabled);
+    void setEnabled(boolean enable);
 
     /**
      * Returns if the influencer is currently enabled

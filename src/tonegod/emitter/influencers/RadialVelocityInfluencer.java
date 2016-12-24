@@ -305,8 +305,8 @@ public class RadialVelocityInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public void setEnabled(boolean enable) {
+        this.enabled = enable;
     }
 
     @Override
