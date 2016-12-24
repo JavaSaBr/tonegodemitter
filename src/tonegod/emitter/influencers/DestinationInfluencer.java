@@ -266,7 +266,7 @@ public class DestinationInfluencer implements ParticleInfluencer {
      * @param weight the new weight.
      * @param index  the index.
      */
-    public void updateInterpolation(final @NotNull Float weight, final int index) {
+    public void updateWeight(final @NotNull Float weight, final int index) {
         weights.set(index, weight);
     }
 
