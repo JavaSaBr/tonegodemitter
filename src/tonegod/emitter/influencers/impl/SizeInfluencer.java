@@ -1,10 +1,9 @@
-package tonegod.emitter.influencers;
+package tonegod.emitter.influencers.impl;
 
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
-import com.jme3.export.Savable;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 
@@ -16,8 +15,8 @@ import rlib.util.ArrayUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
+import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
-import tonegod.emitter.interpolation.InterpolationManager;
 import tonegod.emitter.particle.ParticleData;
 
 /**
@@ -26,7 +25,7 @@ import tonegod.emitter.particle.ParticleData;
  * @author t0neg0d
  * @edit JavaSaBr
  */
-public class SizeInfluencer implements ParticleInfluencer {
+public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer {
 
     /**
      * The list of sizes.
@@ -34,10 +33,8 @@ public class SizeInfluencer implements ParticleInfluencer {
     private final UnsafeArray<Vector3f> sizes;
 
     /**
-     * The list of colors.
+     * The vectors for temp calculating.
      */
-    private final UnsafeArray<Interpolation> interpolations;
-
     private final Vector3f tempV3a;
     private final Vector3f tempV3b;
 
@@ -51,19 +48,33 @@ public class SizeInfluencer implements ParticleInfluencer {
      */
     private final Vector3f endSize;
 
+    /**
+     * The blend value.
+     */
     private float blend;
+
+    /**
+     * The random size tolerance value.
+     */
     private float randomSizeTolerance;
+
+    /**
+     * The fixed duration.
+     */
     private float fixedDuration;
 
-    private boolean initialized;
+    /**
+     * The flag of using random size.
+     */
     private boolean randomSize;
+
+    /**
+     * The flag of cycling size changing.
+     */
     private boolean cycle;
-    private boolean enabled;
 
     public SizeInfluencer() {
         this.sizes = ArrayFactory.newUnsafeArray(Vector3f.class);
-        this.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
-        this.enabled = true;
         this.tempV3a = new Vector3f();
         this.tempV3b = new Vector3f();
         this.startSize = new Vector3f(0.1f, 0.1f, 0.1f);
@@ -78,8 +89,7 @@ public class SizeInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
-        if (!enabled) return;
+    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
         particleData.sizeInterval += tpf;
 
@@ -89,8 +99,15 @@ public class SizeInfluencer implements ParticleInfluencer {
 
         blend = particleData.sizeInterpolation.apply(particleData.sizeInterval / particleData.sizeDuration);
         particleData.size.interpolateLocal(particleData.startSize, particleData.endSize, blend);
+
+        super.updateImpl(particleData, tpf);
     }
 
+    /**
+     * Update a size for the particle data.
+     *
+     * @param particleData the particle data.
+     */
     private void updateSize(@NotNull final ParticleData particleData) {
         particleData.sizeIndex++;
 
@@ -98,38 +115,65 @@ public class SizeInfluencer implements ParticleInfluencer {
             particleData.sizeIndex = 0;
         }
 
-        getNextSizeRange(particleData);
+        calculateNextSizeRange(particleData);
 
+        final Array<Interpolation> interpolations = getInterpolations();
         particleData.sizeInterpolation = interpolations.get(particleData.sizeIndex);
         particleData.sizeInterval -= particleData.sizeDuration;
     }
 
     @Override
-    public void initialize(@NotNull final ParticleData particleData) {
+    protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
 
-        if (!initialized) {
-            if (sizes.isEmpty()) {
-                addSize(1f);
-                addSize(0f);
-            } else if (sizes.size() == 1) {
-                setEnabled(false);
-            }
-            initialized = true;
+        final Array<Vector3f> sizes = getSizes();
+
+        if (sizes.isEmpty()) {
+            addSize(1f);
+            addSize(0f);
+        } else if (sizes.size() == 1) {
+            setEnabled(false);
         }
 
-        particleData.sizeIndex = 0;
-        particleData.sizeInterval = 0f;
-        particleData.sizeDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) sizes.size() - 1 - particleData.sizeIndex);
-
-        getNextSizeRange(particleData);
-
-        particleData.sizeInterpolation = interpolations.get(particleData.sizeIndex);
+        super.firstInitializeImpl(particleData);
     }
 
-    private void getNextSizeRange(@NotNull final ParticleData particleData) {
-        if (particleData.sizeIndex == 0) { //endSize.equals(Vector3f.ZERO)) {
+    @Override
+    protected void initializeImpl(@NotNull final ParticleData particleData) {
+
+        final Array<Interpolation> interpolations = getInterpolations();
+
+        particleData.sizeIndex = 0;
+        particleData.sizeInterval = 0F;
+        particleData.sizeDuration = isCycle() ? fixedDuration : particleData.startlife / ((float) interpolations.size() - 1 - particleData.sizeIndex);
+
+        calculateNextSizeRange(particleData);
+
+        particleData.sizeInterpolation = interpolations.get(particleData.sizeIndex);
+
+        super.initializeImpl(particleData);
+    }
+
+    /**
+     * @return true is changing is cycled.
+     */
+    public boolean isCycle() {
+        return cycle;
+    }
+
+    /**
+     * Calculate a next size.
+     *
+     * @param particleData the particle data.
+     */
+    private void calculateNextSizeRange(@NotNull final ParticleData particleData) {
+
+        final Array<Vector3f> sizes = getSizes();
+
+        if (particleData.sizeIndex == 0) {
+
             particleData.startSize.set(sizes.get(particleData.sizeIndex));
-            if (randomSize) {
+
+            if (isRandomSize()) {
                 tempV3a.set(particleData.startSize);
                 tempV3b.set(tempV3a).multLocal(randomSizeTolerance);
                 tempV3a.subtractLocal(tempV3b);
@@ -137,6 +181,7 @@ public class SizeInfluencer implements ParticleInfluencer {
                 tempV3a.addLocal(tempV3b);
                 particleData.startSize.set(tempV3a);
             }
+
         } else {
             particleData.startSize.set(particleData.endSize);
         }
@@ -149,7 +194,7 @@ public class SizeInfluencer implements ParticleInfluencer {
                 particleData.endSize.set(sizes.get(particleData.sizeIndex + 1));
             }
 
-            if (randomSize) {
+            if (isRandomSize()) {
                 tempV3a.set(particleData.endSize);
                 tempV3b.set(tempV3a).multLocal(randomSizeTolerance);
                 tempV3a.subtractLocal(tempV3b);
@@ -170,23 +215,46 @@ public class SizeInfluencer implements ParticleInfluencer {
         particleData.size.set(0, 0, 0);
         particleData.startSize.set(0f, 0f, 0f);
         particleData.endSize.set(0, 0, 0);
+        super.reset(particleData);
     }
 
+    /**
+     * Add the new size.
+     *
+     * @param size the size.
+     */
     public void addSize(final float size) {
         addSize(size, Interpolation.LINEAR);
     }
 
+    /**
+     * Add the new size.
+     *
+     * @param size the size.
+     */
     public void addSize(@NotNull final Vector3f size) {
         addSize(size, Interpolation.LINEAR);
     }
 
+    /**
+     * Add the new size with the interpolation.
+     *
+     * @param size          the size.
+     * @param interpolation the interpolation.
+     */
     public void addSize(final float size, @NotNull final Interpolation interpolation) {
         addSize(new Vector3f(size, size, size), interpolation);
     }
 
+    /**
+     * Add the new size with the interpolation.
+     *
+     * @param size          the size.
+     * @param interpolation the interpolation.
+     */
     public void addSize(@NotNull final Vector3f size, @NotNull final Interpolation interpolation) {
+        addInterpolation(interpolation);
         sizes.add(size.clone());
-        interpolations.add(interpolation);
     }
 
     /**
@@ -207,23 +275,6 @@ public class SizeInfluencer implements ParticleInfluencer {
     }
 
     /**
-     * @return the list of interpolations.
-     */
-    @NotNull
-    public Array<Interpolation> getInterpolations() {
-        return interpolations;
-    }
-
-    /**
-     * @param index the index.
-     * @return the interpolation for the index.
-     */
-    @NotNull
-    public Interpolation getInterpolation(final int index) {
-        return interpolations.get(index);
-    }
-
-    /**
      * Change a size for the index.
      *
      * @param size  the new size.
@@ -234,107 +285,99 @@ public class SizeInfluencer implements ParticleInfluencer {
     }
 
     /**
-     * Change a interpolation for the index.
-     *
-     * @param interpolation the new interpolation.
-     * @param index         the index.
-     */
-    public void updateInterpolation(final @NotNull Interpolation interpolation, final int index) {
-        interpolations.set(index, interpolation);
-    }
-
-    /**
      * Remove a size and interpolation for the index.
      *
      * @param index the index.
      */
     public void removeSize(final int index) {
+        removeInterpolation(index);
         sizes.slowRemove(index);
-        interpolations.slowRemove(index);
     }
 
     /**
      * Remove all sizes with interpolations.
      */
     public void removeAll() {
+        clearInterpolations();
         sizes.clear();
-        interpolations.clear();
     }
 
     /**
-     * Remove last a size and interpolation.
+     * Remove a last size and interpolation.
      */
     public void removeLast() {
+
+        final Array<Vector3f> sizes = getSizes();
         if (sizes.isEmpty()) return;
-        interpolations.fastRemove(interpolations.size() - 1);
-        sizes.fastRemove(sizes.size() - 1);
+
+        final int index = sizes.size() - 1;
+
+        removeInterpolation(index);
+        sizes.fastRemove(index);
     }
 
+    /**
+     * @param randomSize the flag of using random size.
+     */
     public void setRandomSize(final boolean randomSize) {
         this.randomSize = randomSize;
     }
 
+    /**
+     * @return true if the random size is enabled.
+     */
     public boolean isRandomSize() {
         return randomSize;
     }
 
+    /**
+     * @param randomSizeTolerance the random size tolerance value.
+     */
     public void setRandomSizeTolerance(final float randomSizeTolerance) {
         this.randomSizeTolerance = randomSizeTolerance;
     }
 
+    /**
+     * @return the random size tolerance value.
+     */
     public float getRandomSizeTolerance() {
         return randomSizeTolerance;
     }
 
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
-
-        final int[] interpolationIds = interpolations.stream()
-                .mapToInt(InterpolationManager::getId).toArray();
+        super.write(exporter);
 
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(sizes.toArray(new Vector3f[sizes.size()]), "sizes", null);
-        capsule.write(interpolationIds, "interpolations", null);
         capsule.write(randomSize, "randomSize", false);
         capsule.write(randomSizeTolerance, "randomSizeTolerance", 0.5f);
         capsule.write(fixedDuration, "fixedDuration", 0f);
-        capsule.write(enabled, "enabled", true);
     }
 
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
+        super.read(importer);
 
         final InputCapsule capsule = importer.getCapsule(this);
-        final Savable[] loadedSizes = capsule.readSavableArray("sizes", null);
 
-        ArrayUtils.forEach(loadedSizes, sizes, (savable, toStore) -> toStore.add((Vector3f) savable));
-
-        final int[] loadedInterpolations = capsule.readIntArray("interpolations", null);
-
-        ArrayUtils.forEach(loadedInterpolations, interpolations,
-                (id, toStore) -> toStore.add(InterpolationManager.getInterpolation(id)));
+        ArrayUtils.forEach(capsule.readSavableArray("sizes", null), sizes,
+                (savable, toStore) -> toStore.add((Vector3f) savable));
 
         randomSize = capsule.readBoolean("randomSize", false);
         randomSizeTolerance = capsule.readFloat("randomSizeTolerance", 0.5f);
         fixedDuration = capsule.readFloat("fixedDuration", 0f);
-        enabled = capsule.readBoolean("enabled", true);
     }
 
     @NotNull
     @Override
     public ParticleInfluencer clone() {
-        try {
-            SizeInfluencer clone = (SizeInfluencer) super.clone();
-            clone.sizes.addAll(sizes);
-            clone.interpolations.addAll(interpolations);
-            clone.setFixedDuration(fixedDuration);
-            clone.setRandomSizeTolerance(randomSizeTolerance);
-            clone.setRandomSize(randomSize);
-            clone.setEnabled(enabled);
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+        final SizeInfluencer clone = (SizeInfluencer) super.clone();
+        clone.sizes.addAll(sizes);
+        clone.setFixedDuration(fixedDuration);
+        clone.setRandomSizeTolerance(randomSizeTolerance);
+        clone.setRandomSize(randomSize);
+        return clone;
     }
 
     /**
@@ -358,15 +401,5 @@ public class SizeInfluencer implements ParticleInfluencer {
      */
     public float getFixedDuration() {
         return fixedDuration;
-    }
-
-    @Override
-    public void setEnabled(final boolean enable) {
-        this.enabled = enable;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
     }
 }

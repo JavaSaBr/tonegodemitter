@@ -34,7 +34,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     private final UnsafeArray<Float> alphas;
 
     /**
-     * The start alhpa.
+     * The start alpha.
      */
     private float startAlpha;
 
@@ -54,7 +54,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     private float fixedDuration;
 
     /**
-     * The flag of cycling changing colors.
+     * The flag of cycling changing alphas.
      */
     private boolean cycle;
 
@@ -85,6 +85,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
 
         blend = particleData.alphaInterpolation.apply(particleData.alphaInterval / particleData.alphaDuration);
 
+        final Array<Float> alphas = getAlphas();
         final Float[] alphasArray = alphas.array();
 
         startAlpha = alphasArray[particleData.alphaIndex];
@@ -100,6 +101,11 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         super.updateImpl(particleData, tpf);
     }
 
+    /**
+     * Update an alpha value for the particle data.
+     *
+     * @param particleData the particle data.
+     */
     private void updateAlpha(@NotNull final ParticleData particleData) {
         particleData.alphaIndex++;
 
@@ -118,15 +124,24 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         final Array<Interpolation> interpolations = getInterpolations();
 
         if (isRandomStartAlpha()) {
-            particleData.alphaIndex = FastMath.nextRandomInt(0, alphas.size() - 1);
+            particleData.alphaIndex = FastMath.nextRandomInt(0, interpolations.size() - 1);
         } else {
             particleData.alphaIndex = 0;
         }
 
         particleData.alphaInterval = 0f;
-        particleData.alphaDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) alphas.size() - 1);
+        particleData.alphaDuration = isCycle() ? fixedDuration : particleData.startlife / ((float) interpolations.size() - 1);
         particleData.alpha = alphas.get(particleData.alphaIndex);
         particleData.alphaInterpolation = interpolations.get(particleData.alphaIndex);
+
+        super.initializeImpl(particleData);
+    }
+
+    /**
+     * @return true is changing is cycled.
+     */
+    public boolean isCycle() {
+        return cycle;
     }
 
     /**
@@ -139,6 +154,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     public void reset(@NotNull final ParticleData particleData) {
         particleData.alpha = 0;
+        super.reset(particleData);
     }
 
     /**
@@ -185,7 +201,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Remove last an alpha and interpolation.
+     * Remove a last alpha and interpolation.
      */
     public void removeLast() {
 

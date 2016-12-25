@@ -39,9 +39,19 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
 
     @Override
     public void initialize(@NotNull final ParticleData particleData) {
-        if (isInitialized()) return;
+
+        if (!isInitialized()) {
+            firstInitializeImpl(particleData);
+            setInitialized(true);
+        }
+
         initializeImpl(particleData);
-        setInitialized(true);
+    }
+
+    /**
+     * Handle first initializing this influencer.
+     */
+    protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
     }
 
     /**

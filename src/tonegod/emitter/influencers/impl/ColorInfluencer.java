@@ -89,6 +89,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
             updateColor(particleData);
         }
 
+        final Array<ColorRGBA> colors = getColors();
         final ColorRGBA[] array = colors.array();
 
         blend = particleData.colorInterpolation.apply(particleData.colorInterval / particleData.colorDuration);
@@ -105,6 +106,11 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         super.updateImpl(particleData, tpf);
     }
 
+    /**
+     * Update a color for the particle data.
+     *
+     * @param particleData the particle data.
+     */
     private void updateColor(@NotNull final ParticleData particleData) {
         particleData.colorIndex++;
 
@@ -118,9 +124,8 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
+    protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
 
-        final Array<Interpolation> interpolations = getInterpolations();
         final Array<ColorRGBA> colors = getColors();
 
         if (colors.isEmpty()) {
@@ -130,6 +135,14 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
             setEnabled(false);
         }
 
+        super.firstInitializeImpl(particleData);
+    }
+
+    @Override
+    protected void initializeImpl(@NotNull final ParticleData particleData) {
+
+        final Array<Interpolation> interpolations = getInterpolations();
+
         if (isRandomStartColor()) {
             particleData.colorIndex = nextRandomInt(0, colors.size() - 1);
         } else {
@@ -137,9 +150,11 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         }
 
         particleData.colorInterval = 0F;
-        particleData.colorDuration = cycle ? fixedDuration : particleData.startlife / ((float) colors.size() - 1);
+        particleData.colorDuration = isCycle() ? fixedDuration : particleData.startlife / ((float) interpolations.size() - 1);
         particleData.color.set(colors.get(particleData.colorIndex));
         particleData.colorInterpolation = interpolations.get(particleData.colorIndex);
+
+        super.initializeImpl(particleData);
     }
 
     @Override
@@ -147,6 +162,14 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         particleData.color.set(resetColor);
         particleData.colorIndex = 0;
         particleData.colorInterval = 0;
+        super.reset(particleData);
+    }
+
+    /**
+     * @return true is changing is cycled.
+     */
+    public boolean isCycle() {
+        return cycle;
     }
 
     /**
@@ -229,7 +252,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Remove last a color and interpolation.
+     * Remove a last color and interpolation.
      */
     public void removeLast() {
 
