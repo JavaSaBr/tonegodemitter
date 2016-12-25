@@ -235,9 +235,10 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     public void removeLast() {
 
         final Array<ColorRGBA> colors = getColors();
-        if (this.colors.isEmpty()) return;
+        if (colors.isEmpty()) return;
 
         final int index = colors.size() - 1;
+
         removeInterpolation(index);
         colors.fastRemove(index);
     }

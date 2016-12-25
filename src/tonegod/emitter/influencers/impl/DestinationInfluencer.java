@@ -107,6 +107,16 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
+    protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
+
+        if (destinations.isEmpty()) {
+            addDestination(new Vector3f(0, 0, 0), 0.5f);
+        }
+
+        super.firstInitializeImpl(particleData);
+    }
+
+    @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
 
         if (randomStartDestination) {
@@ -119,10 +129,6 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
         particleData.destinationInterval = 0f;
         particleData.destinationDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) destinations.size());
         particleData.destinationInterpolation = interpolations.get(particleData.destinationIndex);
-    }
-
-    @Override
-    public void reset(@NotNull final ParticleData particleData) {
     }
 
     /**
@@ -156,9 +162,10 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * Adds a destination using the defined interpolation to the list of destinations used during
      * the life cycle of the particle
      *
-     * @param destination The destination the particle will move towards
-     * @param weight      How strong the pull towards the destination should be
-     * @interpolation The interpolation method used to blend from the this step value to the next
+     * @param destination   The destination the particle will move towards
+     * @param weight        How strong the pull towards the destination should be
+     * @param interpolation The interpolation method used to blend from the this step value to the
+     *                      next
      */
     public void addDestination(@NotNull final Vector3f destination, final float weight, @NotNull final Interpolation interpolation) {
         addInterpolation(interpolation);
@@ -242,9 +249,12 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * Remove last a destination, weight and interpolation.
      */
     public void removeLast() {
+
         final Array<Float> weights = getWeights();
         if (weights.isEmpty()) return;
+
         final int index = weights.size() - 1;
+
         removeInterpolation(index);
         destinations.fastRemove(index);
         weights.fastRemove(index);

@@ -36,16 +36,6 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     private final Vector3f speedFactor;
 
     /**
-     * The blend value.
-     */
-    private float blend;
-
-    /**
-     * The fixed duration.
-     */
-    private float fixedDuration;
-
-    /**
      * The flag of using random direction.
      */
     private boolean randomDirection;
@@ -59,11 +49,6 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      * The direction.
      */
     private boolean direction;
-
-    /**
-     * The flag of cycling changing sizes.
-     */
-    private boolean cycle;
 
     /**
      * The flag of using random start rotation for X.
@@ -83,7 +68,6 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     public RotationInfluencer() {
         this.speeds = ArrayFactory.newUnsafeArray(Vector3f.class);
         this.speedFactor = Vector3f.ZERO.clone();
-        this.fixedDuration = 0f;
         this.randomDirection = true;
         this.randomSpeed = true;
         this.direction = true;
@@ -162,7 +146,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
 
         particleData.rotationIndex = 0;
         particleData.rotationInterval = 0f;
-        particleData.rotationDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) speeds.size() - 1);
+        particleData.rotationDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) speeds.size() - 1);
 
         if (isRandomDirection()) {
             particleData.rotateDirectionX = FastMath.rand.nextBoolean();
@@ -188,13 +172,6 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
         }
 
         super.initializeImpl(particleData);
-    }
-
-    /**
-     * @return true changing is cycled.
-     */
-    public boolean isCycle() {
-        return cycle;
     }
 
     /**
@@ -307,9 +284,12 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      * Remove last a rotation speed and interpolation.
      */
     public void removeLast() {
+
         final Array<Vector3f> speeds = getRotationSpeeds();
         if (speeds.isEmpty()) return;
+
         final int index = speeds.size() - 1;
+
         removeInterpolation(index);
         speeds.fastRemove(index);
     }
@@ -416,7 +396,6 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
         capsule.write(randomStartRotationX, "randomStartRotationX", false);
         capsule.write(randomStartRotationY, "randomStartRotationY", false);
         capsule.write(randomStartRotationZ, "randomStartRotationZ", false);
-        capsule.write(fixedDuration, "fixedDuration", 0f);
     }
 
     @Override
@@ -435,7 +414,6 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
         randomStartRotationX = capsule.readBoolean("randomStartRotationX", false);
         randomStartRotationY = capsule.readBoolean("randomStartRotationY", false);
         randomStartRotationZ = capsule.readBoolean("randomStartRotationZ", false);
-        fixedDuration = capsule.readFloat("fixedDuration", 0f);
     }
 
     @NotNull

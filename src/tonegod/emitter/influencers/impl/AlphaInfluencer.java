@@ -104,6 +104,21 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
+    protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
+
+        final Array<Float> alphas = getAlphas();
+
+        if (alphas.isEmpty()) {
+            addAlpha(1F);
+            addAlpha(0F);
+        } else if (alphas.size() == 1) {
+            setEnabled(false);
+        }
+
+        super.firstInitializeImpl(particleData);
+    }
+
+    @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
 
         final Array<Interpolation> interpolations = getInterpolations();
@@ -114,7 +129,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
             particleData.alphaIndex = 0;
         }
 
-        particleData.alphaInterval = 0f;
+        particleData.alphaInterval = 0F;
         particleData.alphaDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) interpolations.size() - 1);
         particleData.alpha = alphas.get(particleData.alphaIndex);
         particleData.alphaInterpolation = interpolations.get(particleData.alphaIndex);
