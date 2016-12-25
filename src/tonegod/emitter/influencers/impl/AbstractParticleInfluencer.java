@@ -80,7 +80,7 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
 
     @Override
     public final boolean isEnabled() {
-        return false;
+        return enabled;
     }
 
     /**

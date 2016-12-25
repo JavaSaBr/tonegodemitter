@@ -84,6 +84,10 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
 
         if (speeds.size() > 1) {
 
+            if (particleData.rotationIndex >= speeds.size()) {
+                particleData.rotationIndex = 0;
+            }
+
             particleData.rotationInterval += tpf;
 
             if (particleData.rotationInterval >= particleData.rotationDuration) {
@@ -135,9 +139,11 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
 
     @Override
     protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
+
         if (speeds.isEmpty()) {
             addRotationSpeed(new Vector3f(0, 0, 10));
         }
+
         super.firstInitializeImpl(particleData);
     }
 

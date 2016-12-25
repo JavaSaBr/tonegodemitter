@@ -64,6 +64,10 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
 
         particleData.alphaInterval += tpf;
 
+        if (particleData.alphaIndex >= alphas.size()) {
+            particleData.alphaIndex = 0;
+        }
+
         if (particleData.alphaInterval >= particleData.alphaDuration) {
             updateAlpha(particleData);
         }

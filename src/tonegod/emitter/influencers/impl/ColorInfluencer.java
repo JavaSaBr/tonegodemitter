@@ -70,6 +70,10 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
         particleData.colorInterval += tpf;
 
+        if (particleData.colorIndex >= colors.size()) {
+            particleData.colorIndex = 0;
+        }
+
         if (particleData.colorInterval >= particleData.colorDuration) {
             updateColor(particleData);
         }

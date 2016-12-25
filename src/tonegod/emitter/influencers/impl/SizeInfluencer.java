@@ -78,6 +78,10 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
 
         particleData.sizeInterval += tpf;
 
+        if (particleData.sizeIndex >= sizes.size()) {
+            particleData.sizeIndex = 0;
+        }
+
         if (particleData.sizeInterval >= particleData.sizeDuration) {
             updateSize(particleData);
         }
@@ -96,7 +100,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     private void updateSize(@NotNull final ParticleData particleData) {
         particleData.sizeIndex++;
 
-        if (particleData.sizeIndex == sizes.size() - 1) {
+        if (particleData.sizeIndex >= sizes.size()) {
             particleData.sizeIndex = 0;
         }
 

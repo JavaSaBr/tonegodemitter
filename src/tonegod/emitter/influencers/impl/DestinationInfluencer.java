@@ -74,6 +74,10 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
         particleData.destinationInterval += tpf;
 
+        if (particleData.destinationIndex >= destinations.size()) {
+            particleData.destinationIndex = 0;
+        }
+
         if (particleData.destinationInterval >= particleData.destinationDuration) {
             updateDestination(particleData);
         }
@@ -97,7 +101,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     private void updateDestination(@NotNull final ParticleData particleData) {
         particleData.destinationIndex++;
 
-        if (particleData.destinationIndex == destinations.size()) {
+        if (particleData.destinationIndex >= destinations.size()) {
             particleData.destinationIndex = 0;
         }
 
