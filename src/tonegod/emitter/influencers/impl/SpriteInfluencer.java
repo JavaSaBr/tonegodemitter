@@ -1,4 +1,4 @@
-package tonegod.emitter.influencers;
+package tonegod.emitter.influencers.impl;
 
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
@@ -10,31 +10,51 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
 /**
  * @author t0neg0d
+ * @edit JavaSaBr
  */
-public class SpriteInfluencer implements ParticleInfluencer {
+public class SpriteInfluencer extends AbstractParticleInfluencer {
 
     private transient float targetInterval;
 
+    /**
+     * The frame sequence.
+     */
     private int[] frameSequence;
 
+    /**
+     * The fixed duration.
+     */
     private float fixedDuration;
 
+    /**
+     * The total frames.
+     */
     private int totalFrames;
 
-    private boolean enabled;
-    private boolean randomImage;
+    /**
+     * The flag of using random images.
+     */
+    private boolean randomStatImage;
+
+    /**
+     * The flag of unsing animation..
+     */
     private boolean animate;
+
+    /**
+     * The flag of using cycle image changing.
+     */
     private boolean cycle;
 
     public SpriteInfluencer() {
         this.fixedDuration = 0f;
         this.totalFrames = -1;
         this.animate = true;
-        this.enabled = true;
     }
 
     @NotNull
@@ -45,7 +65,12 @@ public class SpriteInfluencer implements ParticleInfluencer {
 
     @Override
     public void update(@NotNull final ParticleData particleData, final float tpf) {
-        if (!enabled || !animate) return;
+        if (!isAnimate()) return;
+        super.update(particleData, tpf);
+    }
+
+    @Override
+    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
         particleData.spriteInterval += tpf;
 
@@ -54,8 +79,15 @@ public class SpriteInfluencer implements ParticleInfluencer {
         if (particleData.spriteInterval >= targetInterval) {
             updateFrame(particleData);
         }
+
+        super.updateImpl(particleData, tpf);
     }
 
+    /**
+     * Update a frame for the particle data.
+     *
+     * @param particleData the particle data.
+     */
     private void updateFrame(@NotNull final ParticleData particleData) {
         if (frameSequence == null) {
 
@@ -86,14 +118,14 @@ public class SpriteInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void initialize(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(@NotNull final ParticleData particleData) {
 
         if (totalFrames == -1) {
             totalFrames = particleData.emitterNode.getSpriteColCount() * particleData.emitterNode.getSpriteRowCount();
             if (totalFrames == 1) setAnimate(false);
         }
 
-        if (randomImage) {
+        if (isRandomStartImage()) {
             if (frameSequence == null) {
                 particleData.spriteIndex = FastMath.nextRandomInt(0, totalFrames - 1);
                 particleData.spriteRow = (int) FastMath.floor(particleData.spriteIndex / particleData.emitterNode.getSpriteRowCount()) - 1;
@@ -115,17 +147,26 @@ public class SpriteInfluencer implements ParticleInfluencer {
             }
         }
 
-        if (!animate) return;
+        if (!isAnimate()) return;
 
         particleData.spriteInterval = 0;
 
-        if (cycle) return;
+        if (isCycle()) return;
 
         if (frameSequence == null) {
             particleData.spriteDuration = particleData.startlife / (float) totalFrames;
         } else {
             particleData.spriteDuration = particleData.startlife / (float) frameSequence.length;
         }
+
+        super.initializeImpl(particleData);
+    }
+
+    /**
+     * @return true changing is cycled.
+     */
+    public boolean isCycle() {
+        return cycle;
     }
 
     @Override
@@ -133,16 +174,7 @@ public class SpriteInfluencer implements ParticleInfluencer {
         particleData.spriteIndex = 0;
         particleData.spriteCol = 0;
         particleData.spriteRow = 0;
-    }
-
-    @Override
-    public void setEnabled(boolean enable) {
-        this.enabled = enable;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
+        super.reset(particleData);
     }
 
     /**
@@ -166,27 +198,36 @@ public class SpriteInfluencer implements ParticleInfluencer {
     /**
      * Sets if particles should select a random start image from the provided sprite texture
      *
-     * @param randomImage boolean
+     * @param randomStartImage boolean
      */
-    public void setRandomStartImage(final boolean randomImage) {
-        this.randomImage = randomImage;
+    public void setRandomStartImage(final boolean randomStartImage) {
+        this.randomStatImage = randomStartImage;
     }
 
     /**
      * Returns if particles currently select a random start image from the provided sprite texture
      */
     public boolean isRandomStartImage() {
-        return randomImage;
+        return randomStatImage;
     }
 
+    /**
+     * @param frame the frame sequence.
+     */
     public void setFrameSequence(final int... frame) {
         frameSequence = frame;
     }
 
+    /**
+     * @return the frame sequence.
+     */
     public int[] getFrameSequence() {
         return frameSequence;
     }
 
+    /**
+     * Clear the frame sequence.
+     */
     public void clearFrameSequence() {
         frameSequence = null;
     }
@@ -217,34 +258,27 @@ public class SpriteInfluencer implements ParticleInfluencer {
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
         final OutputCapsule capsule = exporter.getCapsule(this);
-        capsule.write(randomImage, "randomImage", false);
+        capsule.write(randomStatImage, "randomStatImage", false);
         capsule.write(animate, "animate", true);
         capsule.write(fixedDuration, "fixedDuration", 0f);
-        capsule.write(enabled, "enabled", true);
     }
 
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
         final InputCapsule capsule = importer.getCapsule(this);
-        randomImage = capsule.readBoolean("randomImage", false);
+        randomStatImage = capsule.readBoolean("randomStatImage", false);
         animate = capsule.readBoolean("animate", true);
         fixedDuration = capsule.readFloat("fixedDuration", 0f);
-        enabled = capsule.readBoolean("enabled", true);
     }
 
     @NotNull
     @Override
     public ParticleInfluencer clone() {
-        try {
-            final SpriteInfluencer clone = (SpriteInfluencer) super.clone();
-            clone.setAnimate(animate);
-            clone.setFixedDuration(fixedDuration);
-            clone.setRandomStartImage(randomImage);
-            clone.setFrameSequence(frameSequence);
-            clone.setEnabled(enabled);
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
+        final SpriteInfluencer clone = (SpriteInfluencer) super.clone();
+        clone.setAnimate(animate);
+        clone.setFixedDuration(fixedDuration);
+        clone.setRandomStartImage(randomStatImage);
+        clone.setFrameSequence(frameSequence);
+        return clone;
     }
 }

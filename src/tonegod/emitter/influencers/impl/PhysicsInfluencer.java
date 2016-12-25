@@ -1,4 +1,4 @@
-package tonegod.emitter.influencers;
+package tonegod.emitter.influencers.impl;
 
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
 /**
@@ -27,7 +28,7 @@ import tonegod.emitter.particle.ParticleData;
  * @author t0neg0d
  * @edit JavaSaBr
  */
-public class PhysicsInfluencer implements ParticleInfluencer {
+public class PhysicsInfluencer extends AbstractParticleInfluencer {
 
     public enum CollisionReaction {
         BOUNCE,
@@ -41,30 +42,85 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         }
     }
 
+    /**
+     * The list of collidable geometries.
+     */
     private final GeometryList geometries;
+
+    /**
+     * The list of temprary collidable geometries.
+     */
     private final GeometryList tempGeometries;
 
+    /**
+     * The quad.
+     */
     private final Quad quad;
+
+    /**
+     * The geometry.
+     */
     private final Geometry geom;
+
+    /**
+     * The quanterion.
+     */
     private final Quaternion quat;
 
+    /**
+     * The collision results.
+     */
     private final CollisionResults results;
 
+    /**
+     * The collision result.
+     */
     private CollisionResult result;
+
+    /**
+     * The contact surface.
+     */
     private Triangle contactSurface;
 
+    /**
+     * The reflect.
+     */
     private final Vector3f reflect;
+
+    /**
+     * The two.
+     */
     private final Vector3f two;
+
+    /**
+     * The normal.
+     */
     private final Vector3f normal;
 
+    /**
+     * The collision reaction.
+     */
     private CollisionReaction collisionReaction;
 
+    /**
+     * The two dot value.
+     */
     private float twoDot;
-    private float len;
-    private float collisionThreshold;
-    private float restitution;
 
-    private boolean enabled;
+    /**
+     * The length value.
+     */
+    private float len;
+
+    /**
+     * The collision threshold value.
+     */
+    private float collisionThreshold;
+
+    /**
+     * The restitution value.
+     */
+    private float restitution;
 
     public PhysicsInfluencer() {
         this.geometries = new GeometryList(new OpaqueComparator());
@@ -79,7 +135,6 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         this.collisionReaction = CollisionReaction.BOUNCE;
         this.collisionThreshold = 0.1f;
         this.restitution = 0.5f;
-        this.enabled = true;
         geom.setMesh(quad);
         quad.updateBound();
         geom.updateModelBound();
@@ -92,8 +147,8 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
-        if (!enabled) return;
+    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+
         if (!particleData.collision) {
             findCollisions(particleData, tpf);
         } else {
@@ -103,8 +158,16 @@ public class PhysicsInfluencer implements ParticleInfluencer {
                 particleData.collisionInterval = 0;
             }
         }
+
+        super.updateImpl(particleData, tpf);
     }
 
+    /**
+     * Find collisions.
+     *
+     * @param particleData the particle data.
+     * @param tpf          the tpf.
+     */
     private void findCollisions(final @NotNull ParticleData particleData, final float tpf) {
         for (int i = 0; i < geometries.size(); i++) {
             final Geometry geometry = geometries.get(i);
@@ -113,12 +176,13 @@ public class PhysicsInfluencer implements ParticleInfluencer {
                 if (results.size() != 0) results.clear();
 
                 updateCollisionShape(particleData, tpf);
+
                 geometry.collideWith(geom.getWorldBound(), results);
 
                 if (results.size() > 0) {
                     result = results.getClosestCollision();
                     switch (collisionReaction) {
-                        case BOUNCE:
+                        case BOUNCE: {
                             contactSurface = result.getTriangle(null);
                             contactSurface.calculateNormal();
                             normal.set(contactSurface.getNormal());
@@ -129,12 +193,15 @@ public class PhysicsInfluencer implements ParticleInfluencer {
                             particleData.velocity.set(reflect).multLocal(len);
                             particleData.collision = true;
                             break;
-                        case STICK:
+                        }
+                        case STICK: {
                             particleData.velocity.set(0, 0, 0);
                             break;
-                        case DESTROY:
+                        }
+                        case DESTROY: {
                             particleData.emitterNode.killParticle(particleData);
                             break;
+                        }
                     }
                 }
             } catch (final Exception ex) {
@@ -143,6 +210,12 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         }
     }
 
+    /**
+     * Update collision shape.
+     *
+     * @param particleData the particle data.
+     * @param tpf          the tpf.
+     */
     private void updateCollisionShape(@NotNull final ParticleData particleData, final float tpf) {
         final Vector3f angles = particleData.angles;
         quat.fromAngles(angles.x, angles.y, angles.z);
@@ -154,6 +227,11 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         geom.updateModelBound();
     }
 
+    /**
+     * Add collidable geometry to this influencer.
+     *
+     * @param geometry the geometry.
+     */
     public void addCollidable(@NotNull final Geometry geometry) {
 
         for (int i = 0; i < geometries.size(); i++) {
@@ -165,8 +243,13 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         geometries.add(geometry);
     }
 
+    /**
+     * Remove the collidable geometry from this influencer.
+     *
+     * @param geometry the geometry.
+     */
     public void removeCollidable(@NotNull final Geometry geometry) {
-        boolean wasEnabled = enabled;
+        boolean wasEnabled = isEnabled();
         setEnabled(false);
         try {
 
@@ -216,10 +299,6 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void initialize(@NotNull final ParticleData particleData) {
-    }
-
-    @Override
     public void reset(@NotNull final ParticleData particleData) {
         particleData.collision = false;
         particleData.collisionInterval = 0;
@@ -239,10 +318,16 @@ public class PhysicsInfluencer implements ParticleInfluencer {
         return collisionReaction;
     }
 
+    /**
+     * @return the collision threshold value.
+     */
     public float getCollisionThreshold() {
         return collisionThreshold;
     }
 
+    /**
+     * @param collisionThreshold the collision threshold value.
+     */
     public void setCollisionThreshold(final float collisionThreshold) {
         this.collisionThreshold = collisionThreshold;
     }
@@ -250,7 +335,6 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
         final OutputCapsule capsule = exporter.getCapsule(this);
-        capsule.write(enabled, "enabled", true);
         capsule.write(collisionThreshold, "collisionThreshold", 0.1f);
         capsule.write(restitution, "restitution", 0.5f);
         capsule.write(collisionReaction.ordinal(), "collisionReaction", CollisionReaction.BOUNCE.ordinal());
@@ -259,7 +343,6 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
         final InputCapsule capsule = importer.getCapsule(this);
-        enabled = capsule.readBoolean("enabled", true);
         collisionThreshold = capsule.readFloat("collisionThreshold", 0.1f);
         restitution = capsule.readFloat("restitution", 0.5f);
         collisionReaction = CollisionReaction.valueOf(capsule.readInt("collisionReaction", CollisionReaction.BOUNCE.ordinal()));
@@ -274,25 +357,10 @@ public class PhysicsInfluencer implements ParticleInfluencer {
     @NotNull
     @Override
     public ParticleInfluencer clone() {
-        try {
-            final PhysicsInfluencer clone = (PhysicsInfluencer) super.clone();
-            clone.setEnabled(enabled);
-            clone.setCollisionReaction(collisionReaction);
-            clone.setRestitution(restitution);
-            clone.setCollisionThreshold(collisionThreshold);
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
-    }
-
-    @Override
-    public void setEnabled(final boolean enable) {
-        this.enabled = enable;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
+        final PhysicsInfluencer clone = (PhysicsInfluencer) super.clone();
+        clone.setCollisionReaction(collisionReaction);
+        clone.setRestitution(restitution);
+        clone.setCollisionThreshold(collisionThreshold);
+        return clone;
     }
 }

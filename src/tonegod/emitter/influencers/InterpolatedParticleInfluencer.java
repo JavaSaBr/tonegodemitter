@@ -45,4 +45,22 @@ public interface InterpolatedParticleInfluencer extends ParticleInfluencer {
      */
     @NotNull
     Array<Interpolation> getInterpolations();
+
+    /**
+     * @return true if using cycle changing.
+     */
+    boolean isCycle();
+
+    /**
+     * Returns the current duration used between frames for cycled animation
+     */
+    float getFixedDuration();
+
+    /**
+     * Animated texture should cycle and use the provided duration between frames (0 diables
+     * cycling)
+     *
+     * @param fixedDuration duration between frame updates
+     */
+    void setFixedDuration(final float fixedDuration);
 }

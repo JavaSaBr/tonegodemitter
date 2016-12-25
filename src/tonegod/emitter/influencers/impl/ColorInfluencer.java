@@ -49,24 +49,9 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     private final ColorRGBA endColor;
 
     /**
-     * The blend value.
-     */
-    private float blend;
-
-    /**
-     * The fixed duration.
-     */
-    private float fixedDuration;
-
-    /**
      * The flag of using random start color.
      */
     private boolean randomStartColor;
-
-    /**
-     * The flag of cycling changing colors.
-     */
-    private boolean cycle;
 
     public ColorInfluencer() {
         this.colors = ArrayFactory.newUnsafeArray(ColorRGBA.class);
@@ -150,7 +135,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         }
 
         particleData.colorInterval = 0F;
-        particleData.colorDuration = isCycle() ? fixedDuration : particleData.startlife / ((float) interpolations.size() - 1);
+        particleData.colorDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) interpolations.size() - 1);
         particleData.color.set(colors.get(particleData.colorIndex));
         particleData.colorInterpolation = interpolations.get(particleData.colorIndex);
 
@@ -163,13 +148,6 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         particleData.colorIndex = 0;
         particleData.colorInterval = 0;
         super.reset(particleData);
-    }
-
-    /**
-     * @return true is changing is cycled.
-     */
-    public boolean isCycle() {
-        return cycle;
     }
 
     /**
@@ -271,8 +249,6 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(colors.toArray(new ColorRGBA[colors.size()]), "colors", null);
         capsule.write(randomStartColor, "randomStartColor", false);
-        capsule.write(cycle, "cycle", false);
-        capsule.write(fixedDuration, "fixedDuration", 0.125f);
     }
 
     @Override
@@ -285,8 +261,6 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
                 (savable, toStore) -> toStore.add((ColorRGBA) savable));
 
         randomStartColor = capsule.readBoolean("randomStartColor", false);
-        cycle = capsule.readBoolean("cycle", false);
-        fixedDuration = capsule.readFloat("fixedDuration", 0.125f);
     }
 
     @NotNull
@@ -295,31 +269,6 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         final ColorInfluencer clone = (ColorInfluencer) super.clone();
         clone.colors.addAll(colors);
         clone.randomStartColor = randomStartColor;
-        clone.cycle = cycle;
-        clone.fixedDuration = fixedDuration;
         return clone;
-    }
-
-    /**
-     * Animated texture should cycle and use the provided duration between frames (0 diables
-     * cycling)
-     *
-     * @param fixedDuration duration between step updates
-     */
-    public void setFixedDuration(final float fixedDuration) {
-        if (fixedDuration != 0) {
-            this.cycle = true;
-            this.fixedDuration = fixedDuration;
-        } else {
-            this.cycle = false;
-            this.fixedDuration = 0;
-        }
-    }
-
-    /**
-     * Returns the current duration used between steps for cycled animation
-     */
-    public float getFixedDuration() {
-        return fixedDuration;
     }
 }

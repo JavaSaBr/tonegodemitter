@@ -124,7 +124,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     private void updateRotation(@NotNull final ParticleData particleData) {
         particleData.rotationIndex++;
 
-        if (!cycle) {
+        if (!isCycle()) {
             if (particleData.rotationIndex == speeds.size() - 1) {
                 particleData.rotationIndex = 0;
             }
@@ -188,6 +188,13 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
         }
 
         super.initializeImpl(particleData);
+    }
+
+    /**
+     * @return true changing is cycled.
+     */
+    public boolean isCycle() {
+        return cycle;
     }
 
     /**

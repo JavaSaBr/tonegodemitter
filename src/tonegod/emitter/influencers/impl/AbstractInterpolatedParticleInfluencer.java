@@ -30,6 +30,21 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
      */
     private final UnsafeArray<Interpolation> interpolations;
 
+    /**
+     * The fixed duration.
+     */
+    private float fixedDuration;
+
+    /**
+     * The blend value.
+     */
+    protected float blend;
+
+    /**
+     * The flag of cycling changing.
+     */
+    private boolean cycle;
+
     public AbstractInterpolatedParticleInfluencer() {
         this.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
     }
@@ -58,6 +73,36 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
      */
     protected final void clearInterpolations() {
         interpolations.clear();
+    }
+
+    @Override
+    public final boolean isCycle() {
+        return cycle;
+    }
+
+    /**
+     * @param cycle the flag of cycling changing.
+     */
+    protected final void setCycle(final boolean cycle) {
+        this.cycle = cycle;
+    }
+
+    @Override
+    public final void setFixedDuration(final float fixedDuration) {
+        if (fixedDuration != 0) {
+            this.cycle = true;
+            this.fixedDuration = fixedDuration;
+        } else {
+            this.cycle = false;
+            this.fixedDuration = 0;
+        }
+    }
+
+    /**
+     * Returns the current duration used between frames for cycled animation
+     */
+    public final float getFixedDuration() {
+        return fixedDuration;
     }
 
     @NotNull
@@ -92,6 +137,8 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
 
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(interpolationIds, "interpolations", null);
+        capsule.write(cycle, "cycle", false);
+        capsule.write(fixedDuration, "fixedDuration", 0.125f);
     }
 
     @Override
@@ -103,6 +150,9 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
 
         ArrayUtils.forEach(interpolationIds, interpolations,
                 (id, toStore) -> toStore.add(InterpolationManager.getInterpolation(id)));
+
+        cycle = capsule.readBoolean("cycle", false);
+        fixedDuration = capsule.readFloat("fixedDuration", 0.125f);
     }
 
     @NotNull
@@ -110,6 +160,8 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
     public ParticleInfluencer clone() {
         final AbstractInterpolatedParticleInfluencer clone = (AbstractInterpolatedParticleInfluencer) super.clone();
         clone.interpolations.addAll(interpolations);
+        clone.cycle = cycle;
+        clone.fixedDuration = fixedDuration;
         return clone;
     }
 }

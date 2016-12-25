@@ -43,19 +43,9 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     private final Vector3f destinationDir;
 
     /**
-     * The blend value.
-     */
-    private float blend;
-
-    /**
      * The weight value.
      */
     private float weight;
-
-    /**
-     * The fixed duration.
-     */
-    private float fixedDuration;
 
     /**
      * The distance,
@@ -66,11 +56,6 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * The flag of using random start destination.
      */
     private boolean randomStartDestination;
-
-    /**
-     * The flag of cycling changing destinations.
-     */
-    private boolean cycle;
 
     public DestinationInfluencer() {
         this.destinations = ArrayFactory.newUnsafeArray(Vector3f.class);
@@ -132,7 +117,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
 
         final Array<Interpolation> interpolations = getInterpolations();
         particleData.destinationInterval = 0f;
-        particleData.destinationDuration = (cycle) ? fixedDuration : particleData.startlife / ((float) destinations.size());
+        particleData.destinationDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) destinations.size());
         particleData.destinationInterpolation = interpolations.get(particleData.destinationIndex);
     }
 
@@ -276,8 +261,6 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
         capsule.write(destinations.toArray(new Vector3f[destinations.size()]), "destinations", null);
         capsule.write(weightsToSave, "weights", null);
         capsule.write(randomStartDestination, "randomStartDestination", false);
-        capsule.write(cycle, "cycle", false);
-        capsule.write(fixedDuration, "fixedDuration", 0.125f);
     }
 
     @Override
@@ -293,8 +276,6 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
                 (element, toStore) -> toStore.add((float) element));
 
         randomStartDestination = capsule.readBoolean("randomStartDestination", false);
-        cycle = capsule.readBoolean("cycle", false);
-        fixedDuration = capsule.readFloat("fixedDuration", 0.125f);
     }
 
     @NotNull
@@ -303,32 +284,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
         final DestinationInfluencer clone = (DestinationInfluencer) super.clone();
         clone.destinations.addAll(destinations);
         clone.weights.addAll(weights);
-        clone.cycle = cycle;
-        clone.fixedDuration = fixedDuration;
         clone.randomStartDestination = randomStartDestination;
         return clone;
-    }
-
-    /**
-     * Each step value should last the specified duration, cycling once reaching the end of the
-     * defined list (A value of 0 disables cycling)
-     *
-     * @param fixedDuration duration between step value updates
-     */
-    public void setFixedDuration(final float fixedDuration) {
-        if (fixedDuration != 0) {
-            this.cycle = true;
-            this.fixedDuration = fixedDuration;
-        } else {
-            this.cycle = false;
-            this.fixedDuration = 0;
-        }
-    }
-
-    /**
-     * Returns the current duration used between steps for cycling
-     */
-    public float getFixedDuration() {
-        return fixedDuration;
     }
 }

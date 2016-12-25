@@ -44,21 +44,6 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     private float endAlpha;
 
     /**
-     * The blend value.
-     */
-    private float blend;
-
-    /**
-     * The fixed duration.
-     */
-    private float fixedDuration;
-
-    /**
-     * The flag of cycling changing alphas.
-     */
-    private boolean cycle;
-
-    /**
      * The flag of using random start alpha.
      */
     private boolean randomStartAlpha;
@@ -130,18 +115,11 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         }
 
         particleData.alphaInterval = 0f;
-        particleData.alphaDuration = isCycle() ? fixedDuration : particleData.startlife / ((float) interpolations.size() - 1);
+        particleData.alphaDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) interpolations.size() - 1);
         particleData.alpha = alphas.get(particleData.alphaIndex);
         particleData.alphaInterpolation = interpolations.get(particleData.alphaIndex);
 
         super.initializeImpl(particleData);
-    }
-
-    /**
-     * @return true is changing is cycled.
-     */
-    public boolean isCycle() {
-        return cycle;
     }
 
     /**
@@ -240,8 +218,6 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(alphasToSave, "alphas", null);
         capsule.write(randomStartAlpha, "randomStartAlpha", false);
-        capsule.write(cycle, "cycle", false);
-        capsule.write(fixedDuration, "fixedDuration", 0.125f);
     }
 
     @Override
@@ -254,8 +230,6 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
                 (element, toStore) -> toStore.add((float) element));
 
         randomStartAlpha = capsule.readBoolean("randomStartAlpha", false);
-        cycle = capsule.readBoolean("cycle", false);
-        fixedDuration = capsule.readFloat("fixedDuration", 0.125f);
     }
 
     @NotNull
@@ -264,31 +238,6 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         final AlphaInfluencer clone = (AlphaInfluencer) super.clone();
         clone.alphas.addAll(alphas);
         clone.randomStartAlpha = randomStartAlpha;
-        clone.cycle = cycle;
-        clone.fixedDuration = fixedDuration;
         return clone;
-    }
-
-    /**
-     * Animated texture should cycle and use the provided duration between frames (0 diables
-     * cycling)
-     *
-     * @param fixedDuration duration between frame updates
-     */
-    public void setFixedDuration(final float fixedDuration) {
-        if (fixedDuration != 0) {
-            this.cycle = true;
-            this.fixedDuration = fixedDuration;
-        } else {
-            this.cycle = false;
-            this.fixedDuration = 0;
-        }
-    }
-
-    /**
-     * Returns the current duration used between frames for cycled animation
-     */
-    public float getFixedDuration() {
-        return fixedDuration;
     }
 }

@@ -49,29 +49,14 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     private final Vector3f endSize;
 
     /**
-     * The blend value.
-     */
-    private float blend;
-
-    /**
      * The random size tolerance value.
      */
     private float randomSizeTolerance;
 
     /**
-     * The fixed duration.
-     */
-    private float fixedDuration;
-
-    /**
      * The flag of using random size.
      */
     private boolean randomSize;
-
-    /**
-     * The flag of cycling size changing.
-     */
-    private boolean cycle;
 
     public SizeInfluencer() {
         this.sizes = ArrayFactory.newUnsafeArray(Vector3f.class);
@@ -144,20 +129,13 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
 
         particleData.sizeIndex = 0;
         particleData.sizeInterval = 0F;
-        particleData.sizeDuration = isCycle() ? fixedDuration : particleData.startlife / ((float) interpolations.size() - 1 - particleData.sizeIndex);
+        particleData.sizeDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) interpolations.size() - 1 - particleData.sizeIndex);
 
         calculateNextSizeRange(particleData);
 
         particleData.sizeInterpolation = interpolations.get(particleData.sizeIndex);
 
         super.initializeImpl(particleData);
-    }
-
-    /**
-     * @return true is changing is cycled.
-     */
-    public boolean isCycle() {
-        return cycle;
     }
 
     /**
@@ -352,7 +330,6 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
         capsule.write(sizes.toArray(new Vector3f[sizes.size()]), "sizes", null);
         capsule.write(randomSize, "randomSize", false);
         capsule.write(randomSizeTolerance, "randomSizeTolerance", 0.5f);
-        capsule.write(fixedDuration, "fixedDuration", 0f);
     }
 
     @Override
@@ -366,7 +343,6 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
 
         randomSize = capsule.readBoolean("randomSize", false);
         randomSizeTolerance = capsule.readFloat("randomSizeTolerance", 0.5f);
-        fixedDuration = capsule.readFloat("fixedDuration", 0f);
     }
 
     @NotNull
@@ -374,32 +350,8 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     public ParticleInfluencer clone() {
         final SizeInfluencer clone = (SizeInfluencer) super.clone();
         clone.sizes.addAll(sizes);
-        clone.setFixedDuration(fixedDuration);
         clone.setRandomSizeTolerance(randomSizeTolerance);
         clone.setRandomSize(randomSize);
         return clone;
-    }
-
-    /**
-     * Animated texture should cycle and use the provided duration between frames (0 diables
-     * cycling)
-     *
-     * @param fixedDuration duration between frame updates
-     */
-    public void setFixedDuration(final float fixedDuration) {
-        if (fixedDuration != 0) {
-            this.cycle = true;
-            this.fixedDuration = fixedDuration;
-        } else {
-            this.cycle = false;
-            this.fixedDuration = 0;
-        }
-    }
-
-    /**
-     * Returns the current duration used between frames for cycled animation
-     */
-    public float getFixedDuration() {
-        return fixedDuration;
     }
 }

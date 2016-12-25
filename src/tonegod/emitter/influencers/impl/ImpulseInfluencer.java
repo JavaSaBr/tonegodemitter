@@ -1,4 +1,4 @@
-package tonegod.emitter.influencers;
+package tonegod.emitter.influencers.impl;
 
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
 /**
@@ -19,16 +20,32 @@ import tonegod.emitter.particle.ParticleData;
  * @author t0neg0d
  * @edit JavaSaBr
  */
-public class ImpulseInfluencer implements ParticleInfluencer {
+public class ImpulseInfluencer extends AbstractParticleInfluencer {
 
+    /**
+     * The temp vector.
+     */
     private final transient Vector3f temp;
+
+    /**
+     * The temp velocity store.
+     */
     private final transient Vector3f velocityStore;
 
+    /**
+     * The chance.
+     */
     private float chance;
-    private float magnitude;
-    private float strength;
 
-    private boolean enabled;
+    /**
+     * Thr magnitude.
+     */
+    private float magnitude;
+
+    /**
+     * The strength.
+     */
+    private float strength;
 
     public ImpulseInfluencer() {
         this.temp = new Vector3f();
@@ -36,7 +53,6 @@ public class ImpulseInfluencer implements ParticleInfluencer {
         this.chance = 0.02f;
         this.magnitude = 0.2f;
         this.strength = 3;
-        this.enabled = true;
     }
 
     @NotNull
@@ -46,16 +62,13 @@ public class ImpulseInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
-        if (!enabled) return;
+    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
         if (FastMath.rand.nextFloat() <= 1 - (chance + tpf)) return;
 
         velocityStore.set(particleData.velocity);
 
-        temp.set(FastMath.nextRandomFloat() * strength,
-                FastMath.nextRandomFloat() * strength,
-                FastMath.nextRandomFloat() * strength
-        );
+        temp.set(FastMath.nextRandomFloat() * strength, FastMath.nextRandomFloat() * strength,
+                FastMath.nextRandomFloat() * strength);
 
         if (FastMath.rand.nextBoolean()) temp.x = -temp.x;
         if (FastMath.rand.nextBoolean()) temp.y = -temp.y;
@@ -63,15 +76,10 @@ public class ImpulseInfluencer implements ParticleInfluencer {
 
         temp.multLocal(velocityStore.length());
         velocityStore.interpolateLocal(temp, magnitude);
+
         particleData.velocity.interpolateLocal(velocityStore, magnitude);
-    }
 
-    @Override
-    public void initialize(@NotNull final ParticleData particleData) {
-    }
-
-    @Override
-    public void reset(@NotNull final ParticleData particleData) {
+        super.updateImpl(particleData, tpf);
     }
 
     /**
@@ -130,45 +138,28 @@ public class ImpulseInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void write(JmeExporter ex) throws IOException {
-        OutputCapsule oc = ex.getCapsule(this);
-        oc.write(chance, "chance", 0.02f);
-        oc.write(magnitude, "magnitude", 0.2f);
-        oc.write(strength, "strength", 3f);
-        oc.write(enabled, "enabled", true);
+    public void write(@NotNull final JmeExporter exporter) throws IOException {
+        final OutputCapsule capsule = exporter.getCapsule(this);
+        capsule.write(chance, "chance", 0.02f);
+        capsule.write(magnitude, "magnitude", 0.2f);
+        capsule.write(strength, "strength", 3f);
     }
 
     @Override
-    public void read(JmeImporter im) throws IOException {
-        InputCapsule ic = im.getCapsule(this);
-        chance = ic.readFloat("chance", 0.02f);
-        magnitude = ic.readFloat("magnitude", 0.2f);
-        strength = ic.readFloat("strength", 3f);
-        enabled = ic.readBoolean("enabled", true);
+    public void read(@NotNull final JmeImporter importer) throws IOException {
+        final InputCapsule capsule = importer.getCapsule(this);
+        chance = capsule.readFloat("chance", 0.02f);
+        magnitude = capsule.readFloat("magnitude", 0.2f);
+        strength = capsule.readFloat("strength", 3f);
     }
 
     @NotNull
     @Override
     public ParticleInfluencer clone() {
-        try {
-            ImpulseInfluencer clone = (ImpulseInfluencer) super.clone();
-            clone.setChance(chance);
-            clone.setMagnitude(magnitude);
-            clone.setStrength(strength);
-            clone.setEnabled(enabled);
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
-    }
-
-    @Override
-    public void setEnabled(final boolean enable) {
-        this.enabled = enable;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
+        final ImpulseInfluencer clone = (ImpulseInfluencer) super.clone();
+        clone.setChance(chance);
+        clone.setMagnitude(magnitude);
+        clone.setStrength(strength);
+        return clone;
     }
 }
