@@ -31,7 +31,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     /**
      * The list of colors.
      */
-    private final UnsafeArray<ColorRGBA> colors;
+    private UnsafeArray<ColorRGBA> colors;
 
     /**
      * The reset color.
@@ -272,6 +272,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     public ParticleInfluencer clone() {
         final ColorInfluencer clone = (ColorInfluencer) super.clone();
+        clone.colors = ArrayFactory.newUnsafeArray(ColorRGBA.class);
         clone.colors.addAll(colors);
         clone.randomStartColor = randomStartColor;
         return clone;

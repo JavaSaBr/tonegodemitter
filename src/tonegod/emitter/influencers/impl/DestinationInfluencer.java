@@ -30,12 +30,12 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     /**
      * The list of destinations.
      */
-    private final UnsafeArray<Vector3f> destinations;
+    private UnsafeArray<Vector3f> destinations;
 
     /**
      * The list of weights.
      */
-    private final UnsafeArray<Float> weights;
+    private UnsafeArray<Float> weights;
 
     /**
      * The destination direction.
@@ -136,24 +136,24 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * When enabled, the initial step the particle will start at will be randomly selected from the
-     * defined list of directions
+     * When enabled, the initial step the particle will start at will be randomly selected from the defined list of
+     * directions
      */
     public void setRandomStartDestination(final boolean randomStartDestination) {
         this.randomStartDestination = randomStartDestination;
     }
 
     /**
-     * Returns if the influencer will start a newly emitted particle at a random step in the
-     * provided list of directions
+     * Returns if the influencer will start a newly emitted particle at a random step in the provided list of
+     * directions
      */
     public boolean isRandomStartDestination() {
         return randomStartDestination;
     }
 
     /**
-     * Adds a destination using linear interpolation to the list of destinations used during the
-     * life cycle of the particle
+     * Adds a destination using linear interpolation to the list of destinations used during the life cycle of the
+     * particle
      *
      * @param destination The destination the particle will move towards
      * @param weight      How strong the pull towards the destination should be
@@ -163,13 +163,12 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Adds a destination using the defined interpolation to the list of destinations used during
-     * the life cycle of the particle
+     * Adds a destination using the defined interpolation to the list of destinations used during the life cycle of the
+     * particle
      *
      * @param destination   The destination the particle will move towards
      * @param weight        How strong the pull towards the destination should be
-     * @param interpolation The interpolation method used to blend from the this step value to the
-     *                      next
+     * @param interpolation The interpolation method used to blend from the this step value to the next
      */
     public void addDestination(@NotNull final Vector3f destination, final float weight, @NotNull final Interpolation interpolation) {
         addInterpolation(interpolation);
@@ -296,7 +295,9 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     public ParticleInfluencer clone() {
         final DestinationInfluencer clone = (DestinationInfluencer) super.clone();
+        clone.destinations = ArrayFactory.newUnsafeArray(Vector3f.class);
         clone.destinations.addAll(destinations);
+        clone.weights = ArrayFactory.newUnsafeArray(Float.class);
         clone.weights.addAll(weights);
         clone.randomStartDestination = randomStartDestination;
         return clone;

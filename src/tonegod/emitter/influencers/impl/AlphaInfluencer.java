@@ -31,7 +31,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     /**
      * The list of alphas.
      */
-    private final UnsafeArray<Float> alphas;
+    private UnsafeArray<Float> alphas;
 
     /**
      * The start alpha.
@@ -155,8 +155,8 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Adds a alpha step value using linear interpolation to the chain of values used throughout the
-     * particles life span
+     * Adds a alpha step value using linear interpolation to the chain of values used throughout the particles life
+     * span
      */
     public void addAlpha(final float alpha) {
         addAlpha(alpha, Interpolation.LINEAR);
@@ -255,6 +255,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     public ParticleInfluencer clone() {
         final AlphaInfluencer clone = (AlphaInfluencer) super.clone();
+        clone.alphas = ArrayFactory.newUnsafeArray(Float.class);
         clone.alphas.addAll(alphas);
         clone.randomStartAlpha = randomStartAlpha;
         return clone;

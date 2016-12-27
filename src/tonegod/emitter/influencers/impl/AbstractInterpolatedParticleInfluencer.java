@@ -28,7 +28,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
     /**
      * The list of interpolations.
      */
-    private final UnsafeArray<Interpolation> interpolations;
+    private UnsafeArray<Interpolation> interpolations;
 
     /**
      * The fixed duration.
@@ -159,6 +159,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
     @Override
     public ParticleInfluencer clone() {
         final AbstractInterpolatedParticleInfluencer clone = (AbstractInterpolatedParticleInfluencer) super.clone();
+        clone.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
         clone.interpolations.addAll(interpolations);
         clone.cycle = cycle;
         clone.fixedDuration = fixedDuration;
