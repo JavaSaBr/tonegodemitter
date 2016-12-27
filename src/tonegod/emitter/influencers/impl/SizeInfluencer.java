@@ -30,7 +30,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     /**
      * The list of sizes.
      */
-    private final UnsafeArray<Vector3f> sizes;
+    private UnsafeArray<Vector3f> sizes;
 
     /**
      * The vectors for temp calculating.
@@ -353,6 +353,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     @Override
     public ParticleInfluencer clone() {
         final SizeInfluencer clone = (SizeInfluencer) super.clone();
+        clone.sizes = ArrayFactory.newUnsafeArray(Vector3f.class);
         clone.sizes.addAll(sizes);
         clone.setRandomSizeTolerance(randomSizeTolerance);
         clone.setRandomSize(randomSize);

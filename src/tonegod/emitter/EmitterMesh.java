@@ -272,6 +272,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
     @Override
     public void cloneFields(final Cloner cloner, final Object original) {
         mesh = cloner.clone(mesh);
+        emitterNode = cloner.clone(emitterNode);
         triStore = cloner.clone(triStore);
         p1 = cloner.clone(p1);
         p2 = cloner.clone(p2);

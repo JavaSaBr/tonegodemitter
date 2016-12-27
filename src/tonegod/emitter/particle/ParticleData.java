@@ -3,10 +3,13 @@ package tonegod.emitter.particle;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.util.clone.Cloner;
+import com.jme3.util.clone.JmeCloneable;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import rlib.util.array.Array;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
@@ -14,13 +17,15 @@ import tonegod.emitter.interpolation.Interpolation;
 /**
  * @author t0neg0d
  */
-public class ParticleData implements Cloneable {
+public class ParticleData implements Cloneable, JmeCloneable {
 
     /**
      * ParticleData velocity.
      */
     public final Vector3f velocity = new Vector3f();
+
     public final Vector3f reverseVelocity = new Vector3f();
+
     /**
      * Current particle position
      */
@@ -30,17 +35,23 @@ public class ParticleData implements Cloneable {
      * ParticleData color
      */
     public final ColorRGBA color = new ColorRGBA(1, 1, 1, 1);
+
     public int colorIndex = 0;
+
     public float colorInterval = 0f;
     public float colorDuration = 1f;
+
     public Interpolation colorInterpolation;
+
     /**
      * Particle alpha
      */
     public float alpha = 1;
-    public int alphaIndex = 0;
     public float alphaInterval = 0;
     public float alphaDuration = 1;
+
+    public int alphaIndex = 0;
+
     public Interpolation alphaInterpolation;
 
     /**
@@ -72,26 +83,34 @@ public class ParticleData implements Cloneable {
     public Vector3f size = new Vector3f(1f, 1f, 1f);
     public Vector3f startSize = new Vector3f(1, 1, 1);
     public Vector3f endSize = new Vector3f(0, 0, 0);
+
     public int sizeIndex = 0;
+
     public float sizeInterval = 0;
     public float sizeDuration = 1;
+
     public Interpolation sizeInterpolation;
 
     /**
      *
      */
     public int destinationIndex = 0;
+
     public Vector3f previousPosition = new Vector3f();
+
     public float destinationInterval = 0;
     public float destinationDuration = 1;
+
     public Interpolation destinationInterpolation;
 
     /**
      *
      */
     public int directionIndex = 0;
+
     public float directionInterval = 0;
     public float directionDuration = 1;
+
     public Interpolation directionInterpolation;
 
     /**
@@ -201,9 +220,9 @@ public class ParticleData implements Cloneable {
             blend = 1.0f * (startlife - life) / startlife;
             interpBlend = emitterNode.getInterpolation().apply(blend);
         }
-        for (ParticleInfluencer influencer : emitterNode.getInfluencers()) {
-            influencer.update(this, tpf);
-        }
+
+        final Array<ParticleInfluencer> influencers = emitterNode.getInfluencers();
+        influencers.forEach(tpf, this, (pd, frames, node) -> pd.update(node, frames));
 
         tempV3.set(velocity).multLocal(tpf);
         position.addLocal(tempV3);
@@ -256,13 +275,13 @@ public class ParticleData implements Cloneable {
         initialPosition.set(
                 emitterNode.getWorldTranslation()
         );
+
         //	spriteIndex = 0;
         //	spriteCol = 0;
         //	spriteRow = 0;
 
-        for (ParticleInfluencer influencer : emitterNode.getInfluencers()) {
-            influencer.initialize(this);
-        }
+        final Array<ParticleInfluencer> influencers = emitterNode.getInfluencers();
+        influencers.forEach(this, ParticleInfluencer::initialize);
 
         switch (emitterNode.getParticleEmissionPoint()) {
             case PARTICLE_EDGE_BOTTOM:
@@ -283,11 +302,28 @@ public class ParticleData implements Cloneable {
      */
     public void reset() {
         active = false;
-        if (emitterNode.getActiveParticleCount() > 0)
+
+        if (emitterNode.getActiveParticleCount() > 0) {
             emitterNode.decActiveParticleCount();
-        for (ParticleInfluencer influencer : emitterNode.getInfluencers()) {
-            influencer.reset(this);
         }
+
+        final Array<ParticleInfluencer> influencers = emitterNode.getInfluencers();
+        influencers.forEach(this, ParticleInfluencer::reset);
+
         emitterNode.setNextIndex(index);
+    }
+
+    @Override
+    public Object jmeClone() {
+        try {
+            return super.clone();
+        } catch (final CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void cloneFields(final Cloner cloner, final Object original) {
+
     }
 }

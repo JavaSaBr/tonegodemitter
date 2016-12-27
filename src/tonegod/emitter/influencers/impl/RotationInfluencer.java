@@ -28,7 +28,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     /**
      * The list of speeds.
      */
-    private final UnsafeArray<Vector3f> speeds;
+    private UnsafeArray<Vector3f> speeds;
 
     /**
      * The speed factor.
@@ -301,24 +301,21 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     /**
-     * Allows the influencer to choose a random rotation direction per axis as the particle is
-     * emitted.
+     * Allows the influencer to choose a random rotation direction per axis as the particle is emitted.
      */
     public void setRandomDirection(final boolean randomDirection) {
         this.randomDirection = randomDirection;
     }
 
     /**
-     * Returns if the influencer currently selects a random rotation direction per axis as the
-     * particle is emitted.
+     * Returns if the influencer currently selects a random rotation direction per axis as the particle is emitted.
      */
     public boolean isRandomDirection() {
         return randomDirection;
     }
 
     /**
-     * Allows the influencer to select a random rotation speed from 0 to the provided maximum speeds
-     * per axis
+     * Allows the influencer to select a random rotation speed from 0 to the provided maximum speeds per axis
      */
     public void setRandomSpeed(final boolean randomSpeed) {
         this.randomSpeed = randomSpeed;
@@ -426,6 +423,8 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     @Override
     public ParticleInfluencer clone() {
         final RotationInfluencer clone = (RotationInfluencer) super.clone();
+        clone.speeds = ArrayFactory.newUnsafeArray(Vector3f.class);
+        clone.speeds.addAll(speeds);
         clone.setDirection(direction);
         clone.setRandomDirection(randomDirection);
         clone.setRandomSpeed(randomSpeed);
