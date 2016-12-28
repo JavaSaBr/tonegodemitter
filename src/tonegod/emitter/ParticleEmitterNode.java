@@ -8,6 +8,7 @@ import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
 import com.jme3.asset.AssetManager;
+import com.jme3.asset.MaterialKey;
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
@@ -15,6 +16,7 @@ import com.jme3.export.OutputCapsule;
 import com.jme3.export.Savable;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
@@ -564,22 +566,28 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     private void initMaterials() {
-        if (material != null && testMat != null) return;
 
-        final Texture texture = assetManager.loadTexture("textures/default.png");
-        texture.setMinFilter(MinFilter.BilinearNearestMipMap);
-        texture.setMagFilter(MagFilter.Bilinear);
+        if(material == null) {
 
-        material = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
-        material.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-        material.getAdditionalRenderState().setBlendMode(BlendMode.AlphaAdditive);
-        material.getAdditionalRenderState().setDepthTest(false);
-        material.setTexture("Texture", texture);
+            final Texture texture = assetManager.loadTexture("textures/default.png");
+            texture.setMinFilter(MinFilter.BilinearNearestMipMap);
+            texture.setMagFilter(MagFilter.Bilinear);
 
-        testMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        testMat.setColor("Color", ColorRGBA.Blue);
-        testMat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-        testMat.getAdditionalRenderState().setWireframe(true);
+            material = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+            material.setTexture("Texture", texture);
+
+            RenderState renderState = material.getAdditionalRenderState();
+            renderState.setFaceCullMode(FaceCullMode.Off);
+            renderState.setBlendMode(BlendMode.AlphaAdditive);
+            renderState.setDepthTest(false);
+        }
+
+        if(testMat == null) {
+            testMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            testMat.setColor("Color", ColorRGBA.Blue);
+            testMat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+            testMat.getAdditionalRenderState().setWireframe(true);
+        }
     }
 
     public ParticleDataMeshInfo getParticleMeshType() {
@@ -1340,7 +1348,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.applyLightingTransform = applyLightingTransform;
         this.textureParamName = textureParamName;
 
-        if (emitterInitialized) {
+        if (isEmitterInitialized()) {
             final MatParamTexture textureParam = material.getTextureParam(textureParamName);
             final Texture texture = textureParam.getTextureValue();
             texture.setMinFilter(MinFilter.BilinearNearestMipMap);
@@ -1372,7 +1380,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * Returns if the emitter will update normals for lighting materials
      */
-    public boolean getApplyLightingTransform() {
+    public boolean isApplyLightingTransform() {
         return applyLightingTransform;
     }
 
@@ -1454,7 +1462,12 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             return;
         }
 
-        initialize(assetManager, true, true);
+        try {
+            initialize(assetManager, true, true);
+        } catch (final Exception e){
+            LOGGER.warning(this, e);
+            setEnabled(false);
+        }
     }
 
     /**
@@ -1813,6 +1826,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         // MATERIALS
         capsule.write(textureParamName, "textureParamName", null);
         capsule.write(material, "material", null);
+        capsule.write(material.getKey(), "materialKey", null);
         capsule.write(applyLightingTransform, "applyLightingTransform", false);
         capsule.write(spriteCols, "spriteCols", 0);
         capsule.write(spriteRows, "spriteRows", 0);
@@ -1876,8 +1890,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setInterpolation((Interpolation) capsule.readSavable("interpolation", Interpolation.LINEAR));
 
         // MATERIALS
+        final MaterialKey materialKey = (MaterialKey) capsule.readSavable("materialKey", null);
         final String textureParamName = capsule.readString("textureParamName", null);
-        final Material material = (Material) capsule.readSavable("material", null);
+        final Material material = materialKey == null? (Material) capsule.readSavable("material", null) : assetManager.loadAsset(materialKey);
         final boolean applyLightingTransform = capsule.readBoolean("applyLightingTransform", false);
 
         setMaterial(material, textureParamName, applyLightingTransform);

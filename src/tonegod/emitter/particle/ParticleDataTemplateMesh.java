@@ -277,7 +277,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
                 finVerts.put(offset + x + 2, tempV3.getZ());
 
             }
-            if (p.emitterNode.getApplyLightingTransform()) {
+            if (p.emitterNode.isApplyLightingTransform()) {
                 for (int v = 0; v < templateNormals.capacity(); v += 3) {
                     tempV3.set(templateNormals.get(v), templateNormals.get(v + 1), templateNormals.get(v + 2));
 
@@ -302,7 +302,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
         }
 
         this.setBuffer(VertexBuffer.Type.Position, 3, finVerts);
-        if (particles[0].emitterNode.getApplyLightingTransform())
+        if (particles[0].emitterNode.isApplyLightingTransform())
             this.setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
         this.setBuffer(VertexBuffer.Type.Color, 4, finColors);
 
