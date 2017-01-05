@@ -1878,7 +1878,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setParticlesFollowEmitter(capsule.readBoolean("particlesFollowEmitter", false));
 
         // PARTICLES MESH DATA
-        final Class<? extends ParticleDataMesh> meshType = Util.safeGet(capsule, first ->
+        final Class<? extends ParticleDataMesh> meshType = Util.get(capsule, first ->
                 unsafeCast(forName(first.readString("particleDataMeshType", ParticleDataTriMesh.class.getName()))));
 
         final Mesh template = (Mesh) capsule.readSavable("particleMeshTemplate", null);
