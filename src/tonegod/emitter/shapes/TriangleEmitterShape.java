@@ -17,6 +17,8 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 /**
+ * The triangle implementation of emitter shape.
+ *
  * @author t0neg0d
  * @edit JavaSaBr
  */
@@ -43,6 +45,9 @@ public class TriangleEmitterShape extends Mesh {
     @NotNull
     protected final Triangle triangle;
 
+    /**
+     * The size.
+     */
     protected float size;
 
     public TriangleEmitterShape() {

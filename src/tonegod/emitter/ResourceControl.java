@@ -11,6 +11,8 @@ import java.util.ResourceBundle;
 import java.util.ResourceBundle.Control;
 
 /**
+ * The resource loading control.
+ *
  * @author JavaSaBr
  */
 public class ResourceControl extends Control {

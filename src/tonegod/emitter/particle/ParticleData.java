@@ -17,7 +17,7 @@ import tonegod.emitter.interpolation.Interpolation;
 /**
  * @author t0neg0d
  */
-public class ParticleData implements Cloneable, JmeCloneable {
+public final class ParticleData implements Cloneable, JmeCloneable {
 
     /**
      * ParticleData velocity.
@@ -283,18 +283,25 @@ public class ParticleData implements Cloneable, JmeCloneable {
         final Array<ParticleInfluencer> influencers = emitterNode.getInfluencers();
         influencers.forEach(this, ParticleInfluencer::initialize);
 
-        switch (emitterNode.getParticleEmissionPoint()) {
-            case PARTICLE_EDGE_BOTTOM:
+        switch (emitterNode.getEmissionPoint()) {
+            case EDGE_BOTTOM:
                 tempV3.set(emitterNode.getEmitterShape().getNextDirection()).normalizeLocal();
                 tempV3.multLocal(startSize.getY());
                 position.addLocal(tempV3);
                 break;
-            case PARTICLE_EDGE_TOP:
+            case EDGE_TOP:
                 tempV3.set(emitterNode.getEmitterShape().getNextDirection()).normalizeLocal();
                 tempV3.multLocal(startSize.getY());
                 position.subtractLocal(tempV3);
                 break;
         }
+    }
+
+    /**
+     * @return the velocity.
+     */
+    public Vector3f getVelocity() {
+        return velocity;
     }
 
     /**
@@ -325,5 +332,9 @@ public class ParticleData implements Cloneable, JmeCloneable {
     @Override
     public void cloneFields(final Cloner cloner, final Object original) {
 
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }

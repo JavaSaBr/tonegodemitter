@@ -11,6 +11,10 @@ public class Messages {
 
     public static final String BUNDLE_NAME = "tonegod/emitter/messages/messages";
 
+    public static final String EMISSION_POINT_CENTER;
+    public static final String EMISSION_POINT_EDGE_TOP;
+    public static final String EMISSION_POINT_EDGE_BOTTOM;
+
     public static final String INTERPOLATION_LINEAR;
     public static final String INTERPOLATION_FADE;
     public static final String INTERPOLATION_SINE;
@@ -86,5 +90,9 @@ public class Messages {
         INTERPOLATION_ELASTIC = bundle.getString("Interpolation.Elastic");
         INTERPOLATION_ELASTIC_IN = bundle.getString("Interpolation.ElasticIn");
         INTERPOLATION_ELASTIC_OUT = bundle.getString("Interpolation.ElasticOut");
+
+        EMISSION_POINT_CENTER = bundle.getString("Emission.Point.Center");
+        EMISSION_POINT_EDGE_TOP = bundle.getString("Emission.Point.EdgeTop");
+        EMISSION_POINT_EDGE_BOTTOM = bundle.getString("Emission.Point.EdgeBottom");
     }
 }

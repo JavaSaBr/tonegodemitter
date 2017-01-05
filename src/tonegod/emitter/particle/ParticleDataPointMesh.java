@@ -8,50 +8,41 @@ import com.jme3.scene.VertexBuffer.Format;
 import com.jme3.scene.VertexBuffer.Usage;
 import com.jme3.util.BufferUtils;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import tonegod.emitter.ParticleEmitterNode;
 
 /**
+ * The implementation of data mesh to use point mesh.
+ *
  * @author t0neg0d
+ * @edit JavaSaBr
  */
-public class ParticleDataPointMesh extends ParticleDataMesh {
+public final class ParticleDataPointMesh extends ParticleDataMesh {
 
-    private ParticleEmitterNode particleEmitterNode;
-
-    private int imagesX = 1;
-    private int imagesY = 1;
-
-    @Override
-    public void setImagesXY(int imagesX, int imagesY) {
-        this.imagesX = imagesX;
-        this.imagesY = imagesY;
-    }
-
-    public int getSpriteCols() {
-        return this.imagesX;
-    }
-
-    public int getSpriteRows() {
-        return this.imagesY;
+    public ParticleDataPointMesh() {
+        super();
     }
 
     @Override
-    public void initParticleData(ParticleEmitterNode particleEmitterNode, int numParticles) {
+    public void initParticleData(@NotNull final ParticleEmitterNode particleEmitterNode, final int numParticles) {
+        super.initParticleData(particleEmitterNode, numParticles);
+
         setMode(Mode.Points);
-
-        this.particleEmitterNode = particleEmitterNode;
 
         // set positions
         FloatBuffer pb = BufferUtils.createVector3Buffer(numParticles);
 
-        //if the buffer is already set only update the data
+        // if the buffer is already set only update the data
         VertexBuffer buf = getBuffer(VertexBuffer.Type.Position);
+
         if (buf != null) {
             buf.updateData(pb);
         } else {
-            VertexBuffer pvb = new VertexBuffer(VertexBuffer.Type.Position);
+            final VertexBuffer pvb = new VertexBuffer(VertexBuffer.Type.Position);
             pvb.setupData(Usage.Stream, 3, Format.Float, pb);
             setBuffer(pvb);
         }
@@ -60,6 +51,7 @@ public class ParticleDataPointMesh extends ParticleDataMesh {
         ByteBuffer cb = BufferUtils.createByteBuffer(numParticles * 4);
 
         buf = getBuffer(VertexBuffer.Type.Color);
+
         if (buf != null) {
             buf.updateData(cb);
         } else {
@@ -73,6 +65,7 @@ public class ParticleDataPointMesh extends ParticleDataMesh {
         FloatBuffer sb = BufferUtils.createFloatBuffer(numParticles);
 
         buf = getBuffer(VertexBuffer.Type.Size);
+
         if (buf != null) {
             buf.updateData(sb);
         } else {
@@ -85,6 +78,7 @@ public class ParticleDataPointMesh extends ParticleDataMesh {
         FloatBuffer tb = BufferUtils.createFloatBuffer(numParticles * 4);
 
         buf = getBuffer(VertexBuffer.Type.TexCoord);
+
         if (buf != null) {
             buf.updateData(tb);
         } else {
@@ -97,18 +91,20 @@ public class ParticleDataPointMesh extends ParticleDataMesh {
     }
 
     @Override
-    public void updateParticleData(ParticleData[] particles, Camera cam, Matrix3f inverseRotation) {
-        VertexBuffer pvb = getBuffer(VertexBuffer.Type.Position);
-        FloatBuffer positions = (FloatBuffer) pvb.getData();
+    public void updateParticleData(@NotNull final ParticleData[] particles, @NotNull final Camera camera,
+                                   @NotNull final Matrix3f inverseRotation) {
 
-        VertexBuffer cvb = getBuffer(VertexBuffer.Type.Color);
-        ByteBuffer colors = (ByteBuffer) cvb.getData();
+        final VertexBuffer pvb = getBuffer(VertexBuffer.Type.Position);
+        final FloatBuffer positions = (FloatBuffer) pvb.getData();
 
-        VertexBuffer svb = getBuffer(VertexBuffer.Type.Size);
-        FloatBuffer sizes = (FloatBuffer) svb.getData();
+        final VertexBuffer cvb = getBuffer(VertexBuffer.Type.Color);
+        final ByteBuffer colors = (ByteBuffer) cvb.getData();
 
-        VertexBuffer tvb = getBuffer(VertexBuffer.Type.TexCoord);
-        FloatBuffer texcoords = (FloatBuffer) tvb.getData();
+        final VertexBuffer svb = getBuffer(VertexBuffer.Type.Size);
+        final FloatBuffer sizes = (FloatBuffer) svb.getData();
+
+        final VertexBuffer tvb = getBuffer(VertexBuffer.Type.TexCoord);
+        final FloatBuffer texcoords = (FloatBuffer) tvb.getData();
 
         //float sizeScale = emitter.getWorldScale().x;
 
@@ -117,28 +113,29 @@ public class ParticleDataPointMesh extends ParticleDataMesh {
         colors.rewind();
         sizes.rewind();
         texcoords.rewind();
-        for (int i = 0; i < particles.length; i++) {
-            ParticleData p = particles[i];
 
-            positions.put(p.position.x)
-                    .put(p.position.y)
-                    .put(p.position.z);
+        for (final ParticleData particleData : particles) {
 
-            sizes.put(p.size.x); // * worldSace);
+            positions.put(particleData.position.x)
+                    .put(particleData.position.y)
+                    .put(particleData.position.z);
 
-            p.color.a *= p.alpha;
-            colors.putInt(p.color.asIntABGR());
+            sizes.put(particleData.size.x); // * worldSace);
 
-            int imgX = p.spriteCol; //p.imageIndex % imagesX;
-            int imgY = p.spriteRow; //(p.imageIndex - imgX) / imagesY;
+            particleData.color.a *= particleData.alpha;
+            colors.putInt(particleData.color.asIntABGR());
 
-            float startX = ((float) imgX) / imagesX;
-            float startY = ((float) imgY) / imagesY;
-            float endX = startX + (1f / imagesX);
-            float endY = startY + (1f / imagesY);
+            int imgX = particleData.spriteCol; //particleData.imageIndex % imagesX;
+            int imgY = particleData.spriteRow; //(particleData.imageIndex - imgX) / imagesY;
+
+            float startX = ((float) imgX) / getSpriteCols();
+            float startY = ((float) imgY) / getSpriteRows();
+            float endX = startX + (1f / getSpriteCols());
+            float endY = startY + (1f / getSpriteRows());
 
             texcoords.put(startX).put(startY).put(endX).put(endY);
         }
+
         positions.flip();
         colors.flip();
         sizes.flip();
@@ -149,10 +146,11 @@ public class ParticleDataPointMesh extends ParticleDataMesh {
         cvb.updateData(colors);
         svb.updateData(sizes);
         tvb.updateData(texcoords);
-        this.updateBound();
+
+        updateBound();
     }
 
     @Override
-    public void extractTemplateFromMesh(Mesh mesh) {
+    public void extractTemplateFromMesh(@NotNull Mesh mesh) {
     }
 }

@@ -62,6 +62,8 @@ import tonegod.emitter.particle.ParticleDataTriMesh;
 import tonegod.emitter.shapes.TriangleEmitterShape;
 
 /**
+ * The implementation of a {@link Node} to emit particles.
+ *
  * @author t0neg0d
  * @edit JavaSaBr
  */
@@ -71,107 +73,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
     public static final ParticleInfluencer[] EMPTY_INFLUENCERS = new ParticleInfluencer[0];
 
-    public enum BillboardMode {
-        /**
-         * Facing direction follows the velocity as it changes
-         */
-        VELOCITY("Velocity"),
-        /**
-         * Facing direction follows the velocity as it changes, Y of particle always faces Z of velocity
-         */
-        VELOCITY_Z_UP("Velocity Z up"),
-        /**
-         * Facing direction follows the velocity as it changes, Y of particle always faces Z of velocity, Up of the
-         * particle always faces X
-         */
-        VELOCITY_Z_UP_Y_LEFT("Velocity Z up Y left"),
-        /**
-         * Facing direction remains constant to the face of the particle emitter shape that the particle was emitted
-         * from
-         */
-        NORMAL("Normal"),
-        /**
-         * Facing direction remains constant for X, Z axis' to the face of the particle emitter shape that the particle
-         * was emitted from. Y axis maps to UNIT_Y
-         */
-        NORMAL_Y_UP("Normal Y up"),
-        /**
-         * ParticleData always faces camera
-         */
-        CAMERA("Camera"),
-        /**
-         * ParticleData always faces X axis
-         */
-        UNIT_X("Unit X"),
-        /**
-         * ParticleData always faces Y axis
-         */
-        UNIT_Y("Unit Y"),
-        /**
-         * ParticleData always faces Z axis
-         */
-        UNIT_Z("Unit Z");
-
-        private static final BillboardMode[] VALUES = values();
-
-        public static BillboardMode valueOf(final int index) {
-            return VALUES[index];
-        }
-
-        private final String uiName;
-
-        BillboardMode(final String uiName) {
-            this.uiName = uiName;
-        }
-
-        @Override
-        public String toString() {
-            return uiName;
-        }
-    }
-
-    public enum ForcedStretchAxis {
-        X, Y, Z;
-
-        private static final ForcedStretchAxis[] VALUES = values();
-
-        public static ForcedStretchAxis valueOf(final int index) {
-            return VALUES[index];
-        }
-    }
-
-    public enum ParticleEmissionPoint {
-        PARTICLE_CENTER("Center"),
-        PARTICLE_EDGE_TOP("Edge top"),
-        PARTICLE_EDGE_BOTTOM("Edge bottom");
-
-        private static final ParticleEmissionPoint[] VALUES = values();
-
-
-        public static ParticleEmissionPoint valueOf(final int index) {
-            return VALUES[index];
-        }
-
-        private final String uiName;
-
-        ParticleEmissionPoint(final String uiName) {
-            this.uiName = uiName;
-        }
-
-        @Override
-        public String toString() {
-            return uiName;
-        }
-    }
-
-    /**
-     * ------------INFLUENCERS------------
-     **/
-
+    @NotNull
     protected Array<ParticleInfluencer> influencers;
 
     /**
-     * Th flags for enabling/disabling emitter.
+     * The flags of this emitter.
      */
     protected boolean enabled;
     protected boolean requiresUpdate;
@@ -200,20 +106,19 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     protected int emissionsPerSecond;
 
-    protected int totalParticlesThisEmission;
-
     /**
      * The count of particles per emission.
      */
     protected int particlesPerEmission;
-
-    protected float tpfThreshold;
 
     /**
      * The inversed rotation.
      */
     protected Matrix3f inverseRotation;
 
+    /**
+     * The flag of emitting.
+     */
     protected boolean staticParticles;
     protected boolean randomEmissionPoint;
     protected boolean sequentialEmissionFace;
@@ -233,7 +138,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * The particle emission point.
      */
-    protected ParticleEmissionPoint particleEmissionPoint;
+    protected EmissionPoint emissionPoint;
 
     /**
      * The direction type.
@@ -361,6 +266,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     protected Material testMat;
 
+    /**
+     * The flag of applying lighting transform.
+     */
     protected boolean applyLightingTransform;
 
     /**
@@ -438,12 +346,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setName("Emitter Node");
         this.textureParamName = "Texture";
         this.inverseRotation = Matrix3f.IDENTITY.clone();
-        this.tpfThreshold = 1f / 400f;
         this.targetInterval = 0.00015f;
         this.currentInterval = 0;
         this.velocityStretchFactor = 0.35f;
         this.stretchAxis = ForcedStretchAxis.Y;
-        this.particleEmissionPoint = ParticleEmissionPoint.PARTICLE_CENTER;
+        this.emissionPoint = EmissionPoint.CENTER;
         this.directionType = EmitterMesh.DirectionType.RANDOM;
         this.interpolation = Interpolation.LINEAR;
         this.influencers = newArray(ParticleInfluencer.class, 0);
@@ -547,7 +454,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.particlesAnimBlendTime = particlesAnimBlendTime;
         this.particlesAnimLoopMode = particlesAnimLoopMode;
 
-        if (emitterInitialized && particlesAnimControl != null) {
+        if (isEmitterInitialized() && particlesAnimControl != null) {
             particlesAnimChannel.setAnim(particlesAnimName, particlesAnimBlendTime);
             particlesAnimChannel.setSpeed(particleAnimSpeed);
             particlesAnimChannel.setLoopMode(particlesAnimLoopMode);
@@ -565,9 +472,12 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         initParticles();
     }
 
+    /**
+     * Init materials.
+     */
     private void initMaterials() {
 
-        if(material == null) {
+        if (material == null) {
 
             final Texture texture = assetManager.loadTexture("textures/default.png");
             texture.setMinFilter(MinFilter.BilinearNearestMipMap);
@@ -582,7 +492,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             renderState.setDepthTest(false);
         }
 
-        if(testMat == null) {
+        if (testMat == null) {
             testMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
             testMat.setColor("Color", ColorRGBA.Blue);
             testMat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
@@ -590,6 +500,12 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
     }
 
+    /**
+     * Get a particle mesh type.
+     *
+     * @return the mesh type.
+     */
+    @NotNull
     public ParticleDataMeshInfo getParticleMeshType() {
         return new ParticleDataMeshInfo(particleDataMeshType, particleMeshTemplate);
     }
@@ -621,14 +537,15 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         particleGeometry.setMesh(particleDataMesh);
         particleTestGeometry.setMesh(particleDataMesh);
 
-        if (!emitterInitialized) return;
-        if (enabled) killAllParticles();
-
+        if (!isEmitterInitialized()) return;
+        if (isEnabled()) killAllParticles();
         initParticles();
-
-        if (enabled) emitAllParticles();
+        if (isEnabled()) emitAllParticles();
     }
 
+    /**
+     * Init particle data mesh.
+     */
     private <T extends ParticleDataMesh> void initParticles(@NotNull final Class<T> type, @Nullable final Mesh template) {
         this.particleDataMesh = ClassUtils.newInstance(type);
 
@@ -638,6 +555,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
     }
 
+    /**
+     * Create particles.
+     */
     protected void initParticles() {
         particles = new ParticleData[maxParticles];
 
@@ -677,6 +597,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         emitterAnimNode = node;
         emitterNodeExists = sceneAlreadyContainsEmitterShape;
+
         if (!emitterNodeExists) emitterAnimNode.setLocalScale(0);
 
         final Mesh shape = ((Geometry) node.getChild(0)).getMesh();
@@ -704,14 +625,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
-     * Returns if the current emitter shape has an associated animation Control
-     */
-    @Deprecated
-    public boolean getIsShapeAnimated() {
-        return !(emitterAnimControl == null);
-    }
-
-    /**
      * Called to set the emitter shape's animation IF the emitter shape is not pointing to a scene asset
      *
      * @param emitterAnimName      The String name of the animation
@@ -719,7 +632,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param emitterAnimBlendTime The blend time to use when switching animations
      */
     @Deprecated
-    public void setEmitterAnimation(@NotNull final String emitterAnimName, final float emitterAnimSpeed, final float emitterAnimBlendTime, @NotNull final LoopMode emitterAnimLoopMode) {
+    public void setEmitterAnimation(@NotNull final String emitterAnimName, final float emitterAnimSpeed,
+                                    final float emitterAnimBlendTime, @NotNull final LoopMode emitterAnimLoopMode) {
         this.emitterAnimName = emitterAnimName;
         this.emitterAnimSpeed = emitterAnimSpeed;
         this.emitterAnimBlendTime = emitterAnimBlendTime;
@@ -782,10 +696,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     @NotNull
     public EmitterMesh.DirectionType getDirectionType() {
         return directionType;
-    }
-
-    public void setTargetFPS(final float fps) {
-        tpfThreshold = 1f / fps;
     }
 
     /**
@@ -857,8 +767,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * Determine how the particle is placed when first emitted.  The default is the particles 0,0,0 point
      */
-    public void setParticleEmissionPoint(@NotNull final ParticleEmissionPoint particleEmissionPoint) {
-        this.particleEmissionPoint = particleEmissionPoint;
+    public void setEmissionPoint(@NotNull final EmissionPoint emissionPoint) {
+        this.emissionPoint = emissionPoint;
         requiresUpdate = true;
     }
 
@@ -866,8 +776,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns how the particle is placed when first emitted.
      */
     @NotNull
-    public ParticleEmissionPoint getParticleEmissionPoint() {
-        return particleEmissionPoint;
+    public EmissionPoint getEmissionPoint() {
+        return emissionPoint;
     }
 
     /**
@@ -1139,6 +1049,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void addInfluencers(@NotNull final ParticleInfluencer... influencers) {
         this.influencers.addAll(influencers);
+        requiresUpdate = true;
     }
 
     /**
@@ -1178,21 +1089,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
-     * Get the index of the influencer in the list of the influencers of this emitter.
-     *
-     * @param influencer the influencer for getting its position index.
-     * @return the index of position for the influencer.
-     */
-    public int indexOfInfluencer(@NotNull final ParticleInfluencer influencer) {
-        return influencers.indexOf(influencer);
-    }
-
-    /**
      * Removes the influencer rom this emitter.
      *
      * @param influencer the influencer to remove.
      */
-    public void removeInfluencer(@NotNull ParticleInfluencer influencer) {
+    public void removeInfluencer(@NotNull final ParticleInfluencer influencer) {
         influencers.slowRemove(influencer);
         requiresUpdate = true;
     }
@@ -1212,7 +1113,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     @Nullable
     public <T extends ParticleInfluencer> T getInfluencer(@NotNull final Class<T> type) {
-        return unsafeCast(influencers.search(type, (influencer, toCheck) -> influencer.getClass() == toCheck));
+
+        final ParticleInfluencer result = influencers.search(type, (influencer, toCheck) ->
+                influencer.getClass() == toCheck);
+
+        return result == null ? null : unsafeCast(result);
     }
 
     /**
@@ -1464,7 +1369,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         try {
             initialize(assetManager, true, true);
-        } catch (final Exception e){
+        } catch (final Exception e) {
             LOGGER.warning(this, e);
             setEnabled(false);
         }
@@ -1590,25 +1495,23 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             initialize();
         }
 
-        if (enabled && isEmitterInitialized()) {
-
-            for (final ParticleData particleData : particles) {
-                if (particleData.active) particleData.update(tpf);
-            }
-
-            currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
-
-            if (currentInterval >= targetInterval) {
-                totalParticlesThisEmission = particlesPerEmission;
-                for (int i = 0; i < totalParticlesThisEmission; i++) {
-                    emitNextParticle();
-                }
-                currentInterval -= targetInterval;
-            }
-
-        } else {
+        if (!enabled || !isEmitterInitialized()) {
             currentInterval = 0;
+            return;
         }
+
+        for (final ParticleData particleData : particles) {
+            if (particleData.isActive()) particleData.update(tpf);
+        }
+
+        currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
+        if (currentInterval < targetInterval) return;
+
+        for (int i = 0; i < particlesPerEmission; i++) {
+            emitNextParticle();
+        }
+
+        currentInterval -= targetInterval;
     }
 
     private int calcParticlesPerEmission() {
@@ -1806,7 +1709,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         capsule.write(velocityStretching, "velocityStretching", false);
         capsule.write(velocityStretchFactor, "velocityStretchFactor", 0);
         capsule.write(stretchAxis.ordinal(), "stretchAxis", 0);
-        capsule.write(particleEmissionPoint.ordinal(), "particleEmissionPoint", 0);
+        capsule.write(emissionPoint.ordinal(), "particleEmissionPoint", 0);
         capsule.write(directionType.ordinal(), "directionType", 0);
 
         // PARTICLES
@@ -1870,7 +1773,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setVelocityStretching(capsule.readBoolean("velocityStretching", false));
         setVelocityStretchFactor(capsule.readFloat("velocityStretchFactor", 0F));
         setForcedStretchAxis(ForcedStretchAxis.valueOf(capsule.readInt("stretchAxis", ForcedStretchAxis.X.ordinal())));
-        setParticleEmissionPoint(ParticleEmissionPoint.valueOf(capsule.readInt("particleEmissionPoint", ParticleEmissionPoint.PARTICLE_CENTER.ordinal())));
+        setEmissionPoint(EmissionPoint.valueOf(capsule.readInt("particleEmissionPoint", EmissionPoint.CENTER.ordinal())));
         setDirectionType(EmitterMesh.DirectionType.valueOf(capsule.readInt("directionType", EmitterMesh.DirectionType.NORMAL.ordinal())));
 
         // PARTICLES
@@ -1892,13 +1795,14 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         // MATERIALS
         final MaterialKey materialKey = (MaterialKey) capsule.readSavable("materialKey", null);
         final String textureParamName = capsule.readString("textureParamName", null);
-        final Material material = materialKey == null? (Material) capsule.readSavable("material", null) : assetManager.loadAsset(materialKey);
+        final Material material = materialKey == null ? (Material) capsule.readSavable("material", null) : assetManager.loadAsset(materialKey);
         final boolean applyLightingTransform = capsule.readBoolean("applyLightingTransform", false);
 
         setMaterial(material, textureParamName, applyLightingTransform);
         setSpriteCount(capsule.readInt("spriteCols", 0), capsule.readInt("spriteRows", 0));
     }
 
+    @NotNull
     @Override
     public ParticleEmitterNode jmeClone() {
         return (ParticleEmitterNode) super.jmeClone();

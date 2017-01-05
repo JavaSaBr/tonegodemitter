@@ -1,63 +1,81 @@
 package tonegod.emitter.particle;
 
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Matrix3f;
-import com.jme3.math.Matrix4f;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Mesh;
-import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.VertexBuffer.Usage;
 import com.jme3.scene.mesh.IndexBuffer;
 import com.jme3.util.BufferUtils;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import java.util.Objects;
 
+import tonegod.emitter.BillboardMode;
+import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.ParticleEmitterNode;
 
 /**
+ * The implementation of particle data mesh to use like some template.
+ *
  * @author t0neg0d
+ * @edit JavaSaBr
  */
-public class ParticleDataTemplateMesh extends ParticleDataMesh {
+public final class ParticleDataTemplateMesh extends ParticleDataMesh {
 
-    private int imagesX = 1;
-    private int imagesY = 1;
-    private boolean uniqueTexCoords = false;
-    private ParticleEmitterNode emitterNode;
-    private Vector3f left = new Vector3f(), tempLeft = new Vector3f();
-    private Vector3f up = new Vector3f(), tempUp = new Vector3f();
-    private Vector3f dir = new Vector3f();
-    private Vector3f tempV3 = new Vector3f();
-    private ColorRGBA tempV4 = new ColorRGBA();
-    private Quaternion rotStore = new Quaternion();
-    private Quaternion tempQ = new Quaternion();
-    private Node tempN = new Node();
-    private int imgX, imgY;
-    private float startX, startY, endX, endY;
+    private Vector3f left;
+    private Vector3f up;
+    private Vector3f dir;
+    private Vector3f tempV3;
+    private Vector3f lock;
+
+    private Quaternion rotStore;
+    private Quaternion tempQ;
+
+    private Matrix3f mat3;
+
+    private int imgX;
+    private int imgY;
+
+    private float startX;
+    private float startY;
+    private float endX;
+    private float endY;
+
     private Mesh template;
-    private FloatBuffer templateVerts;
-    private FloatBuffer templateCoords;
+
     private IndexBuffer templateIndexes;
-    private FloatBuffer templateNormals;
-    private FloatBuffer templateColors;
+    private ShortBuffer finIndexes;
 
     private FloatBuffer finVerts;
     private FloatBuffer finCoords;
-    private ShortBuffer finIndexes;
     private FloatBuffer finNormals;
     private FloatBuffer finColors;
 
-    Matrix3f mat3 = new Matrix3f();
-    Matrix4f mat4 = new Matrix4f();
+    private FloatBuffer templateVerts;
+    private FloatBuffer templateCoords;
+    private FloatBuffer templateNormals;
+    private FloatBuffer templateColors;
 
-    private Vector3f lock = new Vector3f(0, 0.99f, 0.01f);
+    public ParticleDataTemplateMesh() {
+        this.left = new Vector3f();
+        this.up = new Vector3f();
+        this.dir = new Vector3f();
+        this.tempV3 = new Vector3f();
+        this.rotStore = new Quaternion();
+        this.tempQ = new Quaternion();
+        this.lock = new Vector3f(0, 0.99f, 0.01f);
+        this.mat3 = new Matrix3f();
+    }
 
     @Override
-    public void extractTemplateFromMesh(Mesh mesh) {
+    public void extractTemplateFromMesh(@NotNull final Mesh mesh) {
         template = mesh;
         templateVerts = MeshUtils.getPositionBuffer(mesh);
         templateCoords = MeshUtils.getTexCoordBuffer(mesh);
@@ -66,21 +84,29 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
         templateColors = BufferUtils.createFloatBuffer(templateVerts.capacity() / 3 * 4);
     }
 
+    /**
+     * Get a template mesh.
+     *
+     * @return the template mesh.
+     */
+    @NotNull
     public Mesh getTemplateMesh() {
-        return this.template;
+        return Objects.requireNonNull(template);
     }
 
     @Override
-    public void initParticleData(ParticleEmitterNode emitterNode, int numParticles) {
-        setMode(Mode.Triangles);
+    public void initParticleData(@NotNull final ParticleEmitterNode emitterNode, final int numParticles) {
+        super.initParticleData(emitterNode, numParticles);
 
-        this.emitterNode = emitterNode;
+        setMode(Mode.Triangles);
 
         this.finVerts = BufferUtils.createFloatBuffer(templateVerts.capacity() * numParticles);
         try {
             this.finCoords = BufferUtils.createFloatBuffer(templateCoords.capacity() * numParticles);
-        } catch (Exception e) {
+        } catch (final Exception e) {
+            LOGGER.warning(this, e);
         }
+
         this.finIndexes = BufferUtils.createShortBuffer(templateIndexes.size() * numParticles);
         this.finNormals = BufferUtils.createFloatBuffer(templateNormals.capacity() * numParticles);
         this.finColors = BufferUtils.createFloatBuffer(templateVerts.capacity() / 3 * 4 * numParticles);
@@ -90,6 +116,7 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
 
         for (int i = 0; i < numParticles; i++) {
             templateVerts.rewind();
+
             for (int v = 0; v < templateVerts.capacity(); v += 3) {
                 tempV3.set(templateVerts.get(v), templateVerts.get(v + 1), templateVerts.get(v + 2));
                 finVerts.put(index, tempV3.getX());
@@ -100,20 +127,27 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
                 index++;
             }
             try {
+
                 templateCoords.rewind();
+
                 for (int v = 0; v < templateCoords.capacity(); v++) {
                     finCoords.put(index2, templateCoords.get(v));
                     index2++;
                 }
-            } catch (Exception e) {
+
+            } catch (final Exception e) {
+                LOGGER.warning(this, e);
             }
+
             for (int v = 0; v < templateIndexes.size(); v++) {
                 finIndexes.put(index3, (short) (templateIndexes.get(v) + indexOffset));
                 index3++;
             }
+
             indexOffset += templateVerts.capacity() / 3;
 
             templateNormals.rewind();
+
             for (int v = 0; v < templateNormals.capacity(); v++) {
                 finNormals.put(index4, templateNormals.get(v));
                 index4++;
@@ -124,56 +158,52 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
             }
         }
 
-        // Help GC
-        //	tempV3 = null;
-        //	templateVerts = null;
-        //	templateCoords = null;
-        //	templateIndexes = null;
-        //	templateNormals = null;
-
         // Clear & ssign buffers
-        this.clearBuffer(VertexBuffer.Type.Position);
-        this.setBuffer(VertexBuffer.Type.Position, 3, finVerts);
-        this.clearBuffer(VertexBuffer.Type.TexCoord);
+        clearBuffer(VertexBuffer.Type.Position);
+        setBuffer(VertexBuffer.Type.Position, 3, finVerts);
+        clearBuffer(VertexBuffer.Type.TexCoord);
+
         try {
-            this.setBuffer(VertexBuffer.Type.TexCoord, 2, finCoords);
-        } catch (Exception e) {
+            setBuffer(VertexBuffer.Type.TexCoord, 2, finCoords);
+        } catch (final Exception e) {
+            LOGGER.warning(this, e);
         }
-        this.clearBuffer(VertexBuffer.Type.Index);
-        this.setBuffer(VertexBuffer.Type.Index, 3, finIndexes);
-        this.clearBuffer(VertexBuffer.Type.Normal);
-        this.setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
-        this.clearBuffer(VertexBuffer.Type.Color);
-        this.setBuffer(VertexBuffer.Type.Color, 4, finColors);
-        this.updateBound();
+
+        clearBuffer(VertexBuffer.Type.Index);
+        setBuffer(VertexBuffer.Type.Index, 3, finIndexes);
+        clearBuffer(VertexBuffer.Type.Normal);
+        setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
+        clearBuffer(VertexBuffer.Type.Color);
+        setBuffer(VertexBuffer.Type.Color, 4, finColors);
+        updateBound();
     }
 
     @Override
-    public void setImagesXY(int imagesX, int imagesY) {
-        this.imagesX = imagesX;
-        this.imagesY = imagesY;
+    public void setImagesXY(final int imagesX, final int imagesY) {
+        super.setImagesXY(imagesX, imagesY);
         if (imagesX != 1 || imagesY != 1) {
-            uniqueTexCoords = true;
-            getBuffer(VertexBuffer.Type.TexCoord).setUsage(Usage.Stream);
+            final VertexBuffer buffer = getBuffer(VertexBuffer.Type.TexCoord);
+            buffer.setUsage(Usage.Stream);
         }
     }
 
-    public int getSpriteCols() {
-        return this.imagesX;
-    }
-
-    public int getSpriteRows() {
-        return this.imagesY;
-    }
-
     @Override
-    public void updateParticleData(ParticleData[] particles, Camera cam, Matrix3f inverseRotation) {
+    public void updateParticleData(@NotNull final ParticleData[] particles, @NotNull final Camera camera,
+                                   @NotNull final Matrix3f inverseRotation) {
+
+        final ParticleEmitterNode emitterNode = getEmitterNode();
+        final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+        final BillboardMode billboardMode = emitterNode.getBillboardMode();
 
         for (int i = 0; i < particles.length; i++) {
-            ParticleData p = particles[i];
+
+            final ParticleData particleData = particles[i];
+            final Vector3f velocity = particleData.velocity;
+
             int offset = templateVerts.capacity() * i;
             int colorOffset = templateColors.capacity() * i;
-            if (p.life == 0 || !p.active) {
+
+            if (particleData.life == 0 || !particleData.active) {
                 for (int x = 0; x < templateVerts.capacity(); x += 3) {
                     finVerts.put(offset + x, 0);
                     finVerts.put(offset + x + 1, 0);
@@ -183,93 +213,107 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
             }
 
             for (int x = 0; x < templateVerts.capacity(); x += 3) {
-                switch (emitterNode.getBillboardMode()) {
-                    case VELOCITY:
-                        if (p.velocity.x != Vector3f.UNIT_Y.x &&
-                                p.velocity.y != Vector3f.UNIT_Y.y &&
-                                p.velocity.z != Vector3f.UNIT_Y.z)
-                            up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        else
-                            up.set(p.velocity).crossLocal(lock).normalizeLocal();
-                        left.set(p.velocity).crossLocal(up).normalizeLocal();
-                        dir.set(p.velocity);
+                switch (billboardMode) {
+                    case VELOCITY: {
+                        if (isNotUnitY(velocity)) {
+                            up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+                        } else {
+                            up.set(velocity).crossLocal(lock).normalizeLocal();
+                        }
+                        left.set(velocity).crossLocal(up).normalizeLocal();
+                        dir.set(velocity);
                         break;
-                    case VELOCITY_Z_UP:
-                        if (p.velocity.x != Vector3f.UNIT_Y.x &&
-                                p.velocity.y != Vector3f.UNIT_Y.y &&
-                                p.velocity.z != Vector3f.UNIT_Y.z)
-                            up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        else
-                            up.set(p.velocity).crossLocal(lock).normalizeLocal();
-                        left.set(p.velocity).crossLocal(up).normalizeLocal();
-                        dir.set(p.velocity);
+                    }
+                    case VELOCITY_Z_UP: {
+                        if (isNotUnitY(velocity)) {
+                            up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+                        } else {
+                            up.set(velocity).crossLocal(lock).normalizeLocal();
+                        }
+                        left.set(velocity).crossLocal(up).normalizeLocal();
+                        dir.set(velocity);
                         rotStore = tempQ.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
                         left = rotStore.mult(left);
                         up = rotStore.mult(up);
                         break;
-                    case VELOCITY_Z_UP_Y_LEFT:
-                        up.set(p.velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        left.set(p.velocity).crossLocal(up).normalizeLocal();
-                        dir.set(p.velocity);
+                    }
+                    case VELOCITY_Z_UP_Y_LEFT: {
+                        up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+                        left.set(velocity).crossLocal(up).normalizeLocal();
+                        dir.set(velocity);
                         tempV3.set(left).crossLocal(up).normalizeLocal();
-                        rotStore = tempQ.fromAngleAxis(90 * FastMath.DEG_TO_RAD, p.velocity);
+                        rotStore = tempQ.fromAngleAxis(90 * FastMath.DEG_TO_RAD, velocity);
                         left = rotStore.mult(left);
                         up = rotStore.mult(up);
                         rotStore = tempQ.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
                         up = rotStore.mult(up);
                         break;
-                    case NORMAL:
-                        emitterNode.getEmitterShape().setNext(p.triangleIndex);
-                        tempV3.set(emitterNode.getEmitterShape().getNormal());
-                        if (tempV3 == Vector3f.UNIT_Y)
-                            tempV3.set(p.velocity);
+                    }
+                    case NORMAL: {
+
+                        emitterShape.setNext(particleData.triangleIndex);
+                        tempV3.set(emitterShape.getNormal());
+
+                        if (tempV3 == Vector3f.UNIT_Y) {
+                            tempV3.set(velocity);
+                        }
 
                         up.set(tempV3).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
                         left.set(tempV3).crossLocal(up).normalizeLocal();
                         dir.set(tempV3);
                         break;
-                    case NORMAL_Y_UP:
-                        emitterNode.getEmitterShape().setNext(p.triangleIndex);
-                        tempV3.set(p.velocity);
-                        if (tempV3 == Vector3f.UNIT_Y)
+                    }
+                    case NORMAL_Y_UP: {
+
+                        emitterShape.setNext(particleData.triangleIndex);
+                        tempV3.set(velocity);
+
+                        if (tempV3 == Vector3f.UNIT_Y) {
                             tempV3.set(Vector3f.UNIT_X);
+                        }
 
                         up.set(Vector3f.UNIT_Y);
                         left.set(tempV3).crossLocal(up).normalizeLocal();
                         dir.set(tempV3);
                         break;
-                    case CAMERA:
-                        up.set(cam.getUp());
-                        left.set(cam.getLeft());
-                        dir.set(cam.getDirection());
+                    }
+                    case CAMERA: {
+                        up.set(camera.getUp());
+                        left.set(camera.getLeft());
+                        dir.set(camera.getDirection());
                         break;
-                    case UNIT_X:
+                    }
+                    case UNIT_X: {
                         up.set(Vector3f.UNIT_Y);
                         left.set(Vector3f.UNIT_Z);
                         dir.set(Vector3f.UNIT_X);
                         break;
-                    case UNIT_Y:
+                    }
+                    case UNIT_Y: {
                         up.set(Vector3f.UNIT_Z);
                         left.set(Vector3f.UNIT_X);
                         dir.set(Vector3f.UNIT_Y);
                         break;
-                    case UNIT_Z:
+                    }
+                    case UNIT_Z: {
                         up.set(Vector3f.UNIT_X);
                         left.set(Vector3f.UNIT_Y);
                         dir.set(Vector3f.UNIT_Z);
                         break;
+                    }
                 }
 
                 tempV3.set(templateVerts.get(x), templateVerts.get(x + 1), templateVerts.get(x + 2));
                 tempV3 = rotStore.mult(tempV3);
-                tempV3.multLocal(p.size);
+                tempV3.multLocal(particleData.size);
 
-                rotStore.fromAngles(p.angles.x, p.angles.y, p.angles.z);
+                rotStore.fromAngles(particleData.angles.x, particleData.angles.y, particleData.angles.z);
                 tempV3 = rotStore.mult(tempV3);
 
-                tempV3.addLocal(p.position);
+                tempV3.addLocal(particleData.position);
+
                 if (!emitterNode.isParticlesFollowEmitter()) {
-                    tempV3.subtractLocal(emitterNode.getWorldTranslation().subtract(p.initialPosition));//.divide(8f));
+                    tempV3.subtractLocal(emitterNode.getWorldTranslation().subtract(particleData.initialPosition));//.divide(8f));
                 }
 
                 finVerts.put(offset + x, tempV3.getX());
@@ -277,13 +321,16 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
                 finVerts.put(offset + x + 2, tempV3.getZ());
 
             }
-            if (p.emitterNode.isApplyLightingTransform()) {
-                for (int v = 0; v < templateNormals.capacity(); v += 3) {
-                    tempV3.set(templateNormals.get(v), templateNormals.get(v + 1), templateNormals.get(v + 2));
 
-                    rotStore.fromAngles(p.angles.x, p.angles.y, p.angles.z);
+            if (emitterNode.isApplyLightingTransform()) {
+                for (int v = 0; v < templateNormals.capacity(); v += 3) {
+
+                    tempV3.set(templateNormals.get(v), templateNormals.get(v + 1), templateNormals.get(v + 2));
+                    rotStore.fromAngles(particleData.angles.x, particleData.angles.y, particleData.angles.z);
                     mat3.set(rotStore.toRotationMatrix());
+
                     float vx = tempV3.x, vy = tempV3.y, vz = tempV3.z;
+
                     tempV3.x = mat3.get(0, 0) * vx + mat3.get(0, 1) * vy + mat3.get(0, 2) * vz;
                     tempV3.y = mat3.get(1, 0) * vx + mat3.get(1, 1) * vy + mat3.get(1, 2) * vz;
                     tempV3.z = mat3.get(2, 0) * vx + mat3.get(2, 1) * vy + mat3.get(2, 2) * vz;
@@ -293,19 +340,22 @@ public class ParticleDataTemplateMesh extends ParticleDataMesh {
                     finNormals.put(offset + v + 2, tempV3.getZ());
                 }
             }
+
             for (int v = 0; v < templateColors.capacity(); v += 4) {
-                finColors.put(colorOffset + v, p.color.r)
-                        .put(colorOffset + v + 1, p.color.g)
-                        .put(colorOffset + v + 2, p.color.b)
-                        .put(colorOffset + v + 3, p.color.a * p.alpha);
+                finColors.put(colorOffset + v, particleData.color.r)
+                        .put(colorOffset + v + 1, particleData.color.g)
+                        .put(colorOffset + v + 2, particleData.color.b)
+                        .put(colorOffset + v + 3, particleData.color.a * particleData.alpha);
             }
         }
 
-        this.setBuffer(VertexBuffer.Type.Position, 3, finVerts);
-        if (particles[0].emitterNode.isApplyLightingTransform())
-            this.setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
-        this.setBuffer(VertexBuffer.Type.Color, 4, finColors);
+        setBuffer(VertexBuffer.Type.Position, 3, finVerts);
 
+        if (particles[0].emitterNode.isApplyLightingTransform()) {
+            setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
+        }
+
+        setBuffer(VertexBuffer.Type.Color, 4, finColors);
         updateBound();
     }
 }
