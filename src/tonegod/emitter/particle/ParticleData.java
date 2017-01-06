@@ -9,8 +9,6 @@ import com.jme3.util.clone.JmeCloneable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import rlib.util.array.Array;
@@ -29,6 +27,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * The color.
      */
+    @NotNull
     public final ColorRGBA color;
 
     /**
@@ -49,6 +48,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * The color interpolation.
      */
+    @NotNull
     public Interpolation colorInterpolation;
 
     /** ALPHA INFLUENCER */
@@ -76,6 +76,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * The alpha interpolation.
      */
+    @NotNull
     public Interpolation alphaInterpolation;
 
     /** SIZE INFLUENCER */
@@ -83,17 +84,20 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * The size.
      */
-    public Vector3f size;
+    @NotNull
+    public final Vector3f size;
 
     /**
-     * THe start size.
+     * The start size.
      */
-    public Vector3f startSize;
+    @NotNull
+    public final Vector3f startSize;
 
     /**
      * The end size.
      */
-    public Vector3f endSize;
+    @NotNull
+    public final Vector3f endSize;
 
     /**
      * The size index.
@@ -113,13 +117,12 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * The size interpolation.
      */
+    @NotNull
     public Interpolation sizeInterpolation;
 
     /**
      * DESTINATION INFLUENCER
      */
-
-    public Vector3f previousPosition;
 
     /**
      * The destination index.
@@ -139,46 +142,28 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * The destination interpolation.
      */
+    @NotNull
     public Interpolation destinationInterpolation;
-
-    /** DIRECTION INFLUENCER */
-
-    /**
-     * The direction index.
-     */
-    public int directionIndex;
-
-    /**
-     * The direction interval.
-     */
-    public float directionInterval;
-
-    /**
-     * The direction duration.
-     */
-    public float directionDuration;
-
-    /**
-     * The direction interpolation.
-     */
-    public Interpolation directionInterpolation;
 
     /** ROTATION INFLUENCER */
 
     /**
      * The rotation angle speed per axis (in radians).
      */
-    public Vector3f rotationSpeed;
+    @NotNull
+    public final Vector3f rotationSpeed;
 
     /**
      * The start rotation speed.
      */
-    public Vector3f startRotationSpeed;
+    @NotNull
+    public final Vector3f startRotationSpeed;
 
     /**
      * The end rotation speed.
      */
-    public Vector3f endRotationSpeed;
+    @NotNull
+    public final Vector3f endRotationSpeed;
 
     /**
      * The rotation index.
@@ -198,6 +183,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * The rotation interpolation.
      */
+    @NotNull
     public Interpolation rotationInterpolation;
 
     /**
@@ -234,11 +220,6 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      */
     public float spriteDuration;
 
-    /**
-     * THe sprite interpolation.
-     */
-    public Interpolation spriteInterpolation;
-
     /** PHYSICS INFLUENCER */
 
     /**
@@ -252,11 +233,6 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public float collisionInterval;
 
     /** PARTICLE DATA */
-
-    /**
-     * A strage facility for per-particle data used by influencers
-     */
-    public Map<String, Object> data;
 
     /**
      * The parent particle emitter
@@ -297,17 +273,20 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * ParticleData rotation angle per axis (in radians).
      */
-    public Vector3f angles;
+    @NotNull
+    public final Vector3f angles;
 
     /**
      * The UP vector.
      */
-    public Vector3f upVec;
+    @NotNull
+    public final Vector3f upVec;
 
     /**
      * The temp vector.
      */
-    public Vector3f tempV3;
+    @NotNull
+    public final Vector3f tempV3;
 
     /**
      * The force at which the particle was emitted
@@ -356,67 +335,46 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public boolean active;
 
     public ParticleData() {
-        velocity = new Vector3f();
-        reverseVelocity = new Vector3f();
-        position = new Vector3f();
+        this.velocity = new Vector3f();
+        this.reverseVelocity = new Vector3f();
+        this.position = new Vector3f();
 
-        color = new ColorRGBA(1, 1, 1, 1);
-        colorDuration = 1f;
+        this.color = new ColorRGBA(1, 1, 1, 1);
+        this.colorDuration = 1f;
+        this.colorInterpolation = Interpolation.LINEAR;
 
-        alpha = 1;
-        alphaDuration = 1;
+        this.alpha = 1;
+        this.alphaDuration = 1;
+        this.alphaInterpolation = Interpolation.LINEAR;
 
-        emitterPosition = new Vector3f();
-        initialPosition = new Vector3f();
-        randomOffset = new Vector3f();
+        this.emitterPosition = new Vector3f();
+        this.initialPosition = new Vector3f();
+        this.randomOffset = new Vector3f();
 
-        size = new Vector3f(1f, 1f, 1f);
-        startSize = new Vector3f(1, 1, 1);
-        endSize = new Vector3f(0, 0, 0);
-        sizeDuration = 1;
+        this.size = new Vector3f(1f, 1f, 1f);
+        this.startSize = new Vector3f(1, 1, 1);
+        this.endSize = new Vector3f(0, 0, 0);
+        this.sizeDuration = 1;
+        this.sizeInterpolation = Interpolation.LINEAR;
 
-        previousPosition = new Vector3f();
-        destinationDuration = 1;
+        this.destinationDuration = 1;
+        this.destinationInterpolation = Interpolation.LINEAR;
 
-        directionDuration = 1;
+        this.rotationSpeed = new Vector3f();
+        this.startRotationSpeed = new Vector3f();
+        this.endRotationSpeed = new Vector3f();
+        this.rotationDuration = 1;
+        this.rotateDirectionX = true;
+        this.rotateDirectionY = true;
+        this.rotateDirectionZ = true;
+        this.rotationInterpolation = Interpolation.LINEAR;
 
-        rotationSpeed = new Vector3f();
-        startRotationSpeed = new Vector3f();
-        endRotationSpeed = new Vector3f();
-        rotationDuration = 1;
-        rotateDirectionX = true;
-        rotateDirectionY = true;
-        rotateDirectionZ = true;
+        this.angles = new Vector3f();
 
-        angles = new Vector3f();
+        this.spriteDuration = 1;
 
-        spriteDuration = 1;
-
-        upVec = new Vector3f(0, 1, 0);
-        tempV3 = new Vector3f();
-
-        data = new HashMap<>();
-    }
-
-    /**
-     * Sets data to store with the particle
-     *
-     * @param key  The data's map key
-     * @param data The data
-     */
-    public void setData(@NotNull final String key, @Nullable final Object data) {
-        this.data.put(key, data);
-    }
-
-    /**
-     * Returns the stored per-particle data
-     *
-     * @param key The data's map key
-     * @return The data
-     */
-    @Nullable
-    public Object getData(final String key) {
-        return data.get(key);
+        this.upVec = new Vector3f(0, 1, 0);
+        this.tempV3 = new Vector3f();
     }
 
     @NotNull
