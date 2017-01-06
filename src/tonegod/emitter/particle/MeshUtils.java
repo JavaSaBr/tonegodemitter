@@ -8,30 +8,33 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.mesh.IndexBuffer;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.nio.FloatBuffer;
 
 /**
  * @author t0neg0d
+ * @edit JavaSaBr
  */
 public final class MeshUtils {
 
-    public static FloatBuffer getPositionBuffer(Mesh mesh) {
+    public static FloatBuffer getPositionBuffer(@NotNull final Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.Position);
     }
 
-    public static IndexBuffer getIndexBuffer(Mesh mesh) {
+    public static IndexBuffer getIndexBuffer(@NotNull final Mesh mesh) {
         return mesh.getIndexBuffer();
     }
 
-    public static FloatBuffer getTexCoordBuffer(Mesh mesh) {
+    public static FloatBuffer getTexCoordBuffer(@NotNull final Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.TexCoord);
     }
 
-    public static FloatBuffer getNormalsBuffer(Mesh mesh) {
+    public static FloatBuffer getNormalsBuffer(@NotNull final Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.Normal);
     }
 
-    public static FloatBuffer getColorBuffer(Mesh mesh) {
+    public static FloatBuffer getColorBuffer(@NotNull final Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.Color);
     }
 }

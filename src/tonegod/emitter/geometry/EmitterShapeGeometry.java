@@ -3,6 +3,8 @@ package tonegod.emitter.geometry;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 
+import org.jetbrains.annotations.NotNull;
+
 import tonegod.emitter.ParticleEmitterNode;
 
 /**
@@ -15,11 +17,11 @@ public class EmitterShapeGeometry extends Geometry {
     public EmitterShapeGeometry() {
     }
 
-    public EmitterShapeGeometry(final String name) {
+    public EmitterShapeGeometry(@NotNull final String name) {
         super(name);
     }
 
-    public EmitterShapeGeometry(final String name, final Mesh mesh) {
+    public EmitterShapeGeometry(@NotNull final String name, @NotNull final Mesh mesh) {
         super(name, mesh);
     }
 }

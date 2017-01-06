@@ -3,6 +3,7 @@ package tonegod.emitter.interpolation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
@@ -17,68 +18,113 @@ import rlib.util.dictionary.ObjectDictionary;
  */
 public class InterpolationManager {
 
+    @NotNull
     private static final ObjectDictionary<Interpolation, Integer> INTER_TO_ID;
+
+    @NotNull
     private static final ObjectDictionary<String, Interpolation> NAME_TO_INTER;
+
+    @NotNull
     private static final IntegerDictionary<Interpolation> ID_TO_INTER;
+
+    @NotNull
     private static final Array<Interpolation> INTERPOLATIONS;
+
+    @NotNull
+    private static final AtomicInteger ID_FACTORY = new AtomicInteger();
 
     static {
         INTER_TO_ID = DictionaryFactory.newObjectDictionary();
-        INTER_TO_ID.put(Interpolation.LINEAR, 1);
-        INTER_TO_ID.put(Interpolation.FADE, 2);
-        INTER_TO_ID.put(Interpolation.SINE, 3);
-        INTER_TO_ID.put(Interpolation.SINE_IN, 4);
-        INTER_TO_ID.put(Interpolation.SINE_OUT, 5);
-        INTER_TO_ID.put(Interpolation.EXP_10, 6);
-        INTER_TO_ID.put(Interpolation.EXP_10_IN, 7);
-        INTER_TO_ID.put(Interpolation.EXP_10_OUT, 8);
-        INTER_TO_ID.put(Interpolation.EXP_5, 9);
-        INTER_TO_ID.put(Interpolation.EXP_5_IN, 10);
-        INTER_TO_ID.put(Interpolation.EXP_5_OUT, 11);
-        INTER_TO_ID.put(Interpolation.CIRCLE, 12);
-        INTER_TO_ID.put(Interpolation.CIRCLE_IN, 13);
-        INTER_TO_ID.put(Interpolation.CIRCLE_OUT, 14);
-        INTER_TO_ID.put(Interpolation.SWING, 15);
-        INTER_TO_ID.put(Interpolation.SWING_IN, 16);
-        INTER_TO_ID.put(Interpolation.SWING_OUT, 17);
-        INTER_TO_ID.put(Interpolation.BOUNCE, 18);
-        INTER_TO_ID.put(Interpolation.BOUNCE_IN, 19);
-        INTER_TO_ID.put(Interpolation.BOUNCE_OUT, 20);
-        INTER_TO_ID.put(Interpolation.POW_2, 21);
-        INTER_TO_ID.put(Interpolation.POW_2_IN, 22);
-        INTER_TO_ID.put(Interpolation.POW_2_OUT, 23);
-        INTER_TO_ID.put(Interpolation.POW_3, 24);
-        INTER_TO_ID.put(Interpolation.POW_3_IN, 25);
-        INTER_TO_ID.put(Interpolation.POW_3_OUT, 26);
-        INTER_TO_ID.put(Interpolation.POW_4, 27);
-        INTER_TO_ID.put(Interpolation.POW_4_IN, 28);
-        INTER_TO_ID.put(Interpolation.POW_4_OUT, 29);
-        INTER_TO_ID.put(Interpolation.POW_5, 30);
-        INTER_TO_ID.put(Interpolation.POW_5_IN, 31);
-        INTER_TO_ID.put(Interpolation.POW_5_OUT, 32);
-        INTER_TO_ID.put(Interpolation.ELASTIC, 33);
-        INTER_TO_ID.put(Interpolation.ELASTIC_IN, 34);
-        INTER_TO_ID.put(Interpolation.ELASTIC_OUT, 35);
         ID_TO_INTER = DictionaryFactory.newIntegerDictionary();
         NAME_TO_INTER = DictionaryFactory.newObjectDictionary();
-        INTER_TO_ID.forEach((interpolation, id) -> ID_TO_INTER.put(id, interpolation));
-        INTER_TO_ID.forEach((interpolation, id) -> NAME_TO_INTER.put(interpolation.getName(), interpolation));
         INTERPOLATIONS = ArrayFactory.newArray(Interpolation.class);
-        NAME_TO_INTER.values(INTERPOLATIONS);
+        register(Interpolation.LINEAR);
+        register(Interpolation.FADE);
+        register(Interpolation.SINE);
+        register(Interpolation.SINE_IN);
+        register(Interpolation.SINE_OUT);
+        register(Interpolation.EXP_10);
+        register(Interpolation.EXP_10_IN);
+        register(Interpolation.EXP_10_OUT);
+        register(Interpolation.EXP_5);
+        register(Interpolation.EXP_5_IN);
+        register(Interpolation.EXP_5_OUT);
+        register(Interpolation.CIRCLE);
+        register(Interpolation.CIRCLE_IN);
+        register(Interpolation.CIRCLE_OUT);
+        register(Interpolation.SWING);
+        register(Interpolation.SWING_IN);
+        register(Interpolation.SWING_OUT);
+        register(Interpolation.BOUNCE);
+        register(Interpolation.BOUNCE_IN);
+        register(Interpolation.BOUNCE_OUT);
+        register(Interpolation.POW_2);
+        register(Interpolation.POW_2_IN);
+        register(Interpolation.POW_2_OUT);
+        register(Interpolation.POW_3);
+        register(Interpolation.POW_3_IN);
+        register(Interpolation.POW_3_OUT);
+        register(Interpolation.POW_4);
+        register(Interpolation.POW_4_IN);
+        register(Interpolation.POW_4_OUT);
+        register(Interpolation.POW_5);
+        register(Interpolation.POW_5_IN);
+        register(Interpolation.POW_5_OUT);
+        register(Interpolation.ELASTIC);
+        register(Interpolation.ELASTIC_IN);
+        register(Interpolation.ELASTIC_OUT);
     }
 
+    /**
+     * Register an interpolation.
+     *
+     * @param interpolation the interpolation.
+     */
+    public static void register(@NotNull final Interpolation interpolation) {
+        final int id = ID_FACTORY.incrementAndGet();
+        INTER_TO_ID.put(interpolation, id);
+        ID_TO_INTER.put(id, interpolation);
+        NAME_TO_INTER.put(interpolation.getName(), interpolation);
+        INTERPOLATIONS.add(interpolation);
+    }
+
+    /**
+     * Get a list of available interpolations.
+     *
+     * @return the list of available interpolations.
+     */
+    @NotNull
     public static Array<Interpolation> getAvailable() {
         return INTERPOLATIONS;
     }
 
+    /**
+     * Get an interpolation by a name.
+     *
+     * @param name the name.
+     * @return the interpolation.
+     */
+    @NotNull
     public static Interpolation getInterpolation(@NotNull final String name) {
         return Objects.requireNonNull(NAME_TO_INTER.get(name), "Unknown interpolation " + name);
     }
 
+    /**
+     * Get an ID of an interpolation.
+     *
+     * @param interpolation the interpolation.
+     * @return its ID.
+     */
     public static int getId(@NotNull final Interpolation interpolation) {
         return Objects.requireNonNull(INTER_TO_ID.get(interpolation), "Unknown interpolation " + interpolation);
     }
 
+    /**
+     * Get an interpolation by an ID.
+     *
+     * @param id the id.
+     * @return the interpolation.
+     */
     @NotNull
     public static Interpolation getInterpolation(final int id) {
         return Objects.requireNonNull(ID_TO_INTER.get(id), "Unknown id " + id);

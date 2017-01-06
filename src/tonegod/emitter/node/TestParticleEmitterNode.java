@@ -2,6 +2,8 @@ package tonegod.emitter.node;
 
 import com.jme3.scene.Node;
 
+import org.jetbrains.annotations.NotNull;
+
 import tonegod.emitter.ParticleEmitterNode;
 
 /**
@@ -14,7 +16,7 @@ public class TestParticleEmitterNode extends Node {
     public TestParticleEmitterNode() {
     }
 
-    public TestParticleEmitterNode(final String name) {
+    public TestParticleEmitterNode(@NotNull final String name) {
         super(name);
     }
 }

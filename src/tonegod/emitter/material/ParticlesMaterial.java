@@ -2,6 +2,8 @@ package tonegod.emitter.material;
 
 import com.jme3.material.Material;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * The struct for describing the material of particles.
  *
@@ -12,11 +14,13 @@ public class ParticlesMaterial {
     /**
      * The material of particles.
      */
+    @NotNull
     private final Material material;
 
     /**
      * The name of material parameter which contains a texture of particles in the material.
      */
+    @NotNull
     private final String textureParam;
 
     /**
@@ -24,7 +28,7 @@ public class ParticlesMaterial {
      */
     private final boolean applyLightingTransform;
 
-    public ParticlesMaterial(final Material material, final String textureParam, final boolean applyLightingTransform) {
+    public ParticlesMaterial(@NotNull final Material material, @NotNull final String textureParam, final boolean applyLightingTransform) {
         this.material = material;
         this.textureParam = textureParam;
         this.applyLightingTransform = applyLightingTransform;
@@ -34,9 +38,8 @@ public class ParticlesMaterial {
     public boolean equals(final Object object) {
         if (object == null || getClass() != object.getClass()) return false;
         final ParticlesMaterial that = (ParticlesMaterial) object;
-        if (applyLightingTransform != that.applyLightingTransform) return false;
-        if (!material.equals(that.material)) return false;
-        return textureParam.equals(that.textureParam);
+        return applyLightingTransform == that.applyLightingTransform &&
+                material.equals(that.material) && textureParam.equals(that.textureParam);
     }
 
     @Override
@@ -50,6 +53,7 @@ public class ParticlesMaterial {
     /**
      * @return The material of particles.
      */
+    @NotNull
     public Material getMaterial() {
         return material;
     }
@@ -57,6 +61,7 @@ public class ParticlesMaterial {
     /**
      * @return the name of material parameter which contains a texture of particles in the material.
      */
+    @NotNull
     public String getTextureParam() {
         return textureParam;
     }
