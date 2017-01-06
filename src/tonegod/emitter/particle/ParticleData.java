@@ -6,10 +6,15 @@ import com.jme3.math.Vector3f;
 import com.jme3.util.clone.Cloner;
 import com.jme3.util.clone.JmeCloneable;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import rlib.util.array.Array;
+import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
@@ -19,57 +24,290 @@ import tonegod.emitter.interpolation.Interpolation;
  */
 public final class ParticleData implements Cloneable, JmeCloneable {
 
-    /**
-     * ParticleData velocity.
-     */
-    public final Vector3f velocity = new Vector3f();
-
-    public final Vector3f reverseVelocity = new Vector3f();
+    /** COLOR INFLUENCER */
 
     /**
-     * Current particle position
+     * The color.
      */
-    public final Vector3f position = new Vector3f();
+    public final ColorRGBA color;
 
     /**
-     * ParticleData color
+     * The color index.
      */
-    public final ColorRGBA color = new ColorRGBA(1, 1, 1, 1);
+    public int colorIndex;
 
-    public int colorIndex = 0;
+    /**
+     * The color interval.
+     */
+    public float colorInterval;
 
-    public float colorInterval = 0f;
-    public float colorDuration = 1f;
+    /**
+     * The duration.
+     */
+    public float colorDuration;
 
+    /**
+     * The color interpolation.
+     */
     public Interpolation colorInterpolation;
 
+    /** ALPHA INFLUENCER */
+
     /**
-     * Particle alpha
+     * The alpha.
      */
-    public float alpha = 1;
-    public float alphaInterval = 0;
-    public float alphaDuration = 1;
+    public float alpha;
 
-    public int alphaIndex = 0;
+    /**
+     * The alpha interval.
+     */
+    public float alphaInterval;
 
+    /**
+     * The alpha duration.
+     */
+    public float alphaDuration;
+
+    /**
+     * The alpha index.
+     */
+    public int alphaIndex;
+
+    /**
+     * The alpha interpolation.
+     */
     public Interpolation alphaInterpolation;
 
+    /** SIZE INFLUENCER */
+
     /**
-     * The position of the emitter when the particle was released.
+     * The size.
      */
-    public final Vector3f emitterPosition = new Vector3f();
-    public final Vector3f initialPosition = new Vector3f();
-    public final Vector3f randomOffset = new Vector3f();
+    public Vector3f size;
+
+    /**
+     * THe start size.
+     */
+    public Vector3f startSize;
+
+    /**
+     * The end size.
+     */
+    public Vector3f endSize;
+
+    /**
+     * The size index.
+     */
+    public int sizeIndex;
+
+    /**
+     * The size interval.
+     */
+    public float sizeInterval;
+
+    /**
+     * The size duration.
+     */
+    public float sizeDuration;
+
+    /**
+     * The size interpolation.
+     */
+    public Interpolation sizeInterpolation;
+
+    /**
+     * DESTINATION INFLUENCER
+     */
+
+    public Vector3f previousPosition;
+
+    /**
+     * The destination index.
+     */
+    public int destinationIndex;
+
+    /**
+     * The destination interval.
+     */
+    public float destinationInterval;
+
+    /**
+     * The destination duration.
+     */
+    public float destinationDuration;
+
+    /**
+     * The destination interpolation.
+     */
+    public Interpolation destinationInterpolation;
+
+    /** DIRECTION INFLUENCER */
+
+    /**
+     * The direction index.
+     */
+    public int directionIndex;
+
+    /**
+     * The direction interval.
+     */
+    public float directionInterval;
+
+    /**
+     * The direction duration.
+     */
+    public float directionDuration;
+
+    /**
+     * The direction interpolation.
+     */
+    public Interpolation directionInterpolation;
+
+    /** ROTATION INFLUENCER */
+
+    /**
+     * The rotation angle speed per axis (in radians).
+     */
+    public Vector3f rotationSpeed;
+
+    /**
+     * The start rotation speed.
+     */
+    public Vector3f startRotationSpeed;
+
+    /**
+     * The end rotation speed.
+     */
+    public Vector3f endRotationSpeed;
+
+    /**
+     * The rotation index.
+     */
+    public int rotationIndex;
+
+    /**
+     * The rotation interval.
+     */
+    public float rotationInterval;
+
+    /**
+     * The rotation duration.
+     */
+    public float rotationDuration;
+
+    /**
+     * The rotation interpolation.
+     */
+    public Interpolation rotationInterpolation;
+
+    /**
+     * The direction each axis' rotation will rotate in
+     */
+    public boolean rotateDirectionX;
+    public boolean rotateDirectionY;
+    public boolean rotateDirectionZ;
+
+    /** SPRITE INFLUENCER */
+
+    /**
+     * The sprite columns.
+     */
+    public int spriteCol;
+
+    /**
+     * The sprite rows.
+     */
+    public int spriteRow;
+
+    /**
+     * The sprite index.
+     */
+    public int spriteIndex;
+
+    /**
+     * The sprite interval.
+     */
+    public float spriteInterval;
+
+    /**
+     * The sprite duration.
+     */
+    public float spriteDuration;
+
+    /**
+     * THe sprite interpolation.
+     */
+    public Interpolation spriteInterpolation;
+
+    /** PHYSICS INFLUENCER */
+
+    /**
+     * The collision flag.
+     */
+    public boolean collision;
+
+    /**
+     * The collision interval.
+     */
+    public float collisionInterval;
+
+    /** PARTICLE DATA */
+
+    /**
+     * A strage facility for per-particle data used by influencers
+     */
+    public Map<String, Object> data;
 
     /**
      * The parent particle emitter
      */
+    @Nullable
     public ParticleEmitterNode emitterNode;
 
     /**
-     * The particles index
+     * The position of the emitter when the particle was released.
      */
-    public int index;
+    @NotNull
+    public final Vector3f emitterPosition;
+
+    @NotNull
+    public final Vector3f initialPosition;
+
+    @NotNull
+    public final Vector3f randomOffset;
+
+    /**
+     * The velocity.
+     */
+    @NotNull
+    public final Vector3f velocity;
+
+    /**
+     * The reverse velocity.
+     */
+    @NotNull
+    public final Vector3f reverseVelocity;
+
+    /**
+     * THe current particle position.
+     */
+    @NotNull
+    public final Vector3f position;
+
+    /**
+     * ParticleData rotation angle per axis (in radians).
+     */
+    public Vector3f angles;
+
+    /**
+     * The UP vector.
+     */
+    public Vector3f upVec;
+
+    /**
+     * The temp vector.
+     */
+    public Vector3f tempV3;
 
     /**
      * The force at which the particle was emitted
@@ -78,79 +316,24 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public float tangentForce;
 
     /**
-     * ParticleData size or radius.
-     */
-    public Vector3f size = new Vector3f(1f, 1f, 1f);
-    public Vector3f startSize = new Vector3f(1, 1, 1);
-    public Vector3f endSize = new Vector3f(0, 0, 0);
-
-    public int sizeIndex = 0;
-
-    public float sizeInterval = 0;
-    public float sizeDuration = 1;
-
-    public Interpolation sizeInterpolation;
-
-    /**
-     *
-     */
-    public int destinationIndex = 0;
-
-    public Vector3f previousPosition = new Vector3f();
-
-    public float destinationInterval = 0;
-    public float destinationDuration = 1;
-
-    public Interpolation destinationInterpolation;
-
-    /**
-     *
-     */
-    public int directionIndex = 0;
-
-    public float directionInterval = 0;
-    public float directionDuration = 1;
-
-    public Interpolation directionInterpolation;
-
-    /**
-     * ParticleData remaining life, in seconds.
+     * The life, in seconds.
      */
     public float life;
 
     /**
-     * The total particle lifespan
+     * The total particle lifespan.
      */
     public float startlife;
 
     /**
-     * The current blend value
+     * The current blend value.
      */
     public float blend;
+
+    /**
+     * The interpolated blend value.
+     */
     public float interpBlend;
-
-    /**
-     * ParticleData rotation angle per axis (in radians).
-     */
-    public Vector3f angles = new Vector3f();
-
-    /**
-     * ParticleData rotation angle speed per axis (in radians).
-     */
-    public Vector3f rotationSpeed = new Vector3f();
-    public Vector3f startRotationSpeed = new Vector3f();
-    public Vector3f endRotationSpeed = new Vector3f();
-    public int rotationIndex = 0;
-    public float rotationInterval = 0;
-    public float rotationDuration = 1;
-    public Interpolation rotationInterpolation;
-
-    /**
-     * The direction each axis' rotation will rotate in
-     */
-    public boolean rotateDirectionX = true;
-    public boolean rotateDirectionY = true;
-    public boolean rotateDirectionZ = true;
 
     /**
      * The index of the emitter shape's mesh triangle the particle was emitted from
@@ -158,32 +341,62 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public int triangleIndex;
 
     /**
-     * ParticleData image index.
+     * The initial length.
      */
-    public int spriteCol = 0;
-    public int spriteRow = 0;
-    public int spriteIndex = 0;
-    public float spriteInterval = 0;
-    public float spriteDuration = 1;
-    public Interpolation spriteInterpolation;
+    public float initialLength;
+
+    /**
+     * The particles index
+     */
+    public int index;
 
     /**
      * The state of the particle
      */
-    public boolean active = false;
+    public boolean active;
 
-    public Vector3f upVec = new Vector3f(0, 1, 0);
-    public Vector3f tempV3 = new Vector3f();
+    public ParticleData() {
+        velocity = new Vector3f();
+        reverseVelocity = new Vector3f();
+        position = new Vector3f();
 
-    public float initialLength;
+        color = new ColorRGBA(1, 1, 1, 1);
+        colorDuration = 1f;
 
-    public boolean collision = false;
-    public float collisionInterval = 0;
+        alpha = 1;
+        alphaDuration = 1;
 
-    /**
-     * A strage facility for per-particle data used by influencers
-     */
-    Map<String, Object> data = new HashMap();
+        emitterPosition = new Vector3f();
+        initialPosition = new Vector3f();
+        randomOffset = new Vector3f();
+
+        size = new Vector3f(1f, 1f, 1f);
+        startSize = new Vector3f(1, 1, 1);
+        endSize = new Vector3f(0, 0, 0);
+        sizeDuration = 1;
+
+        previousPosition = new Vector3f();
+        destinationDuration = 1;
+
+        directionDuration = 1;
+
+        rotationSpeed = new Vector3f();
+        startRotationSpeed = new Vector3f();
+        endRotationSpeed = new Vector3f();
+        rotationDuration = 1;
+        rotateDirectionX = true;
+        rotateDirectionY = true;
+        rotateDirectionZ = true;
+
+        angles = new Vector3f();
+
+        spriteDuration = 1;
+
+        upVec = new Vector3f(0, 1, 0);
+        tempV3 = new Vector3f();
+
+        data = new HashMap<>();
+    }
 
     /**
      * Sets data to store with the particle
@@ -191,7 +404,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param key  The data's map key
      * @param data The data
      */
-    public void setData(String key, Object data) {
+    public void setData(@NotNull final String key, @Nullable final Object data) {
         this.data.put(key, data);
     }
 
@@ -201,39 +414,71 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param key The data's map key
      * @return The data
      */
-    public Object getData(String key) {
-        return this.data.get(key);
+    @Nullable
+    public Object getData(final String key) {
+        return data.get(key);
     }
 
+    @NotNull
     @Override
     public ParticleData clone() throws CloneNotSupportedException {
         return (ParticleData) super.clone();
     }
 
-    public void update(float tpf) {
+    /**
+     * @return the parent particle emitter.
+     */
+    @NotNull
+    public ParticleEmitterNode getEmitterNode() {
+        return Objects.requireNonNull(emitterNode);
+    }
+
+    /**
+     * @param emitterNode the parent particle emitter.
+     */
+    public void setEmitterNode(@NotNull final ParticleEmitterNode emitterNode) {
+        this.emitterNode = emitterNode;
+    }
+
+    /**
+     * Update a state of this particle.
+     *
+     * @param tpf the time per frame.
+     */
+    public void update(final float tpf) {
+
+        final ParticleEmitterNode emitterNode = getEmitterNode();
+
         if (!emitterNode.isStaticParticles()) {
             life -= tpf;
+
             if (life <= 0) {
                 reset();
                 return;
             }
+
+            final Interpolation interpolation = emitterNode.getInterpolation();
+
             blend = 1.0f * (startlife - life) / startlife;
-            interpBlend = emitterNode.getInterpolation().apply(blend);
+            interpBlend = interpolation.apply(blend);
         }
 
         final Array<ParticleInfluencer> influencers = emitterNode.getInfluencers();
-        influencers.forEach(tpf, this, (pd, frames, node) -> pd.update(node, frames));
+        influencers.forEach(tpf, this, (influencer, frames, node) -> influencer.update(node, frames));
 
         tempV3.set(velocity).multLocal(tpf);
         position.addLocal(tempV3);
 
         // TODO: Test this!
         if (emitterNode.isStaticParticles()) {
-            emitterNode.getEmitterShape().setNext(triangleIndex);
+
+            final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+            emitterShape.setNext(triangleIndex);
+
             if (emitterNode.isRandomEmissionPoint()) {
-                position.set(emitterNode.getEmitterShape().getNextTranslation().addLocal(randomOffset));
+                position.set(emitterShape.getNextTranslation().addLocal(randomOffset));
             } else {
-                position.set(emitterNode.getEmitterShape().getNextTranslation());
+                position.set(emitterShape.getNextTranslation());
             }
         }
     }
@@ -242,64 +487,76 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * Called once per particle use when the particle is emitted
      */
     public void initialize() {
+
+        final ParticleEmitterNode emitterNode = getEmitterNode();
         emitterNode.incActiveParticleCount();
+
+        final float lifeMin = emitterNode.getLifeMin();
+        final float lifeMax = emitterNode.getLifeMax();
+
         active = true;
         blend = 0;
         size.set(0, 0, 0);
-        if (emitterNode.getLifeMin() != emitterNode.getLifeMax())
-            startlife = (emitterNode.getLifeMax() - emitterNode.getLifeMin()) * FastMath.nextRandomFloat() + emitterNode.getLifeMin();
-        else
-            startlife = emitterNode.getLifeMax();
-        life = startlife;
-        if (emitterNode.getForceMin() != emitterNode.getForceMax())
-            force = (emitterNode.getForceMax() - emitterNode.getForceMin()) * FastMath.nextRandomFloat() + emitterNode.getForceMin();
-        else
-            force = emitterNode.getForceMax();
-        emitterNode.getEmitterShape().setNext();
-        triangleIndex = emitterNode.getEmitterShape().getTriangleIndex();
-        if (!emitterNode.isRandomEmissionPoint()) {
-            position.set(
-                    emitterNode.getEmitterShape().getNextTranslation()
-            );
+
+        if (lifeMin != lifeMax) {
+            startlife = (lifeMax - lifeMin) * FastMath.nextRandomFloat() + lifeMin;
         } else {
-            randomOffset.set(emitterNode.getEmitterShape().getRandomTranslation());
-            position.set(
-                    emitterNode.getEmitterShape().getNextTranslation().add(randomOffset)
-            );
+            startlife = lifeMax;
         }
-        velocity.set(
-                emitterNode.getEmitterShape().getNextDirection()
-        ).normalizeLocal().multLocal(force);
+
+        life = startlife;
+
+        final float forceMin = emitterNode.getForceMin();
+        final float forceMax = emitterNode.getForceMax();
+
+        if (forceMin != forceMax) {
+            force = (forceMax - forceMin) * FastMath.nextRandomFloat() + forceMin;
+        } else {
+            force = forceMax;
+        }
+
+        final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+        emitterShape.setNext();
+
+        triangleIndex = emitterShape.getTriangleIndex();
+
+        if (!emitterNode.isRandomEmissionPoint()) {
+            position.set(emitterShape.getNextTranslation());
+        } else {
+            randomOffset.set(emitterShape.getRandomTranslation());
+            position.set(emitterShape.getNextTranslation().add(randomOffset));
+        }
+
+        velocity.set(emitterShape.getNextDirection())
+                .normalizeLocal()
+                .multLocal(force);
 
         initialLength = velocity.length();
-        initialPosition.set(
-                emitterNode.getWorldTranslation()
-        );
-
-        //	spriteIndex = 0;
-        //	spriteCol = 0;
-        //	spriteRow = 0;
+        initialPosition.set(emitterNode.getWorldTranslation());
 
         final Array<ParticleInfluencer> influencers = emitterNode.getInfluencers();
         influencers.forEach(this, ParticleInfluencer::initialize);
 
         switch (emitterNode.getEmissionPoint()) {
-            case EDGE_BOTTOM:
-                tempV3.set(emitterNode.getEmitterShape().getNextDirection()).normalizeLocal();
+            case EDGE_BOTTOM: {
+                tempV3.set(emitterShape.getNextDirection()).normalizeLocal();
                 tempV3.multLocal(startSize.getY());
                 position.addLocal(tempV3);
                 break;
-            case EDGE_TOP:
-                tempV3.set(emitterNode.getEmitterShape().getNextDirection()).normalizeLocal();
+            }
+            case EDGE_TOP: {
+                tempV3.set(emitterShape.getNextDirection()).normalizeLocal();
                 tempV3.multLocal(startSize.getY());
                 position.subtractLocal(tempV3);
                 break;
+            }
         }
     }
 
     /**
      * @return the velocity.
      */
+    @NotNull
     public Vector3f getVelocity() {
         return velocity;
     }
@@ -309,6 +566,8 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      */
     public void reset() {
         active = false;
+
+        final ParticleEmitterNode emitterNode = getEmitterNode();
 
         if (emitterNode.getActiveParticleCount() > 0) {
             emitterNode.decActiveParticleCount();
@@ -331,9 +590,11 @@ public final class ParticleData implements Cloneable, JmeCloneable {
 
     @Override
     public void cloneFields(final Cloner cloner, final Object original) {
-
     }
 
+    /**
+     * @return true if this particle is active.
+     */
     public boolean isActive() {
         return active;
     }
