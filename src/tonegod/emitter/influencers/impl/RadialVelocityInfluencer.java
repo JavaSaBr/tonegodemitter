@@ -5,6 +5,7 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
 import org.jetbrains.annotations.NotNull;
@@ -64,41 +65,61 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     /**
      * The tangent.
      */
+    @NotNull
     private final Vector3f tangent;
 
     /**
      * The vector store.
      */
+    @NotNull
     private final Vector3f store;
 
     /**
      * The up vector.
      */
+    @NotNull
     private final Vector3f up;
 
     /**
      * The left vector.
      */
+    @NotNull
     private final Vector3f left;
 
     /**
      * The vector for storing up vector.
      */
+    @NotNull
     private final Vector3f upStore;
+
+    /**
+     * The temp store vector.
+     */
+    @NotNull
+    private final Vector3f tempStore;
+
+    /**
+     * The inverse rotation.
+     */
+    @NotNull
+    private final Quaternion inverseRotation;
 
     /**
      * The radial pull alignment.
      */
+    @NotNull
     private RadialPullAlignment alignment;
 
     /**
      * The radial pull center.
      */
+    @NotNull
     private RadialPullCenter center;
 
     /**
      * The radial upp alignment.
      */
+    @NotNull
     private RadialUpAlignment upAlignment;
 
     /**
@@ -122,6 +143,8 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         this.up = Vector3f.UNIT_Y.clone();
         this.left = new Vector3f();
         this.upStore = new Vector3f();
+        this.tempStore = new Vector3f();
+        this.inverseRotation = new Quaternion();
         this.alignment = RadialPullAlignment.EMISSION_POINT;
         this.center = RadialPullCenter.ABSOLUTE;
         this.upAlignment = RadialUpAlignment.UNIT_Y;
@@ -138,25 +161,35 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        final ParticleEmitterNode emitterNode = particleData.emitterNode;
+        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+        final Quaternion localRotation = emitterNode.getLocalRotation();
 
         processAlignment(particleData, emitterNode, emitterShape);
         processCenter(particleData);
 
-        store.subtractLocal(particleData.position).normalizeLocal().multLocal(particleData.initialLength * radialPull).multLocal(tpf);
+        store.subtractLocal(particleData.getPosition())
+                .normalizeLocal()
+                .multLocal(particleData.getInitialLength() * radialPull)
+                .multLocal(tpf);
 
         processUpAlignment(emitterNode, emitterShape);
 
-        up.set(store).crossLocal(upStore).normalizeLocal();
-        //FIXME memory problem
-        up.set(emitterNode.getLocalRotation().mult(up));
-        left.set(store).crossLocal(up).normalizeLocal();
+        up.set(store).crossLocal(upStore)
+                .normalizeLocal()
+                .set(localRotation.mult(up, tempStore));
 
-        tangent.set(store).crossLocal(left).normalizeLocal().multLocal(particleData.tangentForce).multLocal(tpf);
+        left.set(store).crossLocal(up)
+                .normalizeLocal();
+
+        tangent.set(store)
+                .crossLocal(left)
+                .normalizeLocal()
+                .multLocal(particleData.tangentForce)
+                .multLocal(tpf);
 
         particleData.velocity.subtractLocal(tangent);
-        particleData.velocity.addLocal(store.mult(radialPull));
+        particleData.velocity.addLocal(store.mult(radialPull, tempStore));
 
         super.updateImpl(particleData, tpf);
     }
@@ -164,10 +197,13 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     /**
      * Handle up alignment.
      */
-    private void processUpAlignment(final ParticleEmitterNode emitterNode, final EmitterMesh emitterShape) {
+    private void processUpAlignment(@NotNull final ParticleEmitterNode emitterNode,
+                                    @NotNull final EmitterMesh emitterShape) {
+
         switch (upAlignment) {
             case NORMAL: {
-                upStore.set(emitterNode.getLocalRotation().inverse().mult(upStore.set(emitterShape.getNormal())));
+                inverseRotation.set(emitterNode.getLocalRotation()).inverseLocal();
+                upStore.set(inverseRotation.mult(upStore.set(emitterShape.getNormal()), tempStore));
                 break;
             }
             case UNIT_X: {
@@ -211,14 +247,17 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     /**
      * Handle alignment.
      */
-    private void processAlignment(final @NotNull ParticleData particleData, final ParticleEmitterNode emitterNode, final EmitterMesh emitterShape) {
+    private void processAlignment(@NotNull final ParticleData particleData,
+                                  @NotNull final ParticleEmitterNode emitterNode,
+                                  @NotNull final EmitterMesh emitterShape) {
         switch (alignment) {
             case EMISSION_POINT: {
 
                 emitterShape.setNext(particleData.triangleIndex);
 
                 if (emitterNode.isRandomEmissionPoint()) {
-                    store.set(emitterShape.getNextTranslation().addLocal(particleData.randomOffset));
+                    store.set(emitterShape.getNextTranslation()
+                            .addLocal(particleData.getRandomOffset()));
                 } else {
                     store.set(emitterShape.getNextTranslation());
                 }
@@ -281,9 +320,9 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Alters how the particle will orbit it's radial pull alignment.  For example, VARIABLE_Y, will
-     * use the X/Z components of the point of origin vector, but use the individual particles Y
-     * component when calculating the updated trajectory.
+     * Alters how the particle will orbit it's radial pull alignment.  For example, VARIABLE_Y, will use the X/Z
+     * components of the point of origin vector, but use the individual particles Y component when calculating the
+     * updated trajectory.
      */
     public void setRadialPullCenter(@NotNull final RadialPullCenter center) {
         this.center = center;
@@ -298,8 +337,8 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Defines the gravitational force pulling against the tangent force - Or, how the orbit will
-     * tighten or decay over time
+     * Defines the gravitational force pulling against the tangent force - Or, how the orbit will tighten or decay over
+     * time
      */
     public void setRadialPull(final float radialPull) {
         this.radialPull = radialPull;
@@ -328,8 +367,8 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Allows the influencer to randomly select the negative of the defined tangentForce to reverse
-     * the direction of rotation
+     * Allows the influencer to randomly select the negative of the defined tangentForce to reverse the direction of
+     * rotation
      */
     public void setRandomDirection(final boolean randomDirection) {
         this.randomDirection = randomDirection;

@@ -28,12 +28,20 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     /**
      * The list of speeds.
      */
+    @NotNull
     private UnsafeArray<Vector3f> speeds;
 
     /**
      * The speed factor.
      */
+    @NotNull
     private final Vector3f speedFactor;
+
+    /**
+     * The store vector.
+     */
+    @NotNull
+    private final Vector3f store;
 
     /**
      * The flag of using random direction.
@@ -68,6 +76,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     public RotationInfluencer() {
         this.speeds = ArrayFactory.newUnsafeArray(Vector3f.class);
         this.speedFactor = Vector3f.ZERO.clone();
+        this.store = new Vector3f();
         this.randomDirection = true;
         this.randomSpeed = true;
         this.direction = true;
@@ -82,6 +91,8 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
+        final Vector3f rotationSpeed = particleData.rotationSpeed;
+
         if (speeds.size() > 1) {
 
             if (particleData.rotationIndex >= speeds.size()) {
@@ -94,12 +105,17 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
                 updateRotation(particleData);
             }
 
-            blend = particleData.rotationInterpolation.apply(particleData.rotationInterval / particleData.rotationDuration);
+            final Interpolation interpolation = particleData.rotationInterpolation;
 
-            particleData.rotationSpeed.interpolateLocal(particleData.startRotationSpeed, particleData.endRotationSpeed, blend);
+            blend = interpolation.apply(particleData.rotationInterval / particleData.rotationDuration);
+
+            final Vector3f startSpeed = particleData.startRotationSpeed;
+            final Vector3f endSpeed = particleData.endRotationSpeed;
+
+            rotationSpeed.interpolateLocal(startSpeed, endSpeed, blend);
         }
 
-        particleData.angles.addLocal(particleData.rotationSpeed.mult(tpf));
+        particleData.angles.addLocal(rotationSpeed.mult(tpf, store));
 
         super.updateImpl(particleData, tpf);
     }
@@ -201,11 +217,14 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      * @param index        the index.
      * @param store        the store vector.
      */
-    private void nextRotationSpeed(@NotNull final ParticleData particleData, final int index, final Vector3f store) {
+    private void nextRotationSpeed(@NotNull final ParticleData particleData, final int index,
+                                   @NotNull final Vector3f store) {
+
         store.set(speeds.get(index));
 
         if (isRandomSpeed()) {
-            store.set(FastMath.nextRandomFloat() * store.x, FastMath.nextRandomFloat() * store.y,
+            store.set(FastMath.nextRandomFloat() * store.x,
+                    FastMath.nextRandomFloat() * store.y,
                     FastMath.nextRandomFloat() * store.z);
         }
 

@@ -31,17 +31,13 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     /**
      * The list of alphas.
      */
+    @NotNull
     private UnsafeArray<Float> alphas;
 
     /**
      * The start alpha.
      */
     private float startAlpha;
-
-    /**
-     * The end alpha.
-     */
-    private float endAlpha;
 
     /**
      * The flag of using random start alpha.
@@ -72,17 +68,20 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
             updateAlpha(particleData);
         }
 
-        blend = particleData.alphaInterpolation.apply(particleData.alphaInterval / particleData.alphaDuration);
-
+        final Interpolation interpolation = particleData.alphaInterpolation;
         final Array<Float> alphas = getAlphas();
         final Float[] alphasArray = alphas.array();
+        final int alphaIndex = particleData.alphaIndex;
 
-        startAlpha = alphasArray[particleData.alphaIndex];
+        blend = interpolation.apply(particleData.alphaInterval / particleData.alphaDuration);
+        startAlpha = alphasArray[alphaIndex];
 
-        if (particleData.alphaIndex == alphas.size() - 1) {
+        final float endAlpha;
+
+        if (alphaIndex == alphas.size() - 1) {
             endAlpha = alphasArray[0];
         } else {
-            endAlpha = alphasArray[particleData.alphaIndex + 1];
+            endAlpha = alphasArray[alphaIndex + 1];
         }
 
         particleData.alpha = interpolateLinear(blend, startAlpha, endAlpha);

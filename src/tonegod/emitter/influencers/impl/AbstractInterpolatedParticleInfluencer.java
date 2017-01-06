@@ -28,6 +28,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
     /**
      * The list of interpolations.
      */
+    @NotNull
     private UnsafeArray<Interpolation> interpolations;
 
     /**

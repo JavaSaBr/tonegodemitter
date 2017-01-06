@@ -30,23 +30,17 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     /**
      * The list of sizes.
      */
+    @NotNull
     private UnsafeArray<Vector3f> sizes;
 
     /**
      * The vectors for temp calculating.
      */
+    @NotNull
     private final Vector3f tempV3a;
+
+    @NotNull
     private final Vector3f tempV3b;
-
-    /**
-     * The start size.
-     */
-    private final Vector3f startSize;
-
-    /**
-     * The end size.
-     */
-    private final Vector3f endSize;
 
     /**
      * The random size tolerance value.
@@ -62,8 +56,6 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
         this.sizes = ArrayFactory.newUnsafeArray(Vector3f.class);
         this.tempV3a = new Vector3f();
         this.tempV3b = new Vector3f();
-        this.startSize = new Vector3f(0.1f, 0.1f, 0.1f);
-        this.endSize = new Vector3f(0, 0, 0);
         this.randomSizeTolerance = 0.5f;
     }
 
@@ -86,7 +78,9 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
             updateSize(particleData);
         }
 
-        blend = particleData.sizeInterpolation.apply(particleData.sizeInterval / particleData.sizeDuration);
+        final Interpolation interpolation = particleData.sizeInterpolation;
+
+        blend = interpolation.apply(particleData.sizeInterval / particleData.sizeDuration);
         particleData.size.interpolateLocal(particleData.startSize, particleData.endSize, blend);
 
         super.updateImpl(particleData, tpf);

@@ -10,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import tonegod.emitter.EmitterMesh;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
@@ -31,16 +33,19 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
     /**
      * The vector for storing results.
      */
+    @NotNull
     private final transient Vector3f store;
 
     /**
      * The gravity vector.
      */
+    @NotNull
     private final Vector3f gravity;
 
     /**
      * The gravity alignment.
      */
+    @NotNull
     private GravityAlignment alignment;
 
     /**
@@ -68,42 +73,58 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
 
     @Override
     public void update(@NotNull final ParticleData particleData, final float tpf) {
-        if (particleData.emitterNode.isStaticParticles()) return;
+        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
+        if (emitterNode.isStaticParticles()) return;
         super.update(particleData, tpf);
     }
 
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        switch (alignment) {
+        final Vector3f velocity = particleData.getVelocity();
+        final Vector3f store = getStore();
+
+        switch (getAlignment()) {
             case WORLD: {
-                store.set(gravity).multLocal(tpf);
-                particleData.velocity.subtractLocal(store);
+                store.set(getGravity()).multLocal(tpf);
+                velocity.subtractLocal(store);
                 break;
             }
             case REVERSE_VELOCITY: {
-                store.set(particleData.reverseVelocity).multLocal(tpf);
-                particleData.velocity.addLocal(store);
+                store.set(particleData.getReverseVelocity()).multLocal(tpf);
+                velocity.addLocal(store);
                 break;
             }
             case EMISSION_POINT: {
 
-                particleData.emitterNode.getEmitterShape().setNext(particleData.triangleIndex);
+                final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
+                final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+                emitterShape.setNext(particleData.triangleIndex);
 
-                if (particleData.emitterNode.isRandomEmissionPoint()) {
-                    store.set(particleData.emitterNode.getEmitterShape().getNextTranslation().addLocal(particleData.randomOffset));
+                if (emitterNode.isRandomEmissionPoint()) {
+                    store.set(emitterShape.getNextTranslation()
+                            .addLocal(particleData.getRandomOffset()));
                 } else {
-                    store.set(particleData.emitterNode.getEmitterShape().getNextTranslation());
-                    store.subtractLocal(particleData.position).multLocal(particleData.initialLength * magnitude).multLocal(tpf);
+                    store.set(emitterShape.getNextTranslation())
+                            .subtractLocal(particleData.getPosition())
+                            .multLocal(particleData.getInitialLength() * getMagnitude())
+                            .multLocal(tpf);
                 }
 
-                particleData.velocity.addLocal(store);
+                velocity.addLocal(store);
                 break;
             }
             case EMITTER_CENTER: {
-                store.set(particleData.emitterNode.getEmitterShape().getMesh().getBound().getCenter());
-                store.subtractLocal(particleData.position).multLocal(particleData.initialLength * magnitude).multLocal(tpf);
-                particleData.velocity.addLocal(store);
+
+                final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
+                final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+
+                store.set(emitterShape.getMesh().getBound().getCenter())
+                        .subtractLocal(particleData.getPosition())
+                        .multLocal(particleData.getInitialLength() * getMagnitude())
+                        .multLocal(tpf);
+
+                velocity.addLocal(store);
                 break;
             }
         }
@@ -113,14 +134,20 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.reverseVelocity.set(particleData.velocity.negate().mult(magnitude));
+
+        store.set(particleData.getVelocity())
+                .negateLocal()
+                .multLocal(magnitude);
+
+        particleData.reverseVelocity.set(store);
+
         super.initializeImpl(particleData);
     }
 
     /**
      * Aligns the gravity to the specified GravityAlignment
      */
-    public void setAlignment(@NotNull final GravityAlignment alignment) {
+    public final void setAlignment(@NotNull final GravityAlignment alignment) {
         this.alignment = alignment;
     }
 
@@ -128,21 +155,21 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
      * Returns the specified GravityAlignment
      */
     @NotNull
-    public GravityAlignment getAlignment() {
+    public final GravityAlignment getAlignment() {
         return alignment;
     }
 
     /**
      * Gravity multiplier
      */
-    public void setMagnitude(final float magnitude) {
+    public final void setMagnitude(final float magnitude) {
         this.magnitude = magnitude;
     }
 
     /**
      * Returns the current magnitude
      */
-    public float getMagnitude() {
+    public final float getMagnitude() {
         return magnitude;
     }
 
@@ -151,7 +178,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
      *
      * @param gravity Vector3f representing gravity
      */
-    public void setGravity(@NotNull final Vector3f gravity) {
+    public final void setGravity(@NotNull final Vector3f gravity) {
         this.gravity.set(gravity);
     }
 
@@ -162,7 +189,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
      * @param y Gravity along the y axis
      * @param z Gravity along the z axis
      */
-    public void setGravity(final float x, final float y, final float z) {
+    public final void setGravity(final float x, final float y, final float z) {
         gravity.set(x, y, z);
     }
 
@@ -170,8 +197,16 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
      * Returns the current gravity as a Vector3f
      */
     @NotNull
-    public Vector3f getGravity() {
+    public final Vector3f getGravity() {
         return gravity;
+    }
+
+    /**
+     * @return the store.
+     */
+    @NotNull
+    protected final Vector3f getStore() {
+        return store;
     }
 
     @Override

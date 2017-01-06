@@ -31,21 +31,25 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     /**
      * The list of colors.
      */
+    @NotNull
     private UnsafeArray<ColorRGBA> colors;
 
     /**
      * The reset color.
      */
-    private final transient ColorRGBA resetColor;
+    @NotNull
+    private transient final ColorRGBA resetColor;
 
     /**
      * The start color.
      */
+    @NotNull
     private final ColorRGBA startColor;
 
     /**
      * The end color.
      */
+    @NotNull
     private final ColorRGBA endColor;
 
     /**
@@ -78,16 +82,18 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
             updateColor(particleData);
         }
 
+        final Interpolation interpolation = particleData.colorInterpolation;
         final Array<ColorRGBA> colors = getColors();
         final ColorRGBA[] array = colors.array();
+        final int colorIndex = particleData.colorIndex;
 
-        blend = particleData.colorInterpolation.apply(particleData.colorInterval / particleData.colorDuration);
-        startColor.set(array[particleData.colorIndex]);
+        blend = interpolation.apply(particleData.colorInterval / particleData.colorDuration);
+        startColor.set(array[colorIndex]);
 
-        if (particleData.colorIndex == colors.size() - 1) {
+        if (colorIndex == colors.size() - 1) {
             endColor.set(array[0]);
         } else {
-            endColor.set(array[particleData.colorIndex + 1]);
+            endColor.set(array[colorIndex + 1]);
         }
 
         particleData.color.interpolateLocal(startColor, endColor, blend);

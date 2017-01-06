@@ -67,7 +67,8 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
 
         velocityStore.set(particleData.velocity);
 
-        temp.set(FastMath.nextRandomFloat() * strength, FastMath.nextRandomFloat() * strength,
+        temp.set(FastMath.nextRandomFloat() * strength,
+                FastMath.nextRandomFloat() * strength,
                 FastMath.nextRandomFloat() * strength);
 
         if (FastMath.rand.nextBoolean()) temp.x = -temp.x;
@@ -92,8 +93,7 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Returns the chance the influencer has of successfully affecting the particle's velocity
-     * vector
+     * Returns the chance the influencer has of successfully affecting the particle's velocity vector
      *
      * @return float
      */

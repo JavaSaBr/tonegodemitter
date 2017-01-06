@@ -30,27 +30,25 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     /**
      * The list of destinations.
      */
+    @NotNull
     private UnsafeArray<Vector3f> destinations;
 
     /**
      * The list of weights.
      */
+    @NotNull
     private UnsafeArray<Float> weights;
 
     /**
      * The destination direction.
      */
+    @NotNull
     private final Vector3f destinationDir;
 
     /**
      * The weight value.
      */
     private float weight;
-
-    /**
-     * The distance,
-     */
-    private float dist;
 
     /**
      * The flag of using random start destination.
@@ -82,13 +80,22 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
             updateDestination(particleData);
         }
 
-        blend = particleData.destinationInterpolation.apply(particleData.destinationInterval / particleData.destinationDuration);
+        final Interpolation interpolation = particleData.destinationInterpolation;
+        final Vector3f position = particleData.getPosition();
 
-        destinationDir.set(destinations.get(particleData.destinationIndex).subtract(particleData.position));
-        dist = particleData.position.distance(destinations.get(particleData.destinationIndex));
+        final int destinationIndex = particleData.destinationIndex;
+        final Vector3f destination = destinations.get(destinationIndex);
+
+        final float dist = position.distance(destination);
+
+        blend = interpolation.apply(particleData.destinationInterval / particleData.destinationDuration);
+
+        //TODO recheck
+        // destinationDir.set(destination.subtract(particleData.position));
+        destination.subtract(position, destinationDir);
         destinationDir.multLocal(dist);
 
-        weight = weights.get(particleData.destinationIndex);
+        weight = weights.get(destinationIndex);
 
         particleData.velocity.interpolateLocal(destinationDir, blend * tpf * (weight * 10));
     }

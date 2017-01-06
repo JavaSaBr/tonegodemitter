@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
@@ -89,15 +90,18 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
      * @param particleData the particle data.
      */
     private void updateFrame(@NotNull final ParticleData particleData) {
+
+        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
+
         if (frameSequence == null) {
 
             particleData.spriteCol++;
 
-            if (particleData.spriteCol == particleData.emitterNode.getSpriteColCount()) {
+            if (particleData.spriteCol == emitterNode.getSpriteColCount()) {
                 particleData.spriteCol = 0;
                 particleData.spriteRow++;
 
-                if (particleData.spriteRow == particleData.emitterNode.getSpriteRowCount()) {
+                if (particleData.spriteRow == emitterNode.getSpriteRowCount()) {
                     particleData.spriteRow = 0;
                 }
             }
@@ -110,8 +114,10 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
                 particleData.spriteIndex = 0;
             }
 
-            particleData.spriteRow = (int) FastMath.floor(frameSequence[particleData.spriteIndex] / particleData.emitterNode.getSpriteRowCount()) - 2;
-            particleData.spriteCol = (int) frameSequence[particleData.spriteIndex] % particleData.emitterNode.getSpriteColCount();
+            final int frame = frameSequence[particleData.spriteIndex];
+
+            particleData.spriteRow = (int) FastMath.floor(frame / emitterNode.getSpriteRowCount()) - 2;
+            particleData.spriteCol = frame % emitterNode.getSpriteColCount();
         }
 
         particleData.spriteInterval -= targetInterval;
@@ -120,26 +126,31 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
 
+        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
+
+        final int spriteRowCount = emitterNode.getSpriteRowCount();
+        final int spriteColCount = emitterNode.getSpriteColCount();
+
         if (totalFrames == -1) {
-            totalFrames = particleData.emitterNode.getSpriteColCount() * particleData.emitterNode.getSpriteRowCount();
+            totalFrames = spriteColCount * spriteRowCount;
             if (totalFrames == 1) setAnimate(false);
         }
 
         if (isRandomStartImage()) {
             if (frameSequence == null) {
                 particleData.spriteIndex = FastMath.nextRandomInt(0, totalFrames - 1);
-                particleData.spriteRow = (int) FastMath.floor(particleData.spriteIndex / particleData.emitterNode.getSpriteRowCount()) - 1;
-                particleData.spriteCol = (int) particleData.spriteIndex % particleData.emitterNode.getSpriteColCount();
+                particleData.spriteRow = (int) FastMath.floor(particleData.spriteIndex / spriteRowCount) - 1;
+                particleData.spriteCol = particleData.spriteIndex % spriteColCount;
             } else {
                 particleData.spriteIndex = FastMath.nextRandomInt(0, frameSequence.length - 1);
-                particleData.spriteRow = (int) FastMath.floor(frameSequence[particleData.spriteIndex] / particleData.emitterNode.getSpriteRowCount()) - 1;
-                particleData.spriteCol = (int) frameSequence[particleData.spriteIndex] % particleData.emitterNode.getSpriteColCount();
+                particleData.spriteRow = (int) FastMath.floor(frameSequence[particleData.spriteIndex] / spriteRowCount) - 1;
+                particleData.spriteCol = frameSequence[particleData.spriteIndex] % spriteColCount;
             }
         } else {
             if (frameSequence != null) {
                 particleData.spriteIndex = frameSequence[0];
-                particleData.spriteRow = (int) FastMath.floor(frameSequence[particleData.spriteIndex] / particleData.emitterNode.getSpriteRowCount()) - 2;
-                particleData.spriteCol = (int) frameSequence[particleData.spriteIndex] % particleData.emitterNode.getSpriteColCount();
+                particleData.spriteRow = (int) FastMath.floor(frameSequence[particleData.spriteIndex] / spriteRowCount) - 2;
+                particleData.spriteCol = frameSequence[particleData.spriteIndex] % spriteColCount;
             } else {
                 particleData.spriteIndex = 0;
                 particleData.spriteRow = 0;
@@ -233,8 +244,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Animated texture should cycle and use the provided duration between frames (0 diables
-     * cycling)
+     * Animated texture should cycle and use the provided duration between frames (0 diables cycling)
      *
      * @param fixedDuration duration between frame updates
      */

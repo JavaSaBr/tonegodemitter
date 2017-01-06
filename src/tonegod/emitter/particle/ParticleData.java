@@ -442,6 +442,13 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
+     * @return the initial length.
+     */
+    public float getInitialLength() {
+        return initialLength;
+    }
+
+    /**
      * Called once per particle use when the particle is emitted
      */
     public void initialize() {
@@ -517,6 +524,30 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     @NotNull
     public Vector3f getVelocity() {
         return velocity;
+    }
+
+    /**
+     * @return the reverse velocity.
+     */
+    @NotNull
+    public Vector3f getReverseVelocity() {
+        return reverseVelocity;
+    }
+
+    /**
+     * @return the position.
+     */
+    @NotNull
+    public Vector3f getPosition() {
+        return position;
+    }
+
+    /**
+     * @return the random offset.
+     */
+    @NotNull
+    public Vector3f getRandomOffset() {
+        return randomOffset;
     }
 
     /**
