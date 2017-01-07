@@ -25,33 +25,38 @@ import tonegod.emitter.ParticleEmitterNode;
  */
 public final class ParticleDataTriMesh extends ParticleDataMesh {
 
-    private Vector3f left;
-    private Vector3f up;
-    private Vector3f dir;
-    private Vector3f tempV3;
-    private Vector3f lock;
+    @NotNull
+    private final Vector3f left;
 
-    private Quaternion rotStore;
-    private Quaternion tempQ;
+    @NotNull
+    private final Vector3f up;
 
-    private ColorRGBA tempC;
+    @NotNull
+    private final Vector3f dir;
 
-    private int imgX;
-    private int imgY;
+    @NotNull
+    private final Vector3f lock;
 
-    private float startX;
-    private float startY;
-    private float endX;
-    private float endY;
+    @NotNull
+    private final Vector3f tempV1;
+
+    @NotNull
+    private final Vector3f tempV2;
+
+    @NotNull
+    private final Quaternion rotStore;
+
+    @NotNull
+    private final ColorRGBA color;
 
     public ParticleDataTriMesh() {
         this.left = new Vector3f();
         this.up = new Vector3f();
         this.dir = new Vector3f();
-        this.tempV3 = new Vector3f();
+        this.tempV1 = new Vector3f();
+        this.tempV2 = new Vector3f();
         this.rotStore = new Quaternion();
-        this.tempQ = new Quaternion();
-        this.tempC = new ColorRGBA();
+        this.color = new ColorRGBA();
         this.lock = new Vector3f(0, 0.99f, 0.01f);
     }
 
@@ -211,58 +216,58 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
                         left.set(velocity).crossLocal(up).normalizeLocal();
                         dir.set(velocity);
 
-                        rotStore = tempQ.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
+                        rotStore.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
 
-                        left = rotStore.mult(left);
-                        up = rotStore.mult(up);
+                        left.set(rotStore.mult(left, tempV2));
+                        up.set(rotStore.mult(up, tempV2));
                         break;
                     }
                     case VELOCITY_Z_UP_Y_LEFT: {
                         up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
                         left.set(velocity).crossLocal(up).normalizeLocal();
                         dir.set(velocity);
-                        tempV3.set(left).crossLocal(up).normalizeLocal();
-                        rotStore = tempQ.fromAngleAxis(90 * FastMath.DEG_TO_RAD, velocity);
-                        left = rotStore.mult(left);
-                        up = rotStore.mult(up);
-                        rotStore = tempQ.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
-                        up = rotStore.mult(up);
+                        tempV1.set(left).crossLocal(up).normalizeLocal();
+                        rotStore.fromAngleAxis(90 * FastMath.DEG_TO_RAD, velocity);
+                        left.set(rotStore.mult(left, tempV2));
+                        up.set(rotStore.mult(up, tempV2));
+                        rotStore.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
+                        up.set(rotStore.mult(up, tempV2));
                         break;
                     }
                     case NORMAL: {
 
                         emitterShape.setNext(particleData.triangleIndex);
 
-                        tempV3.set(emitterShape.getNormal());
+                        tempV1.set(emitterShape.getNormal());
 
-                        if (tempV3 == Vector3f.UNIT_Y) {
-                            tempV3.set(velocity);
+                        if (tempV1 == Vector3f.UNIT_Y) {
+                            tempV1.set(velocity);
                         }
 
-                        up.set(tempV3).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        left.set(tempV3).crossLocal(up).normalizeLocal();
-                        dir.set(tempV3);
+                        up.set(tempV1).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+                        left.set(tempV1).crossLocal(up).normalizeLocal();
+                        dir.set(tempV1);
                         break;
                     }
                     case NORMAL_Y_UP: {
 
                         emitterShape.setNext(particleData.triangleIndex);
 
-                        tempV3.set(velocity);
+                        tempV1.set(velocity);
 
-                        if (tempV3 == Vector3f.UNIT_Y) {
-                            tempV3.set(Vector3f.UNIT_X);
+                        if (tempV1 == Vector3f.UNIT_Y) {
+                            tempV1.set(Vector3f.UNIT_X);
                         }
 
                         up.set(Vector3f.UNIT_Y);
-                        left.set(tempV3).crossLocal(up).normalizeLocal();
-                        dir.set(tempV3);
+                        left.set(tempV1).crossLocal(up).normalizeLocal();
+                        dir.set(tempV1);
                         break;
                     }
                     case CAMERA: {
-                        up.set(camera.getUp());
-                        left.set(camera.getLeft());
-                        dir.set(camera.getDirection());
+                        camera.getUp(up);
+                        camera.getLeft(left);
+                        camera.getDirection(dir);
                         break;
                     }
                     case UNIT_X: {
@@ -291,52 +296,59 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
                     up.multLocal(velocity.length() * emitterNode.getVelocityStretchFactor());
                 }
 
-                up.multLocal(particleData.size.y);
-                left.multLocal(particleData.size.x);
+                final Vector3f size = particleData.getSize();
+                final Vector3f angles = particleData.getAngles();
 
-                rotStore = tempQ.fromAngleAxis(particleData.angles.y, left);
-                left = rotStore.mult(left);
-                up = rotStore.mult(up);
+                up.multLocal(size.y);
+                left.multLocal(size.x);
 
-                rotStore = tempQ.fromAngleAxis(particleData.angles.x, up);
-                left = rotStore.mult(left);
-                up = rotStore.mult(up);
+                rotStore.fromAngleAxis(angles.y, left);
+                left.set(rotStore.mult(left, tempV2));
+                up.set(rotStore.mult(up, tempV2));
 
-                rotStore = tempQ.fromAngleAxis(particleData.angles.z, dir);
-                left = rotStore.mult(left);
-                up = rotStore.mult(up);
+                rotStore.fromAngleAxis(angles.x, up);
+                left.set(rotStore.mult(left, tempV2));
+                up.set(rotStore.mult(up, tempV2));
+
+                rotStore.fromAngleAxis(angles.z, dir);
+                left.set(rotStore.mult(left, tempV2));
+                up.set(rotStore.mult(up, tempV2));
 
                 if (emitterNode.isParticlesFollowEmitter()) {
-                    tempV3.set(particleData.position);
+                    tempV1.set(particleData.position);
                 } else {
-                    tempV3.set(particleData.position)
-                            .subtractLocal(worldTranslation.subtract(particleData.initialPosition));
+
+                    final Vector3f subtract = worldTranslation
+                            .subtract(particleData.initialPosition, tempV2);
+
+                    tempV1.set(particleData.position)
+                            .subtractLocal(subtract);
                 }
 
-                positions.put(tempV3.x + left.x + up.x)
-                        .put(tempV3.y + left.y + up.y)
-                        .put(tempV3.z + left.z + up.z);
+                positions.put(tempV1.x + left.x + up.x)
+                        .put(tempV1.y + left.y + up.y)
+                        .put(tempV1.z + left.z + up.z);
 
-                positions.put(tempV3.x - left.x + up.x)
-                        .put(tempV3.y - left.y + up.y)
-                        .put(tempV3.z - left.z + up.z);
+                positions.put(tempV1.x - left.x + up.x)
+                        .put(tempV1.y - left.y + up.y)
+                        .put(tempV1.z - left.z + up.z);
 
-                positions.put(tempV3.x + left.x - up.x)
-                        .put(tempV3.y + left.y - up.y)
-                        .put(tempV3.z + left.z - up.z);
+                positions.put(tempV1.x + left.x - up.x)
+                        .put(tempV1.y + left.y - up.y)
+                        .put(tempV1.z + left.z - up.z);
 
-                positions.put(tempV3.x - left.x - up.x)
-                        .put(tempV3.y - left.y - up.y)
-                        .put(tempV3.z - left.z - up.z);
+                positions.put(tempV1.x - left.x - up.x)
+                        .put(tempV1.y - left.y - up.y)
+                        .put(tempV1.z - left.z - up.z);
             }
 
             if (isUniqueTexCoords()) {
 
-                startX = 1f / emitterNode.getSpriteColCount() * particleData.spriteCol;
-                startY = 1f / emitterNode.getSpriteRowCount() * particleData.spriteRow;
+                final float startX = 1f / emitterNode.getSpriteColCount() * particleData.spriteCol;
+                final float startY = 1f / emitterNode.getSpriteRowCount() * particleData.spriteRow;
 
-                endX = startX + 1f / emitterNode.getSpriteColCount();
-                endY = startY + 1f / emitterNode.getSpriteRowCount();
+                final float endX = startX + 1f / emitterNode.getSpriteColCount();
+                final float endY = startY + 1f / emitterNode.getSpriteRowCount();
 
                 texcoords.put(startX).put(endY);
                 texcoords.put(endX).put(endY);
@@ -344,10 +356,10 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
                 texcoords.put(endX).put(startY);
             }
 
-            tempC.set(particleData.color);
-            tempC.a *= particleData.alpha;
+            color.set(particleData.color);
+            color.a *= particleData.alpha;
 
-            int abgr = tempC.asIntABGR();
+            int abgr = color.asIntABGR();
             colors.putInt(abgr);
             colors.putInt(abgr);
             colors.putInt(abgr);

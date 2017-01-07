@@ -519,6 +519,22 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
+     * @return the size.
+     */
+    @NotNull
+    public Vector3f getSize() {
+        return size;
+    }
+
+    /**
+     * @return the angles.
+     */
+    @NotNull
+    public Vector3f getAngles() {
+        return angles;
+    }
+
+    /**
      * @return the velocity.
      */
     @NotNull
