@@ -365,7 +365,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.particleGeometry = new ParticleGeometry("Particle Geometry");
         this.particleNode = new ParticleNode("Particle Node");
         this.particleNode.attachChild(particleGeometry);
-        this.particleNode.setQueueBucket(RenderQueue.Bucket.Transparent);
+        initParticleNode(particleNode);
         this.forceMax = 0.5f;
         this.forceMin = 0.15f;
         this.lifeMin = 0.999f;
@@ -386,6 +386,15 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.particlesAnimLoopMode = LoopMode.Loop;
         attachChild(particleNode);
         setEmissionsPerSecond(100);
+    }
+
+    /**
+     * Init a particle node.
+     *
+     * @param particleNode the particle node.
+     */
+    protected void initParticleNode(@NotNull final ParticleNode particleNode) {
+        particleNode.setQueueBucket(RenderQueue.Bucket.Transparent);
     }
 
     /**
@@ -478,18 +487,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     private void initMaterials() {
 
         if (material == null) {
-
-            final Texture texture = assetManager.loadTexture("textures/default.png");
-            texture.setMinFilter(MinFilter.BilinearNearestMipMap);
-            texture.setMagFilter(MagFilter.Bilinear);
-
             material = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
-            material.setTexture("Texture", texture);
-
-            RenderState renderState = material.getAdditionalRenderState();
-            renderState.setFaceCullMode(FaceCullMode.Off);
-            renderState.setBlendMode(BlendMode.AlphaAdditive);
-            renderState.setDepthTest(false);
+            initParticleMaterial(material);
         }
 
         if (testMat == null) {
@@ -498,6 +497,25 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             testMat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
             testMat.getAdditionalRenderState().setWireframe(true);
         }
+    }
+
+    /**
+     * Init particle material.
+     *
+     * @param material the particle material.
+     */
+    protected void initParticleMaterial(@NotNull final Material material) {
+
+        final Texture texture = assetManager.loadTexture("textures/default.png");
+        texture.setMinFilter(MinFilter.BilinearNearestMipMap);
+        texture.setMagFilter(MagFilter.Bilinear);
+
+        material.setTexture("Texture", texture);
+
+        final RenderState renderState = material.getAdditionalRenderState();
+        renderState.setFaceCullMode(FaceCullMode.Off);
+        renderState.setBlendMode(BlendMode.AlphaAdditive);
+        renderState.setDepthTest(false);
     }
 
     /**

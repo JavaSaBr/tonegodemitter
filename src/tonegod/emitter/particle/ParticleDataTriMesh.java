@@ -183,7 +183,6 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
-                continue;
             } else {
 
                 final Vector3f velocity = particleData.getVelocity();
@@ -311,8 +310,7 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
                     tempV3.set(particleData.position);
                 } else {
                     tempV3.set(particleData.position)
-                            .subtractLocal(worldTranslation
-                                    .subtract(particleData.initialPosition));
+                            .subtractLocal(worldTranslation.subtract(particleData.initialPosition));
                 }
 
                 positions.put(tempV3.x + left.x + up.x)
