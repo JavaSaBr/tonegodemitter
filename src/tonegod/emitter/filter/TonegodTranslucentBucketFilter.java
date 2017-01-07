@@ -31,9 +31,9 @@ import tonegod.emitter.ParticleEmitterNode;
  * @author Nehon
  * @edit JavaSaBr
  */
-public class TTranslucentBucketFilter extends Filter {
+public class TonegodTranslucentBucketFilter extends Filter {
 
-    private final static Logger LOGGER = LoggerManager.getLogger(TTranslucentBucketFilter.class);
+    private final static Logger LOGGER = LoggerManager.getLogger(TonegodTranslucentBucketFilter.class);
 
     private RenderManager renderManager;
     private Texture depthTexture;
@@ -41,11 +41,11 @@ public class TTranslucentBucketFilter extends Filter {
 
     private boolean enabledSoftParticles;
 
-    public TTranslucentBucketFilter() {
-        super("TTranslucentBucketFilter");
+    public TonegodTranslucentBucketFilter() {
+        super("TonegodTranslucentBucketFilter");
     }
 
-    public TTranslucentBucketFilter(final boolean enabledSoftParticles) {
+    public TonegodTranslucentBucketFilter(final boolean enabledSoftParticles) {
         this();
         this.enabledSoftParticles = enabledSoftParticles;
     }

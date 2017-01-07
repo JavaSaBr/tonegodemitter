@@ -10,7 +10,7 @@ MaterialDef Point Sprite {
         
         // only used for soft particles
         Texture2D SceneDepthTexture
-        Float Softness
+        Float Softness : 3.0
         Int NumSamplesDepth
 
         // Texture of the glowing parts of the material

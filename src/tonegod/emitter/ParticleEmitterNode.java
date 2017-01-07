@@ -487,7 +487,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     private void initMaterials() {
 
         if (material == null) {
-            material = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+            material = new Material(assetManager, "tonegod/emitter/shaders/Particle.j3md");
             initParticleMaterial(material);
         }
 

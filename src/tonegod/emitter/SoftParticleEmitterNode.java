@@ -1,5 +1,6 @@
 package tonegod.emitter;
 
+import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.renderer.queue.RenderQueue;
@@ -14,6 +15,13 @@ import tonegod.emitter.node.ParticleNode;
  * @author JavaSaBr
  */
 public class SoftParticleEmitterNode extends ParticleEmitterNode {
+
+    public SoftParticleEmitterNode(@NotNull final AssetManager assetManager) {
+        super(assetManager);
+    }
+
+    public SoftParticleEmitterNode() {
+    }
 
     @Override
     protected void initParticleNode(@NotNull final ParticleNode particleNode) {
