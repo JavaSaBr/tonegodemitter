@@ -85,15 +85,14 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         final Interpolation interpolation = particleData.colorInterpolation;
         final Array<ColorRGBA> colors = getColors();
         final ColorRGBA[] array = colors.array();
-        final int colorIndex = particleData.colorIndex;
 
         blend = interpolation.apply(particleData.colorInterval / particleData.colorDuration);
-        startColor.set(array[colorIndex]);
+        startColor.set(array[particleData.colorIndex]);
 
-        if (colorIndex == colors.size() - 1) {
+        if (particleData.colorIndex == colors.size() - 1) {
             endColor.set(array[0]);
         } else {
-            endColor.set(array[colorIndex + 1]);
+            endColor.set(array[particleData.colorIndex + 1]);
         }
 
         particleData.color.interpolateLocal(startColor, endColor, blend);

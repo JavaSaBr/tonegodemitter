@@ -1,12 +1,15 @@
 MaterialDef Point Sprite {
 
     MaterialParameters {
+
         Texture2D Texture
         Float Quadratic
+
         Boolean PointSprite
+        Boolean SoftParticles
         
         // only used for soft particles
-        Texture2D DepthTexture
+        Texture2D SceneDepthTexture
         Float Softness
         Int NumSamplesDepth
 
@@ -18,55 +21,8 @@ MaterialDef Point Sprite {
 
     Technique {
 
-        VertexShader   GLSL150 : emitter/shaders/Particle.vert
-        FragmentShader GLSL150 : emitter/shaders/Particle.frag
-
-        WorldParameters {
-            WorldViewProjectionMatrix
-            WorldViewMatrix
-            WorldMatrix
-            CameraPosition
-        }
-
-        RenderState {
-        //	Blend AlphaAdditive
-			DepthWrite Off
-            PointSprite Off
-            AlphaTestFalloff 0.01
-        }
-
-        Defines {
-            USE_TEXTURE : Texture
-            POINT_SPRITE : PointSprite
-        }
-    }
-
-    Technique {
-
-        VertexShader   GLSL100 : Common/MatDefs/Misc/Particle.vert
-        FragmentShader GLSL100 : Common/MatDefs/Misc/Particle.frag
-
-        WorldParameters {
-            WorldViewProjectionMatrix
-            WorldViewMatrix
-            WorldMatrix
-            CameraPosition
-        }
-
-        RenderState {
-            Blend AlphaAdditive
-            DepthWrite Off
-        }
-
-        Defines {
-            USE_TEXTURE : Texture
-        }
-    }
-
-    Technique SoftParticles {
-
-        VertexShader   GLSL150 : Common/MatDefs/Misc/SoftParticle.vert
-        FragmentShader GLSL150 : Common/MatDefs/Misc/SoftParticle.frag
+        VertexShader GLSL150: tonegod/emitter/shaders/SoftParticle.vert
+        FragmentShader GLSL150: tonegod/emitter/shaders/SoftParticle.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
@@ -85,13 +41,14 @@ MaterialDef Point Sprite {
             USE_TEXTURE : Texture
             POINT_SPRITE : PointSprite
             RESOLVE_DEPTH_MS : NumSamplesDepth
+            SOFT_PARTICLES : SoftParticles
         }
     }
 
-    Technique SoftParticles {
+    Technique {
 
-        VertexShader   GLSL100 : Common/MatDefs/Misc/SoftParticle.vert
-        FragmentShader GLSL100 : Common/MatDefs/Misc/SoftParticle.frag
+        VertexShader GLSL100: tonegod/emitter/shaders/SoftParticle.vert
+        FragmentShader GLSL100: tonegod/emitter/shaders/SoftParticle.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
@@ -107,20 +64,14 @@ MaterialDef Point Sprite {
 
         Defines {
             USE_TEXTURE : Texture
+            SOFT_PARTICLES : SoftParticles
+            RESOLVE_DEPTH_MS : NumSamplesDepth
         }
     }
 
-    Technique {
-        RenderState {
-            Blend AlphaAdditive
-            // DepthWrite Off
-            // AlphaTestFalloff 0.01
-        }
-    }
+    Technique Glow {
 
-   Technique Glow {
-
-        VertexShader GLSL100:   Common/MatDefs/Misc/Unshaded.vert
+        VertexShader GLSL100: Common/MatDefs/Misc/Unshaded.vert
         FragmentShader GLSL100: Common/MatDefs/Light/Glow.frag
 
         WorldParameters {
