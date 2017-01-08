@@ -102,6 +102,16 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     protected float currentInterval;
 
     /**
+     * The life of emitter.
+     */
+    protected float emitterLife;
+
+    /**
+     * The emitted time.
+     */
+    protected float emittedTime;
+
+    /**
      * The count of emissions per second.
      */
     protected int emissionsPerSecond;
@@ -450,10 +460,39 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         return particleMeshTemplate;
     }
 
+    /**
+     * @param emitterLife the emitter life.
+     */
+    public void setEmitterLife(final float emitterLife) {
+        this.emitterLife = emitterLife;
+    }
+
+    /**
+     * @param emittedTime the emitted time.
+     */
+    protected void setEmittedTime(final float emittedTime) {
+        this.emittedTime = emittedTime;
+    }
+
+    /**
+     * @return the emitter life.
+     */
+    public float getEmitterLife() {
+        return emitterLife;
+    }
+
+    /**
+     * @return the emitted time.
+     */
+    protected float getEmittedTime() {
+        return emittedTime;
+    }
+
     @Override
     protected void setParent(@Nullable final Node parent) {
         super.setParent(parent);
         if (parent == null && isEnabled()) setEnabled(false);
+        setEmittedTime(0);
     }
 
     @Deprecated
@@ -1337,6 +1376,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
+        if (enabled) {
+            setEmittedTime(0);
+        }
     }
 
     /**
@@ -1519,6 +1561,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             return;
         }
 
+        emittedTime += tpf;
+
         for (final ParticleData particleData : particles) {
             if (particleData.isActive()) particleData.update(tpf);
         }
@@ -1526,8 +1570,10 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
         if (currentInterval < targetInterval) return;
 
-        for (int i = 0; i < particlesPerEmission; i++) {
-            emitNextParticle();
+        if (emitterLife == 0F || emittedTime < emitterLife) {
+            for (int i = 0; i < particlesPerEmission; i++) {
+                emitNextParticle();
+            }
         }
 
         currentInterval -= targetInterval;
@@ -1730,6 +1776,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         capsule.write(stretchAxis.ordinal(), "stretchAxis", 0);
         capsule.write(emissionPoint.ordinal(), "particleEmissionPoint", 0);
         capsule.write(directionType.ordinal(), "directionType", 0);
+        capsule.write(emitterLife, "emitterLife", 0);
 
         // PARTICLES
         capsule.write(billboardMode.ordinal(), "billboardMode", 0);
@@ -1794,6 +1841,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setForcedStretchAxis(ForcedStretchAxis.valueOf(capsule.readInt("stretchAxis", ForcedStretchAxis.X.ordinal())));
         setEmissionPoint(EmissionPoint.valueOf(capsule.readInt("particleEmissionPoint", EmissionPoint.CENTER.ordinal())));
         setDirectionType(EmitterMesh.DirectionType.valueOf(capsule.readInt("directionType", EmitterMesh.DirectionType.NORMAL.ordinal())));
+        setEmitterLife(capsule.readFloat("emitterLife", 0F));
 
         // PARTICLES
         setBillboardMode(BillboardMode.valueOf(capsule.readInt("billboardMode", BillboardMode.CAMERA.ordinal())));
