@@ -75,7 +75,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
 
         particleData.spriteInterval += tpf;
 
-        targetInterval = (cycle) ? fixedDuration : particleData.spriteDuration;
+        targetInterval = isCycle() ? (fixedDuration / 100F) : particleData.spriteDuration;
 
         if (particleData.spriteInterval >= targetInterval) {
             updateFrame(particleData);

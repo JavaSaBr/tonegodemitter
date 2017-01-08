@@ -4,6 +4,7 @@ MaterialDef Point Sprite {
 
         Texture2D Texture
         Float Quadratic
+        Float ColorMod : 1
 
         Boolean PointSprite
         Boolean SoftParticles

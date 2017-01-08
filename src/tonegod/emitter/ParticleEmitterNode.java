@@ -476,7 +476,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public void setMaxParticles(final int maxParticles) {
         if (maxParticles < 0) throw new IllegalArgumentException("maxParticles can't be negative.");
         this.maxParticles = maxParticles;
-        if (!emitterInitialized) return;
+        if (!isEmitterInitialized()) return;
         killAllParticles();
         initParticles();
     }
@@ -587,6 +587,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
 
         particleDataMesh.initParticleData(this, maxParticles);
+        particleDataMesh.setImagesXY(getSpriteColCount(), getSpriteRowCount());
     }
 
     /**

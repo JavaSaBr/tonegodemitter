@@ -1,6 +1,7 @@
 #import "Common/ShaderLib/GLSLCompat.glsllib"
 
 uniform float m_Softness; // Power used in the contrast function
+uniform float m_ColorMod;
 
 #ifdef SOFT_PARTICLES
     uniform sampler2D m_SceneDepthTexture;
@@ -27,9 +28,10 @@ float stdDiff(float d) {
 
 void main() {
 
-    if (color.a <= 0.01) {
-        discard;
-    }
+    vec4 colorMod = color;
+    colorMod.r *= m_ColorMod;
+    colorMod.g *= m_ColorMod;
+    colorMod.b *= m_ColorMod;
 
     #ifdef SOFT_PARTICLES
 
@@ -42,7 +44,7 @@ void main() {
             #else
                 vec2 uv = texCoord.xy;
             #endif
-            resultColor = texture2D(m_Texture, uv) * color;
+            resultColor = texture2D(m_Texture, uv) * colorMod;
         #endif
 
         // Scene depth
@@ -51,10 +53,6 @@ void main() {
 
         float particleDepth = projPos.x;
         float zdiff = depthv - particleDepth;
-
-        if (zdiff <= 0.0) {
-            discard;
-        }
 
         // Computes alpha based on the particles distance to the rest of the scene
         resultColor.a = resultColor.a * stdDiff(zdiff);// Contrast(zdiff);
@@ -70,15 +68,11 @@ void main() {
                 vec2 uv = texCoord.xy;
             #endif
 
-            vec4 tex = texture2D(m_Texture, uv) * color;
-
-            if (tex.a < 0.05) {
-                discard;
-            }
+            vec4 tex = texture2D(m_Texture, uv) * colorMod;
 
             gl_FragColor = tex;
         #else
-            gl_FragColor = color;
+            gl_FragColor = colorMod;
         #endif
     #endif
 }
