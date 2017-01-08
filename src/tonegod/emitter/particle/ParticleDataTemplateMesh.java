@@ -29,24 +29,29 @@ import tonegod.emitter.ParticleEmitterNode;
  */
 public final class ParticleDataTemplateMesh extends ParticleDataMesh {
 
-    private Vector3f left;
-    private Vector3f up;
-    private Vector3f dir;
-    private Vector3f tempV3;
-    private Vector3f lock;
+    @NotNull
+    private final Vector3f left;
 
-    private Quaternion rotStore;
-    private Quaternion tempQ;
+    @NotNull
+    private final Vector3f up;
 
-    private Matrix3f mat3;
+    @NotNull
+    private final Vector3f dir;
 
-    private int imgX;
-    private int imgY;
+    @NotNull
+    private final Vector3f tempV3;
 
-    private float startX;
-    private float startY;
-    private float endX;
-    private float endY;
+    @NotNull
+    private final Vector3f tempV1;
+
+    @NotNull
+    private final Vector3f lock;
+
+    @NotNull
+    private final Quaternion rotStore;
+
+    @NotNull
+    private final Matrix3f mat3;
 
     private Mesh template;
 
@@ -68,8 +73,8 @@ public final class ParticleDataTemplateMesh extends ParticleDataMesh {
         this.up = new Vector3f();
         this.dir = new Vector3f();
         this.tempV3 = new Vector3f();
+        this.tempV1 = new Vector3f();
         this.rotStore = new Quaternion();
-        this.tempQ = new Quaternion();
         this.lock = new Vector3f(0, 0.99f, 0.01f);
         this.mat3 = new Matrix3f();
     }
@@ -99,6 +104,7 @@ public final class ParticleDataTemplateMesh extends ParticleDataMesh {
         super.initParticleData(emitterNode, numParticles);
 
         setMode(Mode.Triangles);
+        setUniqueTexCoords(false);
 
         this.finVerts = BufferUtils.createFloatBuffer(templateVerts.capacity() * numParticles);
         try {
@@ -194,6 +200,7 @@ public final class ParticleDataTemplateMesh extends ParticleDataMesh {
         final ParticleEmitterNode emitterNode = getEmitterNode();
         final EmitterMesh emitterShape = emitterNode.getEmitterShape();
         final BillboardMode billboardMode = emitterNode.getBillboardMode();
+        final Vector3f worldTranslation = emitterNode.getWorldTranslation();
 
         for (int i = 0; i < particles.length; i++) {
 
@@ -209,117 +216,115 @@ public final class ParticleDataTemplateMesh extends ParticleDataMesh {
                     finVerts.put(offset + x + 1, 0);
                     finVerts.put(offset + x + 2, 0);
                 }
-                continue;
-            }
-
-            for (int x = 0; x < templateVerts.capacity(); x += 3) {
-                switch (billboardMode) {
-                    case VELOCITY: {
-                        if (isNotUnitY(velocity)) {
-                            up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        } else {
-                            up.set(velocity).crossLocal(lock).normalizeLocal();
+            } else {
+                for (int x = 0; x < templateVerts.capacity(); x += 3) {
+                    switch (billboardMode) {
+                        case VELOCITY: {
+                            if (isNotUnitY(velocity)) {
+                                up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+                            } else {
+                                up.set(velocity).crossLocal(lock).normalizeLocal();
+                            }
+                            left.set(velocity).crossLocal(up).normalizeLocal();
+                            dir.set(velocity);
+                            break;
                         }
-                        left.set(velocity).crossLocal(up).normalizeLocal();
-                        dir.set(velocity);
-                        break;
-                    }
-                    case VELOCITY_Z_UP: {
-                        if (isNotUnitY(velocity)) {
-                            up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        } else {
-                            up.set(velocity).crossLocal(lock).normalizeLocal();
+                        case VELOCITY_Z_UP: {
+                            if (isNotUnitY(velocity)) {
+                                up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+                            } else {
+                                up.set(velocity).crossLocal(lock).normalizeLocal();
+                            }
+                            left.set(velocity).crossLocal(up).normalizeLocal();
+                            dir.set(velocity);
+                            rotStore.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
+                            left.set(rotStore.mult(left, tempV1));
+                            up.set(rotStore.mult(up, tempV1));
+                            break;
                         }
-                        left.set(velocity).crossLocal(up).normalizeLocal();
-                        dir.set(velocity);
-                        rotStore = tempQ.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
-                        left = rotStore.mult(left);
-                        up = rotStore.mult(up);
-                        break;
-                    }
-                    case VELOCITY_Z_UP_Y_LEFT: {
-                        up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        left.set(velocity).crossLocal(up).normalizeLocal();
-                        dir.set(velocity);
-                        tempV3.set(left).crossLocal(up).normalizeLocal();
-                        rotStore = tempQ.fromAngleAxis(90 * FastMath.DEG_TO_RAD, velocity);
-                        left = rotStore.mult(left);
-                        up = rotStore.mult(up);
-                        rotStore = tempQ.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
-                        up = rotStore.mult(up);
-                        break;
-                    }
-                    case NORMAL: {
+                        case VELOCITY_Z_UP_Y_LEFT: {
+                            up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+                            left.set(velocity).crossLocal(up).normalizeLocal();
+                            dir.set(velocity);
+                            tempV3.set(left).crossLocal(up).normalizeLocal();
+                            rotStore.fromAngleAxis(90 * FastMath.DEG_TO_RAD, velocity);
+                            left.set(rotStore.mult(left, tempV1));
+                            up.set(rotStore.mult(up, tempV1));
+                            rotStore.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
+                            up.set(rotStore.mult(up, tempV1));
+                            break;
+                        }
+                        case NORMAL: {
 
-                        emitterShape.setNext(particleData.triangleIndex);
-                        tempV3.set(emitterShape.getNormal());
+                            emitterShape.setNext(particleData.triangleIndex);
+                            tempV3.set(emitterShape.getNormal());
 
-                        if (tempV3 == Vector3f.UNIT_Y) {
+                            if (tempV3 == Vector3f.UNIT_Y) {
+                                tempV3.set(velocity);
+                            }
+
+                            up.set(tempV3).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
+                            left.set(tempV3).crossLocal(up).normalizeLocal();
+                            dir.set(tempV3);
+                            break;
+                        }
+                        case NORMAL_Y_UP: {
+
+                            emitterShape.setNext(particleData.triangleIndex);
                             tempV3.set(velocity);
+
+                            if (tempV3 == Vector3f.UNIT_Y) {
+                                tempV3.set(Vector3f.UNIT_X);
+                            }
+
+                            up.set(Vector3f.UNIT_Y);
+                            left.set(tempV3).crossLocal(up).normalizeLocal();
+                            dir.set(tempV3);
+                            break;
                         }
-
-                        up.set(tempV3).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        left.set(tempV3).crossLocal(up).normalizeLocal();
-                        dir.set(tempV3);
-                        break;
-                    }
-                    case NORMAL_Y_UP: {
-
-                        emitterShape.setNext(particleData.triangleIndex);
-                        tempV3.set(velocity);
-
-                        if (tempV3 == Vector3f.UNIT_Y) {
-                            tempV3.set(Vector3f.UNIT_X);
+                        case CAMERA: {
+                            camera.getUp(up);
+                            camera.getLeft(left);
+                            camera.getDirection(dir);
+                            break;
                         }
+                        case UNIT_X: {
+                            up.set(Vector3f.UNIT_Y);
+                            left.set(Vector3f.UNIT_Z);
+                            dir.set(Vector3f.UNIT_X);
+                            break;
+                        }
+                        case UNIT_Y: {
+                            up.set(Vector3f.UNIT_Z);
+                            left.set(Vector3f.UNIT_X);
+                            dir.set(Vector3f.UNIT_Y);
+                            break;
+                        }
+                        case UNIT_Z: {
+                            up.set(Vector3f.UNIT_X);
+                            left.set(Vector3f.UNIT_Y);
+                            dir.set(Vector3f.UNIT_Z);
+                            break;
+                        }
+                    }
 
-                        up.set(Vector3f.UNIT_Y);
-                        left.set(tempV3).crossLocal(up).normalizeLocal();
-                        dir.set(tempV3);
-                        break;
+                    tempV3.set(templateVerts.get(x), templateVerts.get(x + 1), templateVerts.get(x + 2));
+                    tempV3.set(rotStore.mult(tempV3, tempV1));
+                    tempV3.multLocal(particleData.size);
+
+                    rotStore.fromAngles(particleData.angles.x, particleData.angles.y, particleData.angles.z);
+                    tempV3.set(rotStore.mult(tempV3, tempV1));
+
+                    tempV3.addLocal(particleData.position);
+
+                    if (!emitterNode.isParticlesFollowEmitter()) {
+                        tempV3.subtractLocal(worldTranslation.subtract(particleData.initialPosition, tempV1));//.divide(8f));
                     }
-                    case CAMERA: {
-                        up.set(camera.getUp());
-                        left.set(camera.getLeft());
-                        dir.set(camera.getDirection());
-                        break;
-                    }
-                    case UNIT_X: {
-                        up.set(Vector3f.UNIT_Y);
-                        left.set(Vector3f.UNIT_Z);
-                        dir.set(Vector3f.UNIT_X);
-                        break;
-                    }
-                    case UNIT_Y: {
-                        up.set(Vector3f.UNIT_Z);
-                        left.set(Vector3f.UNIT_X);
-                        dir.set(Vector3f.UNIT_Y);
-                        break;
-                    }
-                    case UNIT_Z: {
-                        up.set(Vector3f.UNIT_X);
-                        left.set(Vector3f.UNIT_Y);
-                        dir.set(Vector3f.UNIT_Z);
-                        break;
-                    }
+
+                    finVerts.put(offset + x, tempV3.getX());
+                    finVerts.put(offset + x + 1, tempV3.getY());
+                    finVerts.put(offset + x + 2, tempV3.getZ());
                 }
-
-                tempV3.set(templateVerts.get(x), templateVerts.get(x + 1), templateVerts.get(x + 2));
-                tempV3 = rotStore.mult(tempV3);
-                tempV3.multLocal(particleData.size);
-
-                rotStore.fromAngles(particleData.angles.x, particleData.angles.y, particleData.angles.z);
-                tempV3 = rotStore.mult(tempV3);
-
-                tempV3.addLocal(particleData.position);
-
-                if (!emitterNode.isParticlesFollowEmitter()) {
-                    tempV3.subtractLocal(emitterNode.getWorldTranslation().subtract(particleData.initialPosition));//.divide(8f));
-                }
-
-                finVerts.put(offset + x, tempV3.getX());
-                finVerts.put(offset + x + 1, tempV3.getY());
-                finVerts.put(offset + x + 2, tempV3.getZ());
-
             }
 
             if (emitterNode.isApplyLightingTransform()) {
@@ -327,7 +332,7 @@ public final class ParticleDataTemplateMesh extends ParticleDataMesh {
 
                     tempV3.set(templateNormals.get(v), templateNormals.get(v + 1), templateNormals.get(v + 2));
                     rotStore.fromAngles(particleData.angles.x, particleData.angles.y, particleData.angles.z);
-                    mat3.set(rotStore.toRotationMatrix());
+                    rotStore.toRotationMatrix(mat3);
 
                     float vx = tempV3.x, vy = tempV3.y, vz = tempV3.z;
 
@@ -351,7 +356,7 @@ public final class ParticleDataTemplateMesh extends ParticleDataMesh {
 
         setBuffer(VertexBuffer.Type.Position, 3, finVerts);
 
-        if (particles[0].emitterNode.isApplyLightingTransform()) {
+        if (emitterNode.isApplyLightingTransform()) {
             setBuffer(VertexBuffer.Type.Normal, 3, finNormals);
         }
 
