@@ -29,6 +29,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
@@ -49,6 +50,7 @@ import rlib.logging.LoggerManager;
 import rlib.util.ClassUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
+import tonegod.emitter.EmitterMesh.DirectionType;
 import tonegod.emitter.geometry.EmitterShapeGeometry;
 import tonegod.emitter.geometry.ParticleGeometry;
 import tonegod.emitter.influencers.ParticleInfluencer;
@@ -165,7 +167,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * The direction type.
      */
     @NotNull
-    protected EmitterMesh.DirectionType directionType;
+    protected DirectionType directionType;
 
     /**
      * The emitter shape.
@@ -391,7 +393,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.velocityStretchFactor = 0.35f;
         this.stretchAxis = ForcedStretchAxis.Y;
         this.emissionPoint = EmissionPoint.CENTER;
-        this.directionType = EmitterMesh.DirectionType.RANDOM;
+        this.directionType = DirectionType.RANDOM;
         this.interpolation = Interpolation.LINEAR;
         this.influencers = newArray(ParticleInfluencer.class, 0);
         this.particleDataMeshType = ParticleDataTriMesh.class;
@@ -434,7 +436,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param particleNode the particle node.
      */
     protected void initParticleNode(@NotNull final ParticleNode particleNode) {
-        particleNode.setQueueBucket(RenderQueue.Bucket.Transparent);
+        particleNode.setQueueBucket(Bucket.Transparent);
     }
 
     /**
@@ -468,7 +470,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             particlesAnimChannel = particlesAnimControl.createChannel();
         }
 
-        if (emitterInitialized) {
+        if (isEmitterInitialized()) {
             attachChild(particlesAnimNode);
         }
     }
@@ -557,7 +559,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     private void initMaterials() {
 
-        final AssetManager assetManager = requireNonNull(getAssetManager());
+        final AssetManager assetManager = getAssetManager();
 
         if (material == null) {
             material = new Material(assetManager, "tonegod/emitter/shaders/Particle.j3md");
@@ -582,7 +584,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     protected void initParticleMaterial(@NotNull final Material material) {
 
-        final AssetManager assetManager = requireNonNull(getAssetManager());
+        final AssetManager assetManager = getAssetManager();
         final Texture texture = assetManager.loadTexture("textures/default.png");
         texture.setMinFilter(MinFilter.BilinearNearestMipMap);
         texture.setMagFilter(MagFilter.Bilinear);
@@ -634,9 +636,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         particleGeometry.setMesh(particleDataMesh);
         particleTestGeometry.setMesh(particleDataMesh);
 
-        if (!isEmitterInitialized()) {
-            return;
-        }
+        if (!isEmitterInitialized()) return;
 
         if (isEnabled()) {
             killAllParticles();
@@ -699,38 +699,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
-     * Sets the particle emitter shape to the specified mesh NOTE: This method is supplied for use with animated emitter
-     * shapes.
-     *
-     * @param node                             The node containing the Mesh used as the particle emitter shape
-     * @param sceneAlreadyContainsEmitterShape Tells the emitter if shape is an asset that is already contained within
-     *                                         the scene.  This allows you to manage animations via the asset in place
-     *                                         of calling setEmitterAnimation
-     */
-    @Deprecated
-    public final void setEmitterShapeMesh(@NotNull final Node node, final boolean sceneAlreadyContainsEmitterShape) {
-        if (emitterAnimNode != null) emitterAnimNode.removeFromParent();
-
-        emitterAnimNode = node;
-        emitterNodeExists = sceneAlreadyContainsEmitterShape;
-
-        if (!emitterNodeExists) emitterAnimNode.setLocalScale(0);
-
-        final Mesh shape = ((Geometry) node.getChild(0)).getMesh();
-        changeEmitterShapeMesh(shape);
-
-        emitterAnimControl = emitterAnimNode.getControl(AnimControl.class);
-
-        if (emitterAnimControl != null) {
-            emitterAnimChannel = emitterAnimControl.createChannel();
-        }
-
-        if (emitterInitialized) {
-            attachChild(emitterAnimNode);
-        }
-    }
-
-    /**
      * Returns the current ParticleData Emitter's EmitterMesh
      *
      * @return The EmitterMesh containing the specified shape Mesh
@@ -755,7 +723,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.emitterAnimBlendTime = emitterAnimBlendTime;
         this.emitterAnimLoopMode = emitterAnimLoopMode;
 
-        if (emitterInitialized && emitterAnimControl != null) {
+        if (isEmitterInitialized() && emitterAnimControl != null) {
             emitterAnimChannel.setAnim(emitterAnimName, emitterAnimBlendTime);
             emitterAnimChannel.setSpeed(emitterAnimSpeed);
             emitterAnimChannel.setLoopMode(emitterAnimLoopMode);
@@ -802,7 +770,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * direction of the face's normal NORMAL_NEGATE will emit the the opposite direction of the face's normal
      * RANDOM_TANGENT will select a random tagent to the face's normal.
      */
-    public void setDirectionType(@NotNull final EmitterMesh.DirectionType directionType) {
+    public void setDirectionType(@NotNull final DirectionType directionType) {
         this.directionType = directionType;
     }
 
@@ -810,7 +778,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Returns the direction in which the particles will be emitted relative to the emitter shape's selected face.
      */
     @NotNull
-    public EmitterMesh.DirectionType getDirectionType() {
+    public DirectionType getDirectionType() {
         return directionType;
     }
 
@@ -1259,12 +1227,12 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void changeTexture(@NotNull final String texturePath) {
 
-        final AssetManager assetManager = requireNonNull(getAssetManager());
+        final AssetManager assetManager = getAssetManager();
         final Texture texture = assetManager.loadTexture(texturePath);
         texture.setMinFilter(MinFilter.BilinearNearestMipMap);
         texture.setMagFilter(MagFilter.Bilinear);
 
-        final Material material = requireNonNull(getMaterial());
+        final Material material = getMaterial();
         material.setTexture(textureParamName, texture);
 
         setSpriteCount(spriteCols, spriteRows);
@@ -1279,7 +1247,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         texture.setMinFilter(MinFilter.BilinearNearestMipMap);
         texture.setMagFilter(MagFilter.Bilinear);
 
-        final Material material = requireNonNull(getMaterial());
+        final Material material = getMaterial();
         material.setTexture(textureParamName, texture);
 
         setSpriteCount(spriteCols, spriteRows);
@@ -1311,7 +1279,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         if (!isEmitterInitialized()) return;
 
-        final Material material = requireNonNull(getMaterial());
+        final Material material = getMaterial();
         final MatParamTexture textureParam = material.getTextureParam(textureParamName);
         final Texture texture = textureParam.getTextureValue();
 
@@ -1335,9 +1303,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * Returns the current material used by the emitter.
      */
-    @Nullable
+    @NotNull
     public Material getMaterial() {
-        return material;
+        return requireNonNull(material);
     }
 
     /**
@@ -1354,7 +1322,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     @NotNull
     public ParticlesMaterial getParticlesMaterial() {
-        final Material material = requireNonNull(getMaterial());
+        final Material material = getMaterial();
         return new ParticlesMaterial(material, textureParamName, applyLightingTransform);
     }
 
@@ -1461,9 +1429,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * @return the asset manager.
      */
-    @Nullable
+    @NotNull
     private AssetManager getAssetManager() {
-        return assetManager;
+        return requireNonNull(assetManager, "Not found asset manager.");
     }
 
     /**
@@ -1483,20 +1451,15 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * Initializes the emitter, materials & particle mesh Must be called prior to adding the control to your scene.
      */
-    protected void initialize() {
-
+    protected boolean initialize() {
         final AssetManager assetManager = getAssetManager();
-
-        if (assetManager == null) {
-            LOGGER.warning("Not found asset manager.");
-            return;
-        }
-
         try {
             initialize(assetManager, true, true);
-        } catch (final Exception e) {
+            return true;
+        } catch (final RuntimeException e) {
             LOGGER.warning(this, e);
             setEnabled(false);
+            return false;
         }
     }
 
@@ -1515,10 +1478,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         initParticles();
 
-        final ParticleDataMesh particleDataMesh = getParticleDataMesh();
-        particleDataMesh.setImagesXY(spriteCols, spriteRows);
-
-        final Material material = requireNonNull(getMaterial());
+        final Material material = getMaterial();
         final MatParamTexture textureParam = material.getTextureParam(textureParamName);
         final Texture texture = textureParam.getTextureValue();
 
@@ -1543,11 +1503,14 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             }
         }
 
+        final ParticleDataMesh particleDataMesh = getParticleDataMesh();
+        final EmitterMesh emitterShape = getEmitterShape();
+
         particleGeometry.setMesh(particleDataMesh);
         particleTestGeometry.setMesh(particleDataMesh);
         emitterShapeTestGeometry.setMesh(emitterShape.getMesh());
 
-        particleNode.setMaterial(this.material);
+        particleNode.setMaterial(material);
         particleTestNode.setMaterial(testMat);
         emitterTestNode.setMaterial(testMat);
 
@@ -1620,12 +1583,10 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         final boolean enabled = isEnabled();
 
-        if (enabled && !isEmitterInitialized()) {
-            initialize();
-        }
-
-        if (!enabled || !isEmitterInitialized()) {
+        if (!enabled) {
             currentInterval = 0;
+            return;
+        } else if (!isEmitterInitialized() && !initialize()) {
             return;
         }
 
@@ -1639,7 +1600,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         if (currentInterval < targetInterval) return;
 
         if (emitterLife == 0F || emittedTime < emitterLife) {
-            for (int i = 0; i < particlesPerEmission; i++) {
+            for (int i = 0, count = calcParticlesPerEmission(); i < count; i++) {
                 emitNextParticle();
             }
         }
@@ -1693,7 +1654,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @param count The number of particles to emit.
      */
-    public void emitNumParticles(int count) {
+    public void emitNumParticles(final int count) {
 
         int counter = 0;
 
@@ -1788,14 +1749,14 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     @Override
-    public void runControlRender(final RenderManager renderManager, final ViewPort viewPort) {
+    public void runControlRender(@NotNull final RenderManager renderManager, @NotNull final ViewPort viewPort) {
         super.runControlRender(renderManager, viewPort);
 
         if (!isEmitterInitialized() || (!isEnabled() && !requiresUpdate)) return;
 
         final Camera cam = viewPort.getCamera();
         final ParticleDataMesh particleDataMesh = getParticleDataMesh();
-        final Material material = requireNonNull(getMaterial());
+        final Material material = getMaterial();
 
         if (particleDataMesh.getClass() == ParticleDataPointMesh.class) {
 
@@ -1862,7 +1823,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         capsule.write(lifeMax, "lifeMax", 0);
         capsule.write(interpolation, "interpolation", Interpolation.LINEAR);
 
-        final Material material = requireNonNull(getMaterial());
+        final Material material = getMaterial();
 
         // MATERIALS
         capsule.write(textureParamName, "textureParamName", null);
@@ -1914,7 +1875,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setVelocityStretchFactor(capsule.readFloat("velocityStretchFactor", 0F));
         setForcedStretchAxis(ForcedStretchAxis.valueOf(capsule.readInt("stretchAxis", ForcedStretchAxis.X.ordinal())));
         setEmissionPoint(EmissionPoint.valueOf(capsule.readInt("particleEmissionPoint", EmissionPoint.CENTER.ordinal())));
-        setDirectionType(EmitterMesh.DirectionType.valueOf(capsule.readInt("directionType", EmitterMesh.DirectionType.NORMAL.ordinal())));
+        setDirectionType(DirectionType.valueOf(capsule.readInt("directionType", DirectionType.NORMAL.ordinal())));
         setEmitterLife(capsule.readFloat("emitterLife", 0F));
 
         // PARTICLES
