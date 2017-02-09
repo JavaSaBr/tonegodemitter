@@ -24,12 +24,12 @@ import java.io.IOException;
 public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
 
     public enum DirectionType {
-        NORMAL("Normal"),
-        NORMAL_NEGATE("Normal negate"),
-        RANDOM("Random"),
-        RANDOM_TANGENT("Random tangent"),
-        RANDOM_NORMAL_ALIGNED("Random normal aligned"),
-        RANDOM_NORMAL_NEGATE("Random normal negate");
+        NORMAL(Messages.EMITTER_MESH_DIRECTION_TYPE_NORMAL),
+        NORMAL_NEGATE(Messages.EMITTER_MESH_DIRECTION_TYPE_NORMAL_NEGATE),
+        RANDOM(Messages.EMITTER_MESH_DIRECTION_TYPE_RANDOM),
+        RANDOM_TANGENT(Messages.EMITTER_MESH_DIRECTION_TYPE_RANDOM_TANGENT),
+        RANDOM_NORMAL_ALIGNED(Messages.EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_ALIGNED),
+        RANDOM_NORMAL_NEGATE(Messages.EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_NEGATE);
 
         private static final DirectionType[] VALUES = values();
 
@@ -37,9 +37,10 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
             return VALUES[index];
         }
 
+        @NotNull
         private final String uiName;
 
-        DirectionType(final String uiName) {
+        DirectionType(@NotNull final String uiName) {
             this.uiName = uiName;
         }
 

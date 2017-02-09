@@ -11,6 +11,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ParticlesMaterial {
 
+    public static final String PROP_SOFT_PARTICLES = "SoftParticles";
+    public static final String PROP_TEXTURE = "Texture";
+    public static final String PROP_QUADRATIC = "Quadratic";
+
     /**
      * The material of particles.
      */

@@ -2,6 +2,8 @@ package tonegod.emitter;
 
 import java.util.ResourceBundle;
 
+import rlib.util.PropertyLoader;
+
 /**
  * The class with all messages of this library.
  *
@@ -14,6 +16,13 @@ public class Messages {
     public static final String EMISSION_POINT_CENTER;
     public static final String EMISSION_POINT_EDGE_TOP;
     public static final String EMISSION_POINT_EDGE_BOTTOM;
+
+    public static final String EMITTER_MESH_DIRECTION_TYPE_NORMAL;
+    public static final String EMITTER_MESH_DIRECTION_TYPE_NORMAL_NEGATE;
+    public static final String EMITTER_MESH_DIRECTION_TYPE_RANDOM;
+    public static final String EMITTER_MESH_DIRECTION_TYPE_RANDOM_TANGENT;
+    public static final String EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_ALIGNED;
+    public static final String EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_NEGATE;
 
     public static final String INTERPOLATION_LINEAR;
     public static final String INTERPOLATION_FADE;
@@ -53,7 +62,7 @@ public class Messages {
 
     static {
 
-        final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, ResourceControl.getInstance());
+        final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, PropertyLoader.getInstance());
 
         INTERPOLATION_LINEAR = bundle.getString("Interpolation.Linear");
         INTERPOLATION_FADE = bundle.getString("Interpolation.Fade");
@@ -94,5 +103,12 @@ public class Messages {
         EMISSION_POINT_CENTER = bundle.getString("Emission.Point.Center");
         EMISSION_POINT_EDGE_TOP = bundle.getString("Emission.Point.EdgeTop");
         EMISSION_POINT_EDGE_BOTTOM = bundle.getString("Emission.Point.EdgeBottom");
+
+        EMITTER_MESH_DIRECTION_TYPE_NORMAL = bundle.getString("EmitterMesh.DirectionType.Normal");
+        EMITTER_MESH_DIRECTION_TYPE_NORMAL_NEGATE = bundle.getString("EmitterMesh.DirectionType.NormalNegate");
+        EMITTER_MESH_DIRECTION_TYPE_RANDOM = bundle.getString("EmitterMesh.DirectionType.Random");
+        EMITTER_MESH_DIRECTION_TYPE_RANDOM_TANGENT = bundle.getString("EmitterMesh.DirectionType.RandomTangent");
+        EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_ALIGNED = bundle.getString("EmitterMesh.DirectionType.RandomNormalAligned");
+        EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_NEGATE = bundle.getString("EmitterMesh.DirectionType.RandomNormalNegate");
     }
 }

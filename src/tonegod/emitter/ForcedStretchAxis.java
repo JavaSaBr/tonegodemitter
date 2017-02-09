@@ -8,9 +8,9 @@ import org.jetbrains.annotations.NotNull;
  * @author JavaSaBr
  */
 public enum ForcedStretchAxis {
-    X("x"),
-    Y("y"),
-    Z("z");
+    X("X"),
+    Y("Y"),
+    Z("Z");
 
     @NotNull
     private static final ForcedStretchAxis[] VALUES = values();
@@ -26,7 +26,7 @@ public enum ForcedStretchAxis {
     @NotNull
     private final String uiName;
 
-    ForcedStretchAxis(final @NotNull String uiName) {
+    ForcedStretchAxis(@NotNull final String uiName) {
         this.uiName = uiName;
     }
 

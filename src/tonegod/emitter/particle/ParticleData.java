@@ -18,7 +18,7 @@ import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 
 /**
- * @author t0neg0d
+ * @author t0neg0d, JavaSaBr
  */
 public final class ParticleData implements Cloneable, JmeCloneable {
 
@@ -240,12 +240,6 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     @Nullable
     public ParticleEmitterNode emitterNode;
 
-    /**
-     * The position of the emitter when the particle was released.
-     */
-    @NotNull
-    public final Vector3f emitterPosition;
-
     @NotNull
     public final Vector3f initialPosition;
 
@@ -347,7 +341,6 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         this.alphaDuration = 1;
         this.alphaInterpolation = Interpolation.LINEAR;
 
-        this.emitterPosition = new Vector3f();
         this.initialPosition = new Vector3f();
         this.randomOffset = new Vector3f();
 
