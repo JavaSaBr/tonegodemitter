@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The list of forced stretch axis.
  *
- * @author JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public enum ForcedStretchAxis {
     X("X"),

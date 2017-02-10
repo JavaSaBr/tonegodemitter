@@ -24,6 +24,16 @@ public class Messages {
     public static final String EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_ALIGNED;
     public static final String EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_NEGATE;
 
+    public static final String BILLBOARD_MODE_VELOCITY;
+    public static final String BILLBOARD_MODE_VELOCITY_Z_UP;
+    public static final String BILLBOARD_MODE_VELOCITY_Z_UP_Y_LEFT;
+    public static final String BILLBOARD_MODE_NORMAL;
+    public static final String BILLBOARD_MODE_NORMAL_Y_UP;
+    public static final String BILLBOARD_MODE_CAMERA;
+    public static final String BILLBOARD_MODE_UNIT_X;
+    public static final String BILLBOARD_MODE_UNIT_Y;
+    public static final String BILLBOARD_MODE_UNIT_Z;
+
     public static final String INTERPOLATION_LINEAR;
     public static final String INTERPOLATION_FADE;
     public static final String INTERPOLATION_SINE;
@@ -110,5 +120,15 @@ public class Messages {
         EMITTER_MESH_DIRECTION_TYPE_RANDOM_TANGENT = bundle.getString("EmitterMesh.DirectionType.RandomTangent");
         EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_ALIGNED = bundle.getString("EmitterMesh.DirectionType.RandomNormalAligned");
         EMITTER_MESH_DIRECTION_TYPE_RANDOM_NORMAL_NEGATE = bundle.getString("EmitterMesh.DirectionType.RandomNormalNegate");
+
+        BILLBOARD_MODE_VELOCITY = bundle.getString("BillboardMode.Velocity");
+        BILLBOARD_MODE_VELOCITY_Z_UP = bundle.getString("BillboardMode.VelocityZUp");
+        BILLBOARD_MODE_VELOCITY_Z_UP_Y_LEFT = bundle.getString("BillboardMode.VelocityZUpYLeft");
+        BILLBOARD_MODE_NORMAL = bundle.getString("BillboardMode.Normal");
+        BILLBOARD_MODE_NORMAL_Y_UP = bundle.getString("BillboardMode.NormalYUp");
+        BILLBOARD_MODE_CAMERA = bundle.getString("BillboardMode.Camera");
+        BILLBOARD_MODE_UNIT_X = bundle.getString("BillboardMode.UnitX");
+        BILLBOARD_MODE_UNIT_Y = bundle.getString("BillboardMode.UnitY");
+        BILLBOARD_MODE_UNIT_Z = bundle.getString("BillboardMode.UnitZ");
     }
 }

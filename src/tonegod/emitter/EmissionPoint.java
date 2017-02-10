@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The list of types particle emission points.
  *
- * @author JavaSaBr.
+ * @author t0neg0d, JavaSaBr
  */
 public enum EmissionPoint {
     CENTER(Messages.EMISSION_POINT_CENTER),
