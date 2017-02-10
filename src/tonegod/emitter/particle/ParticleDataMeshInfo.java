@@ -12,9 +12,15 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ParticleDataMeshInfo {
 
+    /**
+     * The mesh type.
+     */
     @NotNull
     private final Class<? extends ParticleDataMesh> meshType;
 
+    /**
+     * The template.
+     */
     @Nullable
     private final Mesh template;
 
@@ -23,11 +29,17 @@ public class ParticleDataMeshInfo {
         this.template = template;
     }
 
+    /**
+     * @return the mesh type.
+     */
     @NotNull
     public Class<? extends ParticleDataMesh> getMeshType() {
         return meshType;
     }
 
+    /**
+     * @return the template.
+     */
     @Nullable
     public Mesh getTemplate() {
         return template;

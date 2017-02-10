@@ -10,6 +10,7 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.VertexBuffer.Format;
 import com.jme3.scene.VertexBuffer.Usage;
 import com.jme3.util.BufferUtils;
+import com.jme3.util.clone.Cloner;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -17,47 +18,20 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
+import tonegod.emitter.BillboardMode;
 import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.ParticleEmitterNode;
 
 /**
- * @author t0neg0d
+ * @author t0neg0d, JavaSaBr
  */
-public final class ParticleDataTriMesh extends ParticleDataMesh {
+public final class ParticleDataTriMesh extends RotatedParticleDataMesh {
 
     @NotNull
-    private final Vector3f left;
-
-    @NotNull
-    private final Vector3f up;
-
-    @NotNull
-    private final Vector3f dir;
-
-    @NotNull
-    private final Vector3f lock;
-
-    @NotNull
-    private final Vector3f tempV1;
-
-    @NotNull
-    private final Vector3f tempV2;
-
-    @NotNull
-    private final Quaternion rotStore;
-
-    @NotNull
-    private final ColorRGBA color;
+    protected ColorRGBA color;
 
     public ParticleDataTriMesh() {
-        this.left = new Vector3f();
-        this.up = new Vector3f();
-        this.dir = new Vector3f();
-        this.tempV1 = new Vector3f();
-        this.tempV2 = new Vector3f();
-        this.rotStore = new Quaternion();
         this.color = new ColorRGBA();
-        this.lock = new Vector3f(0, 0.99f, 0.01f);
     }
 
     @Override
@@ -66,34 +40,8 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
 
         setUniqueTexCoords(false);
         setMode(Mode.Triangles);
-
-        // set positions
-        FloatBuffer posBuffer = BufferUtils.createVector3Buffer(numParticles * 4);
-
-        // if the buffer is already set only update the data
-        VertexBuffer buf = getBuffer(VertexBuffer.Type.Position);
-
-        if (buf != null) {
-            buf.updateData(posBuffer);
-        } else {
-            final VertexBuffer pvb = new VertexBuffer(VertexBuffer.Type.Position);
-            pvb.setupData(Usage.Stream, 3, Format.Float, posBuffer);
-            setBuffer(pvb);
-        }
-
-        // set colors
-        ByteBuffer cb = BufferUtils.createByteBuffer(numParticles * 4 * 4);
-
-        buf = getBuffer(VertexBuffer.Type.Color);
-
-        if (buf != null) {
-            buf.updateData(cb);
-        } else {
-            final VertexBuffer cvb = new VertexBuffer(VertexBuffer.Type.Color);
-            cvb.setupData(Usage.Stream, 4, Format.UnsignedByte, cb);
-            cvb.setNormalized(true);
-            setBuffer(cvb);
-        }
+        preparePositionBuffer(numParticles * 4);
+        prepareColorBuffer(numParticles * 4 * 4);
 
         // set texcoords
         FloatBuffer tb = BufferUtils.createVector2Buffer(numParticles * 4);
@@ -107,7 +55,7 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
 
         tb.flip();
 
-        buf = getBuffer(VertexBuffer.Type.TexCoord);
+        VertexBuffer buf = getBuffer(VertexBuffer.Type.TexCoord);
 
         if (buf != null) {
             buf.updateData(tb);
@@ -165,8 +113,8 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
                                    @NotNull final Matrix3f inverseRotation) {
 
         final ParticleEmitterNode emitterNode = getEmitterNode();
-        final EmitterMesh emitterShape = emitterNode.getEmitterShape();
         final Vector3f worldTranslation = emitterNode.getWorldTranslation();
+        final BillboardMode billboardMode = emitterNode.getBillboardMode();
 
         VertexBuffer pvb = getBuffer(VertexBuffer.Type.Position);
         FloatBuffer positions = (FloatBuffer) pvb.getData();
@@ -190,109 +138,12 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
                 positions.put(0).put(0).put(0);
             } else {
 
-                final Vector3f velocity = particleData.getVelocity();
-
-                switch (emitterNode.getBillboardMode()) {
-                    case VELOCITY: {
-
-                        if (isNotUnitY(velocity)) {
-                            up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        } else {
-                            up.set(velocity).crossLocal(lock).normalizeLocal();
-                        }
-
-                        left.set(velocity).crossLocal(up).normalizeLocal();
-                        dir.set(velocity);
-                        break;
-                    }
-                    case VELOCITY_Z_UP: {
-
-                        if (isNotUnitY(velocity)) {
-                            up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        } else {
-                            up.set(velocity).crossLocal(lock).normalizeLocal();
-                        }
-
-                        left.set(velocity).crossLocal(up).normalizeLocal();
-                        dir.set(velocity);
-
-                        rotStore.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
-
-                        left.set(rotStore.mult(left, tempV2));
-                        up.set(rotStore.mult(up, tempV2));
-                        break;
-                    }
-                    case VELOCITY_Z_UP_Y_LEFT: {
-                        up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        left.set(velocity).crossLocal(up).normalizeLocal();
-                        dir.set(velocity);
-                        tempV1.set(left).crossLocal(up).normalizeLocal();
-                        rotStore.fromAngleAxis(90 * FastMath.DEG_TO_RAD, velocity);
-                        left.set(rotStore.mult(left, tempV2));
-                        up.set(rotStore.mult(up, tempV2));
-                        rotStore.fromAngleAxis(-90 * FastMath.DEG_TO_RAD, left);
-                        up.set(rotStore.mult(up, tempV2));
-                        break;
-                    }
-                    case NORMAL: {
-
-                        emitterShape.setNext(particleData.triangleIndex);
-
-                        tempV1.set(emitterShape.getNormal());
-
-                        if (tempV1 == Vector3f.UNIT_Y) {
-                            tempV1.set(velocity);
-                        }
-
-                        up.set(tempV1).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
-                        left.set(tempV1).crossLocal(up).normalizeLocal();
-                        dir.set(tempV1);
-                        break;
-                    }
-                    case NORMAL_Y_UP: {
-
-                        emitterShape.setNext(particleData.triangleIndex);
-
-                        tempV1.set(velocity);
-
-                        if (tempV1 == Vector3f.UNIT_Y) {
-                            tempV1.set(Vector3f.UNIT_X);
-                        }
-
-                        up.set(Vector3f.UNIT_Y);
-                        left.set(tempV1).crossLocal(up).normalizeLocal();
-                        dir.set(tempV1);
-                        break;
-                    }
-                    case CAMERA: {
-                        camera.getUp(up);
-                        camera.getLeft(left);
-                        camera.getDirection(dir);
-                        break;
-                    }
-                    case UNIT_X: {
-                        up.set(Vector3f.UNIT_Y);
-                        left.set(Vector3f.UNIT_Z);
-                        dir.set(Vector3f.UNIT_X);
-                        break;
-                    }
-                    case UNIT_Y: {
-                        up.set(Vector3f.UNIT_Z);
-                        left.set(Vector3f.UNIT_X);
-                        dir.set(Vector3f.UNIT_Y);
-                        break;
-                    }
-                    case UNIT_Z: {
-                        up.set(Vector3f.UNIT_X);
-                        left.set(Vector3f.UNIT_Y);
-                        dir.set(Vector3f.UNIT_Z);
-                        break;
-                    }
-                }
+                updateRotation(particleData, billboardMode, camera);
 
                 particleData.upVec.set(up);
 
                 if (emitterNode.isVelocityStretching()) {
+                    final Vector3f velocity = particleData.getVelocity();
                     up.multLocal(velocity.length() * emitterNode.getVelocityStretchFactor());
                 }
 
@@ -366,7 +217,6 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
             colors.putInt(abgr);
         }
 
-        //	this.setBuffer(VertexBuffer.Type.Position, 3, positions);
         positions.clear();
         colors.clear();
 
@@ -382,5 +232,12 @@ public final class ParticleDataTriMesh extends ParticleDataMesh {
         cvb.updateData(colors);
 
         updateBound();
+    }
+
+    @Override
+    public void cloneFields(@NotNull final Cloner cloner, @NotNull final Object original) {
+        super.cloneFields(cloner, original);
+
+        color = cloner.clone(color);
     }
 }

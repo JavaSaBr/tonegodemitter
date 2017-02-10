@@ -28,7 +28,6 @@ import com.jme3.math.Vector2f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -68,8 +67,7 @@ import tonegod.emitter.shapes.TriangleEmitterShape;
 /**
  * The implementation of a {@link Node} to emit particles.
  *
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 @SuppressWarnings("WeakerAccess")
 public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable {
@@ -612,7 +610,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @param info information about new settings.
      */
-    public <T extends ParticleDataMesh> void changeParticleMeshType(@NotNull final ParticleDataMeshInfo info) {
+    public void changeParticleMeshType(@NotNull final ParticleDataMeshInfo info) {
         changeParticleMeshType(info.getMeshType(), info.getTemplate());
     }
 
@@ -624,17 +622,30 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public <T extends ParticleDataMesh> void changeParticleMeshType(@NotNull final Class<T> type,
                                                                     @Nullable final Mesh template) {
+        changeParticleMesh(ClassUtils.newInstance(type), template);
+    }
 
-        this.particleDataMeshType = type;
+    /**
+     * Change the particles data mesh in this emitter.
+     *
+     * @param dataMesh the data mesh.
+     */
+    public void changeParticleMesh(@NotNull final ParticleDataMesh dataMesh) {
+        changeParticleMesh(dataMesh, null);
+    }
+
+    private void changeParticleMesh(@NotNull final ParticleDataMesh particleDataMesh, @Nullable final Mesh template) {
+
+        this.particleDataMeshType = particleDataMesh.getClass();
         this.particleMeshTemplate = template;
-        this.particleDataMesh = ClassUtils.newInstance(type);
+        this.particleDataMesh = particleDataMesh;
 
         if (template != null) {
             this.particleDataMesh.extractTemplateFromMesh(template);
         }
 
-        particleGeometry.setMesh(particleDataMesh);
-        particleTestGeometry.setMesh(particleDataMesh);
+        particleGeometry.setMesh(this.particleDataMesh);
+        particleTestGeometry.setMesh(this.particleDataMesh);
 
         if (!isEmitterInitialized()) return;
 
@@ -653,6 +664,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Init particle data mesh.
      */
     private <T extends ParticleDataMesh> void initParticles(@NotNull final Class<T> type, @Nullable final Mesh template) {
+        if (particleDataMesh != null) return;
         this.particleDataMesh = ClassUtils.newInstance(type);
 
         if (template != null) {
@@ -1815,6 +1827,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         // PARTICLES MESH DATA
         capsule.write(particleDataMeshType.getName(), "particleDataMeshType", ParticleDataTriMesh.class.getName());
+        capsule.write(particleDataMesh, "particleDataMesh", null);
         capsule.write(particleMeshTemplate, "particleMeshTemplate", null);
         capsule.write(maxParticles, "maxParticles", 0);
         capsule.write(forceMin, "forceMin", 0);
@@ -1886,9 +1899,15 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         final Class<? extends ParticleDataMesh> meshType = requireNonNull(get(capsule, cap ->
                 unsafeCast(forName(cap.readString("particleDataMeshType", ParticleDataTriMesh.class.getName())))));
 
+        final ParticleDataMesh particleDataMesh = (ParticleDataMesh) capsule.readSavable("particleDataMesh", null);
         final Mesh template = (Mesh) capsule.readSavable("particleMeshTemplate", null);
 
-        changeParticleMeshType(meshType, template);
+        if (particleDataMesh != null) {
+            changeParticleMesh(particleDataMesh);
+        } else {
+            changeParticleMeshType(meshType, template);
+        }
+
         setMaxParticles(capsule.readInt("maxParticles", 0));
         setForceMinMax(capsule.readFloat("forceMin", 0F), capsule.readFloat("forceMax", 0F));
         setLifeMinMax(capsule.readFloat("lifeMin", 0F), capsule.readFloat("lifeMax", 0F));

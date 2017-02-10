@@ -26,7 +26,7 @@ import java.util.Random;
 import tonegod.emitter.util.RandomUtils;
 
 /**
- * @author t0neg0d
+ * @author t0neg0d, JavaSaBr
  */
 public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
 
@@ -69,6 +69,9 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
     @Nullable
     private ParticleEmitterNode emitterNode;
 
+    /**
+     * The mesh.
+     */
     @Nullable
     private Mesh mesh;
 
@@ -114,8 +117,19 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
     @NotNull
     private Quaternion tempQuaternion2;
 
+    /**
+     * The triangle index.
+     */
     private int triangleIndex;
+
+    /**
+     * The triangle count.
+     */
     private int triangleCount;
+
+    /**
+     * The current triangle.
+     */
     private int currentTriangle;
 
     public EmitterMesh() {
@@ -368,11 +382,17 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
         }
     }
 
+    /**
+     * @return the direction normal.
+     */
     @NotNull
     private Vector3f getDirectionNormal() {
         return triangle.getNormal();
     }
 
+    /**
+     * @return the random direction.
+     */
     @NotNull
     private Vector3f getDirectionRandom() {
 
@@ -389,6 +409,9 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
         return tempDirection;
     }
 
+    /**
+     * @return the direction random target.
+     */
     @NotNull
     private Vector3f getDirectionRandomTangent() {
 
@@ -441,7 +464,6 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
 
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
-
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(mesh, "mesh", null);
         capsule.write(triangle, "triangle", null);
@@ -459,9 +481,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
 
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
-
         final InputCapsule capsule = importer.getCapsule(this);
-
         mesh = (Mesh) capsule.readSavable("mesh", null);
         triangle = (Triangle) capsule.readSavable("triangle", capsule.readSavable("triStore", null));
         point1 = (Vector3f) capsule.readSavable("point1", capsule.readSavable("p1", null));

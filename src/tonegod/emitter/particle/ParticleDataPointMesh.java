@@ -18,8 +18,7 @@ import tonegod.emitter.ParticleEmitterNode;
 /**
  * The implementation of data mesh to use point mesh.
  *
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public final class ParticleDataPointMesh extends ParticleDataMesh {
 
@@ -32,39 +31,13 @@ public final class ParticleDataPointMesh extends ParticleDataMesh {
         super.initParticleData(particleEmitterNode, numParticles);
 
         setMode(Mode.Points);
-
-        // set positions
-        FloatBuffer pb = BufferUtils.createVector3Buffer(numParticles);
-
-        // if the buffer is already set only update the data
-        VertexBuffer buf = getBuffer(VertexBuffer.Type.Position);
-
-        if (buf != null) {
-            buf.updateData(pb);
-        } else {
-            final VertexBuffer pvb = new VertexBuffer(VertexBuffer.Type.Position);
-            pvb.setupData(Usage.Stream, 3, Format.Float, pb);
-            setBuffer(pvb);
-        }
-
-        // set colors
-        ByteBuffer cb = BufferUtils.createByteBuffer(numParticles * 4);
-
-        buf = getBuffer(VertexBuffer.Type.Color);
-
-        if (buf != null) {
-            buf.updateData(cb);
-        } else {
-            VertexBuffer cvb = new VertexBuffer(VertexBuffer.Type.Color);
-            cvb.setupData(Usage.Stream, 4, Format.UnsignedByte, cb);
-            cvb.setNormalized(true);
-            setBuffer(cvb);
-        }
+        preparePositionBuffer(numParticles);
+        prepareColorBuffer(numParticles);
 
         // set sizes
         FloatBuffer sb = BufferUtils.createFloatBuffer(numParticles);
 
-        buf = getBuffer(VertexBuffer.Type.Size);
+        VertexBuffer buf = getBuffer(VertexBuffer.Type.Size);
 
         if (buf != null) {
             buf.updateData(sb);
@@ -151,6 +124,6 @@ public final class ParticleDataPointMesh extends ParticleDataMesh {
     }
 
     @Override
-    public void extractTemplateFromMesh(@NotNull Mesh mesh) {
+    public void extractTemplateFromMesh(@NotNull final Mesh mesh) {
     }
 }

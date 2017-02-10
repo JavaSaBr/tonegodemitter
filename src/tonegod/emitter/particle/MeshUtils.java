@@ -13,8 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.FloatBuffer;
 
 /**
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public final class MeshUtils {
 

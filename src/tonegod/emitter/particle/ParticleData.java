@@ -1,5 +1,7 @@
 package tonegod.emitter.particle;
 
+import static java.util.Objects.requireNonNull;
+
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
@@ -18,6 +20,8 @@ import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 
 /**
+ * The particle data class.
+ *
  * @author t0neg0d, JavaSaBr
  */
 public final class ParticleData implements Cloneable, JmeCloneable {
@@ -381,7 +385,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      */
     @NotNull
     public ParticleEmitterNode getEmitterNode() {
-        return Objects.requireNonNull(emitterNode);
+        return requireNonNull(emitterNode);
     }
 
     /**

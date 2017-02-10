@@ -1,18 +1,29 @@
 package tonegod.emitter.particle;
 
+import com.jme3.export.InputCapsule;
+import com.jme3.export.JmeExporter;
+import com.jme3.export.JmeImporter;
+import com.jme3.export.OutputCapsule;
 import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.VertexBuffer;
+import com.jme3.util.BufferUtils;
+import com.jme3.util.clone.Cloner;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 
 import rlib.logging.Logger;
 import rlib.logging.LoggerManager;
 import tonegod.emitter.ParticleEmitterNode;
 
 /**
- * @author t0neg0d
+ * @author t0neg0d, JavaSaBr
  */
 public abstract class ParticleDataMesh extends Mesh {
 
@@ -41,6 +52,35 @@ public abstract class ParticleDataMesh extends Mesh {
     public ParticleDataMesh() {
         this.imagesX = 1;
         this.imagesY = 1;
+    }
+
+    protected void preparePositionBuffer(final int size) {
+
+        final FloatBuffer buffer = BufferUtils.createVector3Buffer(size);
+        final VertexBuffer vertexBuffer = getBuffer(VertexBuffer.Type.Position);
+
+        if (vertexBuffer != null) {
+            vertexBuffer.updateData(buffer);
+        } else {
+            final VertexBuffer pvb = new VertexBuffer(VertexBuffer.Type.Position);
+            pvb.setupData(VertexBuffer.Usage.Stream, 3, VertexBuffer.Format.Float, buffer);
+            setBuffer(pvb);
+        }
+    }
+
+    protected void prepareColorBuffer(final int size) {
+
+        final ByteBuffer buffer = BufferUtils.createByteBuffer(size);
+        final VertexBuffer vertexBuffer = getBuffer(VertexBuffer.Type.Color);
+
+        if (vertexBuffer != null) {
+            vertexBuffer.updateData(buffer);
+        } else {
+            final VertexBuffer cvb = new VertexBuffer(VertexBuffer.Type.Color);
+            cvb.setupData(VertexBuffer.Usage.Stream, 4, VertexBuffer.Format.UnsignedByte, buffer);
+            cvb.setNormalized(true);
+            setBuffer(cvb);
+        }
     }
 
     /**

@@ -19,17 +19,25 @@ import java.nio.ShortBuffer;
 /**
  * The triangle implementation of emitter shape.
  *
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public class TriangleEmitterShape extends Mesh {
 
+    /**
+     * The vertexes.
+     */
     @NotNull
     protected final FloatBuffer vertexes;
 
+    /**
+     * The indexes.
+     */
     @NotNull
     protected final ShortBuffer indexes;
 
+    /**
+     * The normals.
+     */
     @NotNull
     protected final FloatBuffer normals;
 
@@ -42,6 +50,9 @@ public class TriangleEmitterShape extends Mesh {
     @NotNull
     protected final Vector3f thirdPoint;
 
+    /**
+     * The triangle.
+     */
     @NotNull
     protected final Triangle triangle;
 
@@ -70,7 +81,7 @@ public class TriangleEmitterShape extends Mesh {
      *
      * @param size the new size of this mesh.
      */
-    public void updateTo(final float size) {
+    private void updateTo(final float size) {
         this.size = size;
 
         firstPoint.set(-(size / 2), 0, (size / 2));
@@ -126,7 +137,7 @@ public class TriangleEmitterShape extends Mesh {
     }
 
     @Override
-    public void read(final JmeImporter importer) throws IOException {
+    public void read(@NotNull final JmeImporter importer) throws IOException {
         super.read(importer);
         final InputCapsule capsule = importer.getCapsule(this);
         final float size = capsule.readFloat("size", 1F);
@@ -134,7 +145,7 @@ public class TriangleEmitterShape extends Mesh {
     }
 
     @Override
-    public void write(final JmeExporter exporter) throws IOException {
+    public void write(@NotNull final JmeExporter exporter) throws IOException {
         super.write(exporter);
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(size, "size", 1F);
