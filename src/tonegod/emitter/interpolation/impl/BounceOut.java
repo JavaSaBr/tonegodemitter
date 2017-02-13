@@ -3,8 +3,7 @@ package tonegod.emitter.interpolation.impl;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author toneg0d
- * @edit JavaSaBr
+ * @author toneg0d, JavaSaBr
  */
 public class BounceOut extends AbstractInterpolation {
 
@@ -38,19 +37,21 @@ public class BounceOut extends AbstractInterpolation {
         heights[0] = 1;
 
         switch (bounces) {
-            case 2:
+            case 2: {
                 widths[0] = 0.6f;
                 widths[1] = 0.4f;
                 heights[1] = 0.33f;
                 break;
-            case 3:
+            }
+            case 3: {
                 widths[0] = 0.4f;
                 widths[1] = 0.4f;
                 widths[2] = 0.2f;
                 heights[1] = 0.33f;
                 heights[2] = 0.1f;
                 break;
-            case 4:
+            }
+            case 4: {
                 widths[0] = 0.34f;
                 widths[1] = 0.34f;
                 widths[2] = 0.2f;
@@ -59,7 +60,8 @@ public class BounceOut extends AbstractInterpolation {
                 heights[2] = 0.11f;
                 heights[3] = 0.03f;
                 break;
-            case 5:
+            }
+            case 5: {
                 widths[0] = 0.3f;
                 widths[1] = 0.3f;
                 widths[2] = 0.2f;
@@ -70,6 +72,7 @@ public class BounceOut extends AbstractInterpolation {
                 heights[3] = 0.15f;
                 heights[4] = 0.06f;
                 break;
+            }
         }
         widths[0] *= 2;
     }

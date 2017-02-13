@@ -10,18 +10,22 @@ import com.jme3.math.Vector3f;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Random;
 
 import rlib.util.ArrayUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
+import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
+import tonegod.emitter.util.RandomUtils;
 
 /**
- * @author t0neg0d
- * @edit JavaSaBr
+ * The implementation of the {@link ParticleInfluencer} to rotation particles.
+ *
+ * @author t0neg0d, JavaSaBr
  */
 public final class RotationInfluencer extends AbstractInterpolatedParticleInfluencer {
 
@@ -85,7 +89,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     @NotNull
     @Override
     public String getName() {
-        return "Rotation influencer";
+        return Messages.PARTICLE_INFLUENCER_ROTATION;
     }
 
     @Override
@@ -171,9 +175,10 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
         particleData.rotationDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) speeds.size() - 1);
 
         if (isRandomDirection()) {
-            particleData.rotateDirectionX = FastMath.rand.nextBoolean();
-            particleData.rotateDirectionY = FastMath.rand.nextBoolean();
-            particleData.rotateDirectionZ = FastMath.rand.nextBoolean();
+            final Random random = RandomUtils.getRandom();
+            particleData.rotateDirectionX = random.nextBoolean();
+            particleData.rotateDirectionY = random.nextBoolean();
+            particleData.rotateDirectionZ = random.nextBoolean();
         }
 
         nextRotationSpeed(particleData, particleData.rotationIndex, particleData.startRotationSpeed);
@@ -203,9 +208,10 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      */
     private void calculateRandomAngles(final @NotNull ParticleData particleData) {
 
-        final float x = randomStartRotationX ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0;
-        final float y = randomStartRotationY ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0;
-        final float z = randomStartRotationZ ? FastMath.nextRandomFloat() * FastMath.TWO_PI : 0;
+        final Random random = RandomUtils.getRandom();
+        final float x = randomStartRotationX ? random.nextFloat() * FastMath.TWO_PI : 0;
+        final float y = randomStartRotationY ? random.nextFloat() * FastMath.TWO_PI : 0;
+        final float z = randomStartRotationZ ? random.nextFloat() * FastMath.TWO_PI : 0;
 
         particleData.angles.set(x, y, z);
     }
@@ -223,9 +229,10 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
         store.set(speeds.get(index));
 
         if (isRandomSpeed()) {
-            store.set(FastMath.nextRandomFloat() * store.x,
-                    FastMath.nextRandomFloat() * store.y,
-                    FastMath.nextRandomFloat() * store.z);
+            final Random random = RandomUtils.getRandom();
+            store.set(random.nextFloat() * store.x,
+                    random.nextFloat() * store.y,
+                    random.nextFloat() * store.z);
         }
 
         if (isRandomDirection()) {

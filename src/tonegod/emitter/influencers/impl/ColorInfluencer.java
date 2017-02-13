@@ -16,15 +16,15 @@ import rlib.util.ArrayUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
+import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 
 /**
- * The implementation of the {@link ParticleInfluencer} for influence to color of particles.
+ * The implementation of the {@link ParticleInfluencer} to change color of particles.
  *
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public final class ColorInfluencer extends AbstractInterpolatedParticleInfluencer {
 
@@ -67,7 +67,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     @NotNull
     @Override
     public String getName() {
-        return "Color influencer";
+        return Messages.PARTICLE_INFLUENCER_COLOR;
     }
 
     @Override

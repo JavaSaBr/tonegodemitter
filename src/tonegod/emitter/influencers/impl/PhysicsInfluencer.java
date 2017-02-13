@@ -16,30 +16,43 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
+import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
 /**
- * The implementation of the {@link ParticleInfluencer} for influence to color of particles.
+ * The implementation of the {@link ParticleInfluencer} to give physics reactions of particles.
  *
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public class PhysicsInfluencer extends AbstractParticleInfluencer {
 
     public enum CollisionReaction {
-        BOUNCE,
-        STICK,
-        DESTROY;
+        BOUNCE(Messages.PARTICLE_INFLUENCER_PHYSICS_COLLISION_REACTION_BOUNCE),
+        STICK(Messages.PARTICLE_INFLUENCER_PHYSICS_COLLISION_REACTION_STICK),
+        DESTROY(Messages.PARTICLE_INFLUENCER_PHYSICS_COLLISION_REACTION_DESTROY);
 
         private static final CollisionReaction[] VALUES = values();
 
         public static CollisionReaction valueOf(final int index) {
             return VALUES[index];
+        }
+
+        @NotNull
+        private final String name;
+
+        CollisionReaction(@NotNull final String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
     }
 
@@ -68,16 +81,16 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     private final Geometry geom;
 
     /**
-     * The contact surface.
+     * The triangle of contacted surface.
      */
     @NotNull
     private final Triangle contactSurface;
 
     /**
-     * The quanterion.
+     * The rotation of particle.
      */
     @NotNull
-    private final Quaternion quat;
+    private final Quaternion quaternion;
 
     /**
      * The collision results.
@@ -118,11 +131,13 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     /**
      * The collision result.
      */
+    @Nullable
     private CollisionResult result;
 
     /**
      * The collision reaction.
      */
+    @NotNull
     private CollisionReaction collisionReaction;
 
     /**
@@ -133,7 +148,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     /**
      * The length value.
      */
-    private float len;
+    private float length;
 
     /**
      * The collision threshold value.
@@ -150,7 +165,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
         this.tempGeometries = new GeometryList(new OpaqueComparator());
         this.quad = new Quad(1, 1);
         this.geom = new Geometry();
-        this.quat = new Quaternion();
+        this.quaternion = new Quaternion();
         this.results = new CollisionResults();
         this.reflect = new Vector3f();
         this.two = new Vector3f();
@@ -169,7 +184,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     @NotNull
     @Override
     public String getName() {
-        return "Physics influencer";
+        return Messages.PARTICLE_INFLUENCER_PHYSICS;
     }
 
     @Override
@@ -189,6 +204,14 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
+     * @return the collision results.
+     */
+    @NotNull
+    private CollisionResults getResults() {
+        return results;
+    }
+
+    /**
      * Find collisions.
      *
      * @param particleData the particle data.
@@ -196,7 +219,10 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      */
     private void findCollisions(final @NotNull ParticleData particleData, final float tpf) {
 
+        final CollisionReaction collisionReaction = getCollisionReaction();
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
+        final GeometryList geometries = getGeometries();
+        final CollisionResults results = getResults();
 
         for (int i = 0; i < geometries.size(); i++) {
             final Geometry geometry = geometries.get(i);
@@ -210,39 +236,40 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
 
                 geometry.collideWith(geom.getWorldBound(), results);
 
-                if (results.size() > 0) {
+                if (results.size() <= 0) {
+                    continue;
+                }
 
-                    final Vector3f velocity = particleData.velocity;
+                final Vector3f velocity = particleData.velocity;
 
-                    result = results.getClosestCollision();
+                result = results.getClosestCollision();
 
-                    switch (collisionReaction) {
-                        case BOUNCE: {
-                            result.getTriangle(contactSurface);
-                            normal.set(contactSurface.getNormal());
-                            twoDot = 2.0f * velocity.dot(normal);
-                            two.set(twoDot, twoDot, twoDot);
-                            reflect.set(two.mult(normal, tempVec)
-                                    .subtract(velocity, tempVec2))
-                                    .negateLocal().normalizeLocal();
-                            len = velocity.length() * (restitution - 0.1f) + (FastMath.nextRandomFloat() * 0.2f);
-                            velocity.set(reflect).multLocal(len);
-                            particleData.collision = true;
-                            break;
-                        }
-                        case STICK: {
-                            velocity.set(0, 0, 0);
-                            break;
-                        }
-                        case DESTROY: {
-                            emitterNode.killParticle(particleData);
-                            break;
-                        }
+                switch (collisionReaction) {
+                    case BOUNCE: {
+                        result.getTriangle(contactSurface);
+                        normal.set(contactSurface.getNormal());
+                        twoDot = 2.0f * velocity.dot(normal);
+                        two.set(twoDot, twoDot, twoDot);
+                        reflect.set(two.mult(normal, tempVec)
+                                .subtract(velocity, tempVec2))
+                                .negateLocal().normalizeLocal();
+                        length = velocity.length() * (restitution - 0.1f) + (FastMath.nextRandomFloat() * 0.2f);
+                        velocity.set(reflect).multLocal(length);
+                        particleData.collision = true;
+                        break;
+                    }
+                    case STICK: {
+                        velocity.set(0, 0, 0);
+                        break;
+                    }
+                    case DESTROY: {
+                        emitterNode.killParticle(particleData);
+                        break;
                     }
                 }
 
             } catch (final Exception ex) {
-                ex.printStackTrace();
+                LOGGER.warning(this, ex);
             }
         }
     }
@@ -260,9 +287,9 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
                 .addLocal(emitterNode.getLocalTranslation());
 
         final Vector3f angles = particleData.angles;
-        quat.fromAngles(angles.x, angles.y, angles.z);
+        quaternion.fromAngles(angles.x, angles.y, angles.z);
         geom.setLocalTranslation(translation);
-        geom.setLocalRotation(quat);
+        geom.setLocalRotation(quaternion);
         geom.setLocalScale(particleData.size);
         geom.updateLogicalState(tpf);
         geom.updateGeometricState();
@@ -270,7 +297,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Add collidable geometry to this influencer.
+     * Add a geometry to this influencer.
      *
      * @param geometry the geometry.
      */
@@ -286,7 +313,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Remove a last collidable geometry.
+     * Remove a last geometry.
      */
     public void removeLast() {
         final int size = geometries.size();
@@ -295,7 +322,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Remove the collidable geometry from this influencer.
+     * Remove a geometry from this influencer.
      *
      * @param geometry the geometry.
      */
@@ -324,9 +351,9 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * The collidable geometry list.
+     * Get a geometry list.
      *
-     * @return the list of collidable geometries.
+     * @return the list of geometries.
      */
     @NotNull
     public GeometryList getGeometries() {
@@ -358,13 +385,14 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     /**
      * Defines the response when a particle collides with a geometry in the collidables list
      */
-    public void setCollisionReaction(final CollisionReaction collisionReaction) {
+    public void setCollisionReaction(@NotNull final CollisionReaction collisionReaction) {
         this.collisionReaction = collisionReaction;
     }
 
     /**
      * @return the collision reaction.
      */
+    @NotNull
     public CollisionReaction getCollisionReaction() {
         return collisionReaction;
     }

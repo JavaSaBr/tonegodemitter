@@ -1,8 +1,6 @@
 package tonegod.emitter.particle;
 
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
@@ -64,9 +62,9 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
     /**
      * Update rotation of a particle.
      *
-     * @param particleData the particle data.
+     * @param particleData  the particle data.
      * @param billboardMode the billboard mode.
-     * @param camera the camera.
+     * @param camera        the camera.
      */
     protected void updateRotation(@NotNull final ParticleData particleData, @NotNull final BillboardMode billboardMode,
                                   @NotNull final Camera camera) {

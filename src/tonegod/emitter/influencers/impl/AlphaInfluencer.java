@@ -16,15 +16,15 @@ import rlib.util.ArrayUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
+import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 
 /**
- * The implementation of the {@link ParticleInfluencer} for influence to alpha of particles.
+ * The implementation of the {@link ParticleInfluencer} to change alpha of particles.
  *
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluencer {
 
@@ -52,7 +52,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     @NotNull
     @Override
     public String getName() {
-        return "Alpha influencer";
+        return Messages.PARTICLE_INFLUENCER_ALPHA;
     }
 
     @Override

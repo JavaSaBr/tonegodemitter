@@ -70,6 +70,39 @@ public class Messages {
     public static final String INTERPOLATION_ELASTIC_IN;
     public static final String INTERPOLATION_ELASTIC_OUT;
 
+    public static final String PARTICLE_INFLUENCER_ALPHA;
+    public static final String PARTICLE_INFLUENCER_COLOR;
+    public static final String PARTICLE_INFLUENCER_DESTINATION;
+    public static final String PARTICLE_INFLUENCER_GRAVITY;
+    public static final String PARTICLE_INFLUENCER_IMPULSE;
+    public static final String PARTICLE_INFLUENCER_PHYSICS;
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY;
+    public static final String PARTICLE_INFLUENCER_ROTATION;
+    public static final String PARTICLE_INFLUENCER_SIZE;
+    public static final String PARTICLE_INFLUENCER_SPRITE;
+
+    public static final String PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_WORLD;
+    public static final String PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_REVERSE_VELOCITY;
+    public static final String PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_EMISSION_POINT;
+    public static final String PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_EMITTER_CENTER;
+
+    public static final String PARTICLE_INFLUENCER_PHYSICS_COLLISION_REACTION_BOUNCE;
+    public static final String PARTICLE_INFLUENCER_PHYSICS_COLLISION_REACTION_STICK;
+    public static final String PARTICLE_INFLUENCER_PHYSICS_COLLISION_REACTION_DESTROY;
+
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_ALIGNMENT_EMISSION_POINT;
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_ALIGNMENT_EMITTER_CENTER;
+
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_CENTER_ABSOLUTE;
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_CENTER_POSITION_X;
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_CENTER_POSITION_Y;
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_CENTER_POSITION_Z;
+
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_UP_ALIGNMENT_NORMAL;
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_UP_ALIGNMENT_UNIT_X;
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_UP_ALIGNMENT_UNIT_Y;
+    public static final String PARTICLE_INFLUENCER_RADIAL_VELOCITY_UP_ALIGNMENT_UNIT_Z;
+
     static {
 
         final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, PropertyLoader.getInstance());
@@ -130,5 +163,38 @@ public class Messages {
         BILLBOARD_MODE_UNIT_X = bundle.getString("BillboardMode.UnitX");
         BILLBOARD_MODE_UNIT_Y = bundle.getString("BillboardMode.UnitY");
         BILLBOARD_MODE_UNIT_Z = bundle.getString("BillboardMode.UnitZ");
+
+        PARTICLE_INFLUENCER_ALPHA = bundle.getString("ParticleInfluencer.Alpha");
+        PARTICLE_INFLUENCER_COLOR = bundle.getString("ParticleInfluencer.Color");
+        PARTICLE_INFLUENCER_DESTINATION = bundle.getString("ParticleInfluencer.Destination");
+        PARTICLE_INFLUENCER_GRAVITY = bundle.getString("ParticleInfluencer.Gravity");
+        PARTICLE_INFLUENCER_IMPULSE = bundle.getString("ParticleInfluencer.Impulse");
+        PARTICLE_INFLUENCER_PHYSICS = bundle.getString("ParticleInfluencer.Physics");
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY = bundle.getString("ParticleInfluencer.RadialVelocity");
+        PARTICLE_INFLUENCER_ROTATION = bundle.getString("ParticleInfluencer.Rotation");
+        PARTICLE_INFLUENCER_SIZE = bundle.getString("ParticleInfluencer.Size");
+        PARTICLE_INFLUENCER_SPRITE = bundle.getString("ParticleInfluencer.Sprite");
+
+        PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_WORLD = bundle.getString("ParticleInfluencer.Gravity.Alignment.World");
+        PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_REVERSE_VELOCITY = bundle.getString("ParticleInfluencer.Gravity.Alignment.ReverseVelocity");
+        PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_EMISSION_POINT = bundle.getString("ParticleInfluencer.Gravity.Alignment.EmissionPoint");
+        PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_EMITTER_CENTER = bundle.getString("ParticleInfluencer.Gravity.Alignment.EmitterCenter");
+
+        PARTICLE_INFLUENCER_PHYSICS_COLLISION_REACTION_BOUNCE = bundle.getString("ParticleInfluencer.Physics.CollisionReaction.Bounce");
+        PARTICLE_INFLUENCER_PHYSICS_COLLISION_REACTION_STICK = bundle.getString("ParticleInfluencer.Physics.CollisionReaction.Stick");
+        PARTICLE_INFLUENCER_PHYSICS_COLLISION_REACTION_DESTROY = bundle.getString("ParticleInfluencer.Physics.CollisionReaction.Destroy");
+
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_ALIGNMENT_EMISSION_POINT = bundle.getString("ParticleInfluencer.RadialVelocity.PullAlignment.EmissionPoint");
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_ALIGNMENT_EMITTER_CENTER = bundle.getString("ParticleInfluencer.RadialVelocity.PullAlignment.EmitterCenter");
+
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_CENTER_ABSOLUTE = bundle.getString("ParticleInfluencer.RadialVelocity.PullCenter.Absolute");
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_CENTER_POSITION_X = bundle.getString("ParticleInfluencer.RadialVelocity.PullCenter.X");
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_CENTER_POSITION_Y = bundle.getString("ParticleInfluencer.RadialVelocity.PullCenter.Y");
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_PULL_CENTER_POSITION_Z = bundle.getString("ParticleInfluencer.RadialVelocity.PullCenter.Z");
+
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_UP_ALIGNMENT_NORMAL = bundle.getString("ParticleInfluencer.RadialVelocity.UpAlignment.Normal");
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_UP_ALIGNMENT_UNIT_X = bundle.getString("ParticleInfluencer.RadialVelocity.UpAlignment.UnitX");
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_UP_ALIGNMENT_UNIT_Y = bundle.getString("ParticleInfluencer.RadialVelocity.UpAlignment.UnitY");
+        PARTICLE_INFLUENCER_RADIAL_VELOCITY_UP_ALIGNMENT_UNIT_Z = bundle.getString("ParticleInfluencer.RadialVelocity.UpAlignment.UnitZ");
     }
 }

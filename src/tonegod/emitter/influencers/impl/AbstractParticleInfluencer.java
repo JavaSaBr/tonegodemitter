@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import rlib.logging.Logger;
+import rlib.logging.LoggerManager;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
@@ -18,6 +20,9 @@ import tonegod.emitter.particle.ParticleData;
  * @author JavaSaBr
  */
 public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
+
+    @NotNull
+    protected static final Logger LOGGER = LoggerManager.getLogger(PhysicsInfluencer.class);
 
     /**
      * The flag of enabling this influencer.

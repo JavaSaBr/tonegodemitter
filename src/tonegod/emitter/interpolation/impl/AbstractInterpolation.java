@@ -19,9 +19,10 @@ public abstract class AbstractInterpolation implements Interpolation {
     /**
      * The name of this interpolation.
      */
+    @NotNull
     private final String name;
 
-    protected AbstractInterpolation(final String name) {
+    protected AbstractInterpolation(@NotNull final String name) {
         this.name = name;
     }
 

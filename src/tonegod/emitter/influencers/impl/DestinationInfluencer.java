@@ -1,5 +1,8 @@
 package tonegod.emitter.influencers.impl;
 
+import static tonegod.emitter.util.RandomUtils.getRandom;
+import static tonegod.emitter.util.RandomUtils.nextRandomInt;
+
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
@@ -15,15 +18,16 @@ import rlib.util.ArrayUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
+import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
+import tonegod.emitter.util.RandomUtils;
 
 /**
- * The implementation of the {@link ParticleInfluencer} for influence to destination of particles.
+ * The implementation of the {@link ParticleInfluencer} to change destinations of particles.
  *
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public class DestinationInfluencer extends AbstractInterpolatedParticleInfluencer {
 
@@ -65,7 +69,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     @NotNull
     @Override
     public String getName() {
-        return "Destination influencer";
+        return Messages.PARTICLE_INFLUENCER_DESTINATION;
     }
 
     @Override
@@ -130,8 +134,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
 
-        if (randomStartDestination) {
-            particleData.destinationIndex = FastMath.nextRandomInt(0, destinations.size() - 1);
+        if (isRandomStartDestination()) {
+            particleData.destinationIndex = nextRandomInt(getRandom(), 0, destinations.size() - 1);
         } else {
             particleData.destinationIndex = 0;
         }
@@ -177,7 +181,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @param weight        How strong the pull towards the destination should be
      * @param interpolation The interpolation method used to blend from the this step value to the next
      */
-    public void addDestination(@NotNull final Vector3f destination, final float weight, @NotNull final Interpolation interpolation) {
+    public void addDestination(@NotNull final Vector3f destination, final float weight,
+                               @NotNull final Interpolation interpolation) {
         addInterpolation(interpolation);
         destinations.add(destination.clone());
         weights.add(weight);

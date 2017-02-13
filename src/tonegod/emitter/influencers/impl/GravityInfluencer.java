@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 import tonegod.emitter.EmitterMesh;
+import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
@@ -18,17 +19,35 @@ import tonegod.emitter.particle.ParticleData;
 /**
  * The implementation of the {@link ParticleInfluencer} for gravity influence to particles.
  *
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public class GravityInfluencer extends AbstractParticleInfluencer {
 
     public enum GravityAlignment {
-        WORLD,
-        REVERSE_VELOCITY,
-        EMISSION_POINT,
-        EMITTER_CENTER
+        WORLD(Messages.PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_WORLD),
+        REVERSE_VELOCITY(Messages.PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_REVERSE_VELOCITY),
+        EMISSION_POINT(Messages.PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_EMISSION_POINT),
+        EMITTER_CENTER(Messages.PARTICLE_INFLUENCER_GRAVITY_ALIGNMENT_EMITTER_CENTER);
+
+        private static final GravityAlignment[] VALUES = values();
+
+        public static GravityAlignment valueOf(final int index) {
+            return VALUES[index];
+        }
+
+        @NotNull
+        private final String name;
+
+        GravityAlignment(@NotNull final String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
+
 
     /**
      * The vector for storing results.
@@ -68,7 +87,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
     @NotNull
     @Override
     public String getName() {
-        return "Gravity influencer";
+        return Messages.PARTICLE_INFLUENCER_GRAVITY;
     }
 
     @Override
@@ -215,7 +234,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
         capsule.write(gravity, "gravity", new Vector3f(0, 1, 0));
         capsule.write(negativeVelocity, "negativeVelocity", false);
         capsule.write(magnitude, "magnitude", 1f);
-        capsule.write(alignment.name(), "alignment", GravityAlignment.WORLD.name());
+        capsule.write(alignment.ordinal(), "alignmentOrder", GravityAlignment.WORLD.ordinal());
     }
 
     @Override
@@ -224,7 +243,8 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
         gravity.set((Vector3f) capsule.readSavable("gravity", new Vector3f(0, 1, 0)));
         negativeVelocity = capsule.readBoolean("negativeVelocity", false);
         magnitude = capsule.readFloat("magnitude", 1);
-        alignment = GravityAlignment.valueOf(capsule.readString("alignment", GravityAlignment.WORLD.name()));
+        alignment = GravityAlignment.valueOf(capsule.readInt("alignmentOrder",
+                GravityAlignment.valueOf(capsule.readString("alignment", GravityAlignment.WORLD.name())).ordinal()));
     }
 
     @NotNull

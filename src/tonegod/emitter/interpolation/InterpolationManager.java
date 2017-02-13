@@ -1,5 +1,7 @@
 package tonegod.emitter.interpolation;
 
+import static java.util.Objects.requireNonNull;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -106,7 +108,7 @@ public class InterpolationManager {
      */
     @NotNull
     public static Interpolation getInterpolation(@NotNull final String name) {
-        return Objects.requireNonNull(NAME_TO_INTER.get(name), "Unknown interpolation " + name);
+        return requireNonNull(NAME_TO_INTER.get(name), "Unknown interpolation " + name);
     }
 
     /**
@@ -116,7 +118,7 @@ public class InterpolationManager {
      * @return its ID.
      */
     public static int getId(@NotNull final Interpolation interpolation) {
-        return Objects.requireNonNull(INTER_TO_ID.get(interpolation), "Unknown interpolation " + interpolation);
+        return requireNonNull(INTER_TO_ID.get(interpolation), "Unknown interpolation " + interpolation);
     }
 
     /**
@@ -127,6 +129,6 @@ public class InterpolationManager {
      */
     @NotNull
     public static Interpolation getInterpolation(final int id) {
-        return Objects.requireNonNull(ID_TO_INTER.get(id), "Unknown id " + id);
+        return requireNonNull(ID_TO_INTER.get(id), "Unknown id " + id);
     }
 }

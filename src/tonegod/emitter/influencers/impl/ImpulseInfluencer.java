@@ -10,9 +10,12 @@ import com.jme3.math.Vector3f;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Random;
 
+import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
+import tonegod.emitter.util.RandomUtils;
 
 /**
  * The implementation of the {@link ParticleInfluencer} for impulse influence to particles.
@@ -25,11 +28,13 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
     /**
      * The temp vector.
      */
+    @NotNull
     private final transient Vector3f temp;
 
     /**
      * The temp velocity store.
      */
+    @NotNull
     private final transient Vector3f velocityStore;
 
     /**
@@ -58,22 +63,24 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
     @NotNull
     @Override
     public String getName() {
-        return "Impulse influencer";
+        return Messages.PARTICLE_INFLUENCER_IMPULSE;
     }
 
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-        if (FastMath.rand.nextFloat() <= 1 - (chance + tpf)) return;
+
+        final Random random = RandomUtils.getRandom();
+        if (random.nextFloat() <= 1 - (chance + tpf)) return;
 
         velocityStore.set(particleData.velocity);
 
-        temp.set(FastMath.nextRandomFloat() * strength,
-                FastMath.nextRandomFloat() * strength,
-                FastMath.nextRandomFloat() * strength);
+        temp.set(random.nextFloat() * strength,
+                random.nextFloat() * strength,
+                random.nextFloat() * strength);
 
-        if (FastMath.rand.nextBoolean()) temp.x = -temp.x;
-        if (FastMath.rand.nextBoolean()) temp.y = -temp.y;
-        if (FastMath.rand.nextBoolean()) temp.z = -temp.z;
+        if (random.nextBoolean()) temp.x = -temp.x;
+        if (random.nextBoolean()) temp.y = -temp.y;
+        if (random.nextBoolean()) temp.z = -temp.z;
 
         temp.multLocal(velocityStore.length());
         velocityStore.interpolateLocal(temp, magnitude);

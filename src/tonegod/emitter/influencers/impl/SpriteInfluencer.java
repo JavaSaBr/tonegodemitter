@@ -7,6 +7,7 @@ import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -15,8 +16,9 @@ import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
 /**
- * @author t0neg0d
- * @edit JavaSaBr
+ * The implementation of the {@link ParticleInfluencer} to animate sprites of particles.
+ *
+ * @author t0neg0d, JavaSaBr
  */
 public class SpriteInfluencer extends AbstractParticleInfluencer {
 
@@ -25,6 +27,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     /**
      * The frame sequence.
      */
+    @Nullable
     private int[] frameSequence;
 
     /**

@@ -5,8 +5,7 @@ import com.jme3.math.FastMath;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author toneg0d
- * @edit JavaSaBr
+ * @author toneg0d, JavaSaBr
  */
 public class FadeInterpolation extends AbstractInterpolation {
 

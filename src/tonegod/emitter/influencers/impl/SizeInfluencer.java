@@ -10,20 +10,22 @@ import com.jme3.math.Vector3f;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Random;
 
 import rlib.util.ArrayUtils;
 import rlib.util.array.Array;
 import rlib.util.array.ArrayFactory;
 import rlib.util.array.UnsafeArray;
+import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
+import tonegod.emitter.util.RandomUtils;
 
 /**
- * The implementation of the {@link ParticleInfluencer} for influence to size of particles.
+ * The implementation of the {@link ParticleInfluencer} to change size of particles.
  *
- * @author t0neg0d
- * @edit JavaSaBr
+ * @author t0neg0d, JavaSaBr
  */
 public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer {
 
@@ -38,7 +40,6 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
      */
     @NotNull
     private final Vector3f tempV3a;
-
     @NotNull
     private final Vector3f tempV3b;
 
@@ -62,7 +63,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     @NotNull
     @Override
     public String getName() {
-        return "Size influencer";
+        return Messages.PARTICLE_INFLUENCER_SIZE;
     }
 
     @Override
@@ -150,10 +151,11 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
             particleData.startSize.set(sizes.get(particleData.sizeIndex));
 
             if (isRandomSize()) {
+                final Random random = RandomUtils.getRandom();
                 tempV3a.set(particleData.startSize);
                 tempV3b.set(tempV3a).multLocal(randomSizeTolerance);
                 tempV3a.subtractLocal(tempV3b);
-                tempV3b.multLocal(FastMath.nextRandomFloat());
+                tempV3b.multLocal(random.nextFloat());
                 tempV3a.addLocal(tempV3b);
                 particleData.startSize.set(tempV3a);
             }
@@ -171,10 +173,11 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
             }
 
             if (isRandomSize()) {
+                final Random random = RandomUtils.getRandom();
                 tempV3a.set(particleData.endSize);
                 tempV3b.set(tempV3a).multLocal(randomSizeTolerance);
                 tempV3a.subtractLocal(tempV3b);
-                tempV3b.multLocal(FastMath.nextRandomFloat());
+                tempV3b.multLocal(random.nextFloat());
                 tempV3a.addLocal(tempV3b);
                 particleData.endSize.set(tempV3a);
             }

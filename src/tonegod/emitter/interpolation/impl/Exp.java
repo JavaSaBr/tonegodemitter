@@ -3,8 +3,7 @@ package tonegod.emitter.interpolation.impl;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author toneg0d
- * @edit JavaSaBr
+ * @author toneg0d, JavaSaBr
  */
 public class Exp extends AbstractInterpolation {
 
@@ -17,8 +16,8 @@ public class Exp extends AbstractInterpolation {
         super(name);
         this.value = value;
         this.power = power;
-        min = (float) Math.pow(value, -power);
-        scale = 1 / (1 - min);
+        this.min = (float) Math.pow(value, -power);
+        this.scale = 1 / (1 - min);
     }
 
     @Override

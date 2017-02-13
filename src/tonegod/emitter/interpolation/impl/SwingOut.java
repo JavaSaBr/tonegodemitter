@@ -3,8 +3,7 @@ package tonegod.emitter.interpolation.impl;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author toneg0d
- * @edit JavaSaBr
+ * @author toneg0d, JavaSaBr
  */
 public class SwingOut extends Swing {
 
