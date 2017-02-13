@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
+import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
@@ -64,7 +65,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     @NotNull
     @Override
     public String getName() {
-        return "Sprite influencer";
+        return Messages.PARTICLE_INFLUENCER_SPRITE;
     }
 
     @Override

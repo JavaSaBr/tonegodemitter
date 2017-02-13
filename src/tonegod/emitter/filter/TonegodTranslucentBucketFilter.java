@@ -28,12 +28,9 @@ import tonegod.emitter.ParticleEmitterNode;
  * A filter to handle translucent objects when rendering a scene with filters that uses depth like WaterFilter and
  * SSAOFilter just create a TranslucentBucketFilter and add it to the Filter list of a FilterPostPorcessor
  *
- * @author Nehon
- * @edit JavaSaBr
+ * @author Nehon, JavaSaBr
  */
 public class TonegodTranslucentBucketFilter extends Filter {
-
-    private final static Logger LOGGER = LoggerManager.getLogger(TonegodTranslucentBucketFilter.class);
 
     private RenderManager renderManager;
     private Texture depthTexture;
