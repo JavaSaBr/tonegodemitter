@@ -674,6 +674,13 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
+     * @param template the particle mesh template.
+     */
+    private void setParticleMeshTemplate(@Nullable final Mesh template) {
+        this.particleMeshTemplate = template;
+    }
+
+    /**
      * @return the data mesh of particles.
      */
     @NotNull
@@ -1308,6 +1315,18 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         requiresUpdate = true;
     }
 
+    /**
+     * @return the particle geometry.
+     */
+    @NotNull
+    public ParticleGeometry getParticleGeometry() {
+        return particleGeometry;
+    }
+
+    /**
+     * @return the sprite settings.
+     */
+    @NotNull
     public Vector2f getSpriteCount() {
         return new Vector2f(spriteCols, spriteRows);
     }
@@ -1904,6 +1923,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         if (particleDataMesh != null) {
             changeParticleMesh(particleDataMesh);
+            setParticleMeshTemplate(template);
         } else {
             changeParticleMeshType(meshType, template);
         }
