@@ -3,7 +3,7 @@ package tonegod.emitter;
 import static java.lang.Class.forName;
 import static java.util.Objects.requireNonNull;
 import static rlib.util.ClassUtils.unsafeCast;
-import static rlib.util.Util.get;
+import static rlib.util.Utils.get;
 import static rlib.util.array.ArrayFactory.newArray;
 import static tonegod.emitter.material.ParticlesMaterial.PROP_TEXTURE;
 
