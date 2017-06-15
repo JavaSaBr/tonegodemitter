@@ -1,22 +1,11 @@
 package tonegod.emitter;
 
-import static java.lang.Class.forName;
-import static java.util.Objects.requireNonNull;
-import static rlib.util.ClassUtils.unsafeCast;
-import static rlib.util.Utils.get;
-import static rlib.util.array.ArrayFactory.newArray;
-import static tonegod.emitter.material.ParticlesMaterial.PROP_TEXTURE;
-
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.MaterialKey;
-import com.jme3.export.InputCapsule;
-import com.jme3.export.JmeExporter;
-import com.jme3.export.JmeImporter;
-import com.jme3.export.OutputCapsule;
-import com.jme3.export.Savable;
+import com.jme3.export.*;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -38,12 +27,8 @@ import com.jme3.texture.Texture.MagFilter;
 import com.jme3.texture.Texture.MinFilter;
 import com.jme3.util.clone.Cloner;
 import com.jme3.util.clone.JmeCloneable;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-
 import rlib.logging.Logger;
 import rlib.logging.LoggerManager;
 import rlib.util.ClassUtils;
@@ -57,12 +42,17 @@ import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.material.ParticlesMaterial;
 import tonegod.emitter.node.ParticleNode;
 import tonegod.emitter.node.TestParticleEmitterNode;
-import tonegod.emitter.particle.ParticleData;
-import tonegod.emitter.particle.ParticleDataMesh;
-import tonegod.emitter.particle.ParticleDataMeshInfo;
-import tonegod.emitter.particle.ParticleDataPointMesh;
-import tonegod.emitter.particle.ParticleDataTriMesh;
+import tonegod.emitter.particle.*;
 import tonegod.emitter.shapes.TriangleEmitterShape;
+
+import java.io.IOException;
+
+import static java.lang.Class.forName;
+import static java.util.Objects.requireNonNull;
+import static rlib.util.ClassUtils.unsafeCast;
+import static rlib.util.Utils.get;
+import static rlib.util.array.ArrayFactory.newArray;
+import static tonegod.emitter.material.ParticlesMaterial.PROP_TEXTURE;
 
 /**
  * The implementation of a {@link Node} to emit particles.
@@ -108,6 +98,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * The current interval.
      */
     protected float currentInterval;
+
+    /**
+     * The initial interval (value to set the currentInterval each time it is reset)
+     */
+    protected float initialInterval;
 
     /**
      * The life of emitter.
@@ -387,7 +382,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.textureParamName = "Texture";
         this.inverseRotation = Matrix3f.IDENTITY.clone();
         this.targetInterval = 0.00015f;
-        this.currentInterval = 0;
+        this.initialInterval = 0;
+        resetInterval();
         this.velocityStretchFactor = 0.35f;
         this.stretchAxis = ForcedStretchAxis.Y;
         this.emissionPoint = EmissionPoint.CENTER;
@@ -489,6 +485,18 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     @Nullable
     public Mesh getParticleMeshTemplate() {
         return particleMeshTemplate;
+    }
+
+
+    /**
+     * @param initialInterval the initial interval (eg: if a particle is to emmit every 1 second and this is set to 1 it will first spawn without any delay)
+     */
+    public void setInitialInterval(float initialInterval) {
+        this.initialInterval = initialInterval;
+
+        if(emittedTime == 0) {
+            resetInterval();
+        }
     }
 
     /**
@@ -1615,7 +1623,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         final boolean enabled = isEnabled();
 
         if (!enabled) {
-            currentInterval = 0;
+            resetInterval();
             return;
         } else if (!isEmitterInitialized() && !initialize()) {
             return;
@@ -1758,7 +1766,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void reset() {
         killAllParticles();
-        currentInterval = 0;
+        resetInterval();
         emittedTime = 0;
         requiresUpdate = true;
     }
@@ -1767,7 +1775,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Resets the current emission interval
      */
     public void resetInterval() {
-        currentInterval = 0;
+        currentInterval = initialInterval;
     }
 
     /**
@@ -1840,6 +1848,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         capsule.write(emissionPoint.ordinal(), "particleEmissionPoint", 0);
         capsule.write(directionType.ordinal(), "directionType", 0);
         capsule.write(emitterLife, "emitterLife", 0);
+        capsule.write(initialInterval, "initialInterval", 0);
 
         // PARTICLES
         capsule.write(billboardMode.ordinal(), "billboardMode", 0);
@@ -1910,6 +1919,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setEmissionPoint(EmissionPoint.valueOf(capsule.readInt("particleEmissionPoint", EmissionPoint.CENTER.ordinal())));
         setDirectionType(DirectionType.valueOf(capsule.readInt("directionType", DirectionType.NORMAL.ordinal())));
         setEmitterLife(capsule.readFloat("emitterLife", 0F));
+        setInitialInterval(capsule.readFloat("initialInterval", 0F));
 
         // PARTICLES
         setBillboardMode(BillboardMode.valueOf(capsule.readInt("billboardMode", BillboardMode.CAMERA.ordinal())));
