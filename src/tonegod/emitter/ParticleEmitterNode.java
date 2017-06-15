@@ -1759,6 +1759,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public void reset() {
         killAllParticles();
         currentInterval = 0;
+        emittedTime = 0;
         requiresUpdate = true;
     }
 
