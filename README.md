@@ -17,7 +17,7 @@ allprojects {
 }
 
 dependencies {
-    compile 'com.github.JavaSaBr:tonegodemitter:2.1.1'
+    compile 'com.github.JavaSaBr:tonegodemitter:2.2.0'
 }
 ```
 
@@ -38,6 +38,6 @@ dependencies {
     <dependency>
         <groupId>com.github.JavaSaBr</groupId>
         <artifactId>tonegodemitter</artifactId>
-        <version>2.1.1</version>
+        <version>2.2.0</version>
     </dependency>
 ```
