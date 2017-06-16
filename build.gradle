@@ -2,12 +2,12 @@ apply plugin: 'java'
 apply plugin: 'maven'
 
 group = 'toneg0d.emitter'
-version = '2.1.1'
+version = '2.2.0'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-ext.jmeVersion = "3.2_branch-SNAPSHOT"
+ext.jmeVersion = "3.1.0-stable"
 
 repositories {
     mavenCentral()
@@ -19,7 +19,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains/annotations
     compile group: 'org.jetbrains', name: 'annotations', version: '15.0'
     compile 'com.github.JavaSaBr:RLib:6.0.0'
-    compile "com.github.JavaSaBr.jmonkeyengine:jme3-core:$jmeVersion"
+    compile "org.jmonkeyengine:jme3-core:$jmeVersion"
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -42,7 +42,7 @@ defaultTasks 'clean', 'install'
 // To specify a license in the pom:
 install {
     repositories.mavenInstaller {
-        pom.version = '2.1.1'
+        pom.version = '2.2.0'
         pom.artifactId = 'toneg0d.emitter'
     }
 }

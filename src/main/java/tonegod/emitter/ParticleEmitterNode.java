@@ -121,9 +121,14 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     protected float emittedTime;
 
     /**
+     * The emitted delay.
+     */
+    protected float emitterDelay;
+
+    /**
      * The count of emissions per second.
      */
-    protected int emissionsPerSecond;
+    protected float emissionsPerSecond;
 
     /**
      * The count of particles per emission.
@@ -494,6 +499,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.particlesAnimBlendTime = 1;
         this.particlesAnimLoopMode = LoopMode.Loop;
         attachChild(particleNode);
+        reset();
         setEmissionsPerSecond(100);
     }
 
@@ -566,12 +572,19 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
-     * Sets emitter life.
+     * Sets a delay to stat to emit particles.
      *
-     * @param emitterLife the emitter life.
+     * @param emitterDelay the delay.
      */
-    public void setEmitterLife(final float emitterLife) {
-        this.emitterLife = emitterLife;
+    public void setEmitterDelay(final float emitterDelay) {
+        this.emitterDelay = emitterDelay;
+    }
+
+    /**
+     * @return the delay.
+     */
+    public float getEmitterDelay() {
+        return emitterDelay;
     }
 
     /**
@@ -590,6 +603,15 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public float getEmitterLife() {
         return emitterLife;
+    }
+
+    /**
+     * Sets emitter life.
+     *
+     * @param emitterLife the emitter life.
+     */
+    public void setEmitterLife(final float emitterLife) {
+        this.emitterLife = emitterLife;
     }
 
     /**
@@ -850,7 +872,12 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @param emissionsPerSecond The number of particle emissions per second
      */
-    public void setEmissionsPerSecond(final int emissionsPerSecond) {
+    public void setEmissionsPerSecond(final float emissionsPerSecond) {
+
+        if (emissionsPerSecond == 0f) {
+            throw new IllegalArgumentException("the emissions per second can't be zero.");
+        }
+
         this.emissionsPerSecond = emissionsPerSecond;
         targetInterval = 1f / emissionsPerSecond;
         requiresUpdate = true;
@@ -861,7 +888,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the emissions per second
      */
-    public int getEmissionsPerSecond() {
+    public float getEmissionsPerSecond() {
         return emissionsPerSecond;
     }
 
@@ -1806,7 +1833,10 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
         if (currentInterval < targetInterval) return;
 
-        if (emitterLife == 0F || emittedTime < emitterLife) {
+        final boolean delayIsReady = emitterDelay == 0F || emittedTime > emitterDelay;
+        final boolean emitterIsAlive = emitterLife == 0F || emittedTime < emitterLife;
+
+        if (delayIsReady && emitterIsAlive) {
             for (int i = 0, count = calcParticlesPerEmission(); i < count; i++) {
                 emitNextParticle();
             }
@@ -2018,6 +2048,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         capsule.write(emissionPoint.ordinal(), "particleEmissionPoint", 0);
         capsule.write(directionType.ordinal(), "directionType", 0);
         capsule.write(emitterLife, "emitterLife", 0);
+        capsule.write(emitterDelay, "emitterDelay", 0);
 
         // PARTICLES
         capsule.write(billboardMode.ordinal(), "billboardMode", 0);
@@ -2076,7 +2107,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         emitterShape.setEmitterNode(this);
         emitterShapeTestGeometry.setMesh(emitterShape.getMesh());
 
-        setEmissionsPerSecond(capsule.readInt("emissionsPerSecond", 0));
+        setEmissionsPerSecond(capsule.readFloat("emissionsPerSecond", 0F));
         setParticlesPerEmission(capsule.readInt("particlesPerEmission", 0));
         setStaticParticles(capsule.readBoolean("staticParticles", false));
         setRandomEmissionPoint(capsule.readBoolean("randomEmissionPoint", false));
@@ -2088,6 +2119,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setEmissionPoint(EmissionPoint.valueOf(capsule.readInt("particleEmissionPoint", EmissionPoint.CENTER.ordinal())));
         setDirectionType(DirectionType.valueOf(capsule.readInt("directionType", DirectionType.NORMAL.ordinal())));
         setEmitterLife(capsule.readFloat("emitterLife", 0F));
+        setEmitterDelay(capsule.readFloat("emitterDelay", 0F));
 
         // PARTICLES
         setBillboardMode(BillboardMode.valueOf(capsule.readInt("billboardMode", BillboardMode.CAMERA.ordinal())));
