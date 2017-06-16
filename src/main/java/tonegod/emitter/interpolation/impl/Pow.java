@@ -1,0 +1,33 @@
+package tonegod.emitter.interpolation.impl;
+
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * The type Pow.
+ *
+ * @author toneg0d, JavaSaBr
+ */
+public class Pow extends AbstractInterpolation {
+
+    /**
+     * The Power.
+     */
+    protected final int power;
+
+    /**
+     * Instantiates a new Pow.
+     *
+     * @param power the power
+     * @param name  the name
+     */
+    public Pow(final int power, @NotNull final String name) {
+        super(name);
+        this.power = power;
+    }
+
+    @Override
+    public float apply(float a) {
+        if (a <= 0.5f) return (float) Math.pow(a * 2, power) / 2;
+        return (float) Math.pow((a - 1) * 2, power) / (power % 2 == 0 ? -2 : 2) + 1;
+    }
+}
