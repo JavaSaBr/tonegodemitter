@@ -2182,6 +2182,18 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         particleTestGeometry = cloner.clone(particleTestGeometry);
         particleTestNode = cloner.clone(particleTestNode);
+        
+        if(particleGeometry.getMaterial() != null) {
+            material = particleGeometry.getMaterial();
+        } else {
+            material = cloner.clone(material);
+        }
+
+        if(particleGeometry.getMesh() != null) {
+            particleDataMesh = (ParticleDataMesh) particleGeometry.getMesh();
+        } else {
+            particleDataMesh = cloner.clone(particleDataMesh);
+        }
     }
 
     @Override
