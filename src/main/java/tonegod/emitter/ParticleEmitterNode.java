@@ -2107,7 +2107,13 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         emitterShape.setEmitterNode(this);
         emitterShapeTestGeometry.setMesh(emitterShape.getMesh());
 
-        setEmissionsPerSecond(capsule.readFloat("emissionsPerSecond", 0F));
+        try {
+            setEmissionsPerSecond(capsule.readFloat("emissionsPerSecond", 0F));
+        } catch (final ClassCastException e) {
+            //FIXME back compatibility
+            setEmissionsPerSecond(capsule.readInt("emissionsPerSecond", 0));
+        }
+
         setParticlesPerEmission(capsule.readInt("particlesPerEmission", 0));
         setStaticParticles(capsule.readBoolean("staticParticles", false));
         setRandomEmissionPoint(capsule.readBoolean("randomEmissionPoint", false));
