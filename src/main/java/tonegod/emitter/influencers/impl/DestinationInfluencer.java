@@ -2,25 +2,16 @@ package tonegod.emitter.influencers.impl;
 
 import static tonegod.emitter.util.RandomUtils.getRandom;
 import static tonegod.emitter.util.RandomUtils.nextRandomInt;
-
-import com.jme3.export.InputCapsule;
-import com.jme3.export.JmeExporter;
-import com.jme3.export.JmeImporter;
-import com.jme3.export.OutputCapsule;
+import com.jme3.export.*;
 import com.jme3.math.Vector3f;
-
+import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-
-import com.ss.rlib.util.ArrayUtils;
-import com.ss.rlib.util.array.Array;
-import com.ss.rlib.util.array.ArrayFactory;
-import com.ss.rlib.util.array.UnsafeArray;
 import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
+
+import java.io.IOException;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to change destinations of particles.
@@ -33,13 +24,13 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * The list of destinations.
      */
     @NotNull
-    private UnsafeArray<Vector3f> destinations;
+    private SafeArrayList<Vector3f> destinations;
 
     /**
      * The list of weights.
      */
     @NotNull
-    private UnsafeArray<Float> weights;
+    private SafeArrayList<Float> weights;
 
     /**
      * The destination direction.
@@ -61,8 +52,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * Instantiates a new Destination influencer.
      */
     public DestinationInfluencer() {
-        this.destinations = ArrayFactory.newUnsafeArray(Vector3f.class);
-        this.weights = ArrayFactory.newUnsafeArray(Float.class);
+        this.destinations = new SafeArrayList<>(Vector3f.class);
+        this.weights = new SafeArrayList<>(Float.class);
         this.destinationDir = new Vector3f();
         this.weight = 1F;
     }
@@ -117,7 +108,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
             particleData.destinationIndex = 0;
         }
 
-        final Array<Interpolation> interpolations = getInterpolations();
+        final SafeArrayList<Interpolation> interpolations = getInterpolations();
         particleData.destinationInterpolation = interpolations.get(particleData.destinationIndex);
         particleData.destinationInterval -= particleData.destinationDuration;
     }
@@ -141,7 +132,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
             particleData.destinationIndex = 0;
         }
 
-        final Array<Interpolation> interpolations = getInterpolations();
+        final SafeArrayList<Interpolation> interpolations = getInterpolations();
         particleData.destinationInterval = 0f;
         particleData.destinationDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) destinations.size());
         particleData.destinationInterpolation = interpolations.get(particleData.destinationIndex);
@@ -200,8 +191,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      */
     public void removeDestination(final int index) {
         removeInterpolation(index);
-        destinations.slowRemove(index);
-        weights.slowRemove(index);
+        destinations.remove(index);
+        weights.remove(index);
     }
 
     /**
@@ -219,7 +210,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @return the destinations
      */
     @NotNull
-    public Array<Vector3f> getDestinations() {
+    public SafeArrayList<Vector3f> getDestinations() {
         return destinations;
     }
 
@@ -240,7 +231,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @return the weights
      */
     @NotNull
-    public Array<Float> getWeights() {
+    public SafeArrayList<Float> getWeights() {
         return weights;
     }
 
@@ -280,22 +271,26 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      */
     public void removeLast() {
 
-        final Array<Float> weights = getWeights();
+        final SafeArrayList<Float> weights = getWeights();
         if (weights.isEmpty()) return;
 
         final int index = weights.size() - 1;
 
         removeInterpolation(index);
-        destinations.fastRemove(index);
-        weights.fastRemove(index);
+        destinations.remove(index);
+        weights.remove(index);
     }
 
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
         super.write(exporter);
 
-        final double[] weightsToSave = weights.stream().
-                mapToDouble(value -> value).toArray();
+        final Float[] values = weights.getArray();
+        final double[] weightsToSave = new double[weights.size()];
+
+        for (int i = 0; i < values.length; i++) {
+            weightsToSave[i] = values[i];
+        }
 
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(destinations.toArray(new Vector3f[destinations.size()]), "destinations", null);
@@ -309,11 +304,20 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
 
         final InputCapsule capsule = importer.getCapsule(this);
 
-        ArrayUtils.forEach(capsule.readSavableArray("destinations", null), destinations,
-                (savable, toStore) -> toStore.add((Vector3f) savable));
+        final Savable[] readDestinations = capsule.readSavableArray("destinations", null);
+        final double[] readWeights = capsule.readDoubleArray("weights", null);
 
-        ArrayUtils.forEach(capsule.readDoubleArray("weights", null), weights,
-                (element, toStore) -> toStore.add((float) element));
+        if (readDestinations != null) {
+            for (final Savable destination : readDestinations) {
+                destinations.add((Vector3f) destination);
+            }
+        }
+
+        if (readWeights != null) {
+            for (final double value : readWeights) {
+                weights.add((float) value);
+            }
+        }
 
         randomStartDestination = capsule.readBoolean("randomStartDestination", false);
     }
@@ -322,9 +326,9 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     public ParticleInfluencer clone() {
         final DestinationInfluencer clone = (DestinationInfluencer) super.clone();
-        clone.destinations = ArrayFactory.newUnsafeArray(Vector3f.class);
+        clone.destinations = new SafeArrayList<>(Vector3f.class);
         clone.destinations.addAll(destinations);
-        clone.weights = ArrayFactory.newUnsafeArray(Float.class);
+        clone.weights = new SafeArrayList<>(Float.class);
         clone.weights.addAll(weights);
         clone.randomStartDestination = randomStartDestination;
         return clone;

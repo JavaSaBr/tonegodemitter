@@ -4,19 +4,14 @@ import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
-
+import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-
-import com.ss.rlib.util.ArrayUtils;
-import com.ss.rlib.util.array.Array;
-import com.ss.rlib.util.array.ArrayFactory;
-import com.ss.rlib.util.array.UnsafeArray;
 import tonegod.emitter.influencers.InterpolatedParticleInfluencer;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.interpolation.InterpolationManager;
+
+import java.io.IOException;
 
 /**
  * The base implementation of the {@link InterpolatedParticleInfluencer}.
@@ -29,7 +24,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
      * The list of interpolations.
      */
     @NotNull
-    private UnsafeArray<Interpolation> interpolations;
+    private SafeArrayList<Interpolation> interpolations;
 
     /**
      * The fixed duration.
@@ -50,7 +45,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
      * Instantiates a new Abstract interpolated particle influencer.
      */
     public AbstractInterpolatedParticleInfluencer() {
-        this.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
+        this.interpolations = new SafeArrayList<>(Interpolation.class);
     }
 
     @Override
@@ -73,7 +68,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
      * @param index the index
      */
     protected final void removeInterpolation(final int index) {
-        interpolations.slowRemove(index);
+        interpolations.remove(index);
     }
 
     /**
@@ -134,7 +129,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
 
     @NotNull
     @Override
-    public final Array<Interpolation> getInterpolations() {
+    public final SafeArrayList<Interpolation> getInterpolations() {
         return interpolations;
     }
 
@@ -142,8 +137,11 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
     public void write(@NotNull final JmeExporter exporter) throws IOException {
         super.write(exporter);
 
-        final int[] interpolationIds = interpolations.stream()
-                .mapToInt(InterpolationManager::getId).toArray();
+        final int[] interpolationIds = new int[interpolations.size()];
+
+        for (int i = 0; i < interpolations.size(); i++) {
+            interpolationIds[i] = InterpolationManager.getId(interpolations.get(i));
+        }
 
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(interpolationIds, "interpolations", null);
@@ -158,8 +156,9 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
         final InputCapsule capsule = importer.getCapsule(this);
         final int[] interpolationIds = capsule.readIntArray("interpolations", null);
 
-        ArrayUtils.forEach(interpolationIds, interpolations,
-                (id, toStore) -> toStore.add(InterpolationManager.getInterpolation(id)));
+        for (final int id : interpolationIds) {
+            interpolations.add(InterpolationManager.getInterpolation(id));
+        }
 
         cycle = capsule.readBoolean("cycle", false);
         fixedDuration = capsule.readFloat("fixedDuration", 0.125f);
@@ -169,7 +168,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
     @Override
     public ParticleInfluencer clone() {
         final AbstractInterpolatedParticleInfluencer clone = (AbstractInterpolatedParticleInfluencer) super.clone();
-        clone.interpolations = ArrayFactory.newUnsafeArray(Interpolation.class);
+        clone.interpolations = new SafeArrayList<>(Interpolation.class);
         clone.interpolations.addAll(interpolations);
         clone.cycle = cycle;
         clone.fixedDuration = fixedDuration;

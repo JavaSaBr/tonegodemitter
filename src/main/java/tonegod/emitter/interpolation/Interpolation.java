@@ -204,9 +204,7 @@ public interface Interpolation extends Savable {
      * @param a     blend value between 0 and 1.
      * @return the float
      */
-    default float apply(float start, float end, float a) {
-        return start + (end - start) * apply(a);
-    }
+    float apply(float start, float end, float a);
 
     /**
      * Gets name.

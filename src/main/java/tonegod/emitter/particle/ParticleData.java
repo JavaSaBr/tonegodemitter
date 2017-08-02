@@ -1,17 +1,14 @@
 package tonegod.emitter.particle;
 
 import static java.util.Objects.requireNonNull;
-
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.util.SafeArrayList;
 import com.jme3.util.clone.Cloner;
 import com.jme3.util.clone.JmeCloneable;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import com.ss.rlib.util.array.Array;
 import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
@@ -438,8 +435,10 @@ public final class ParticleData implements Cloneable, JmeCloneable {
             interpBlend = interpolation.apply(blend);
         }
 
-        final Array<ParticleInfluencer> influencers = emitterNode.getInfluencers();
-        influencers.forEach(tpf, this, (influencer, frames, node) -> influencer.update(node, frames));
+        final SafeArrayList<ParticleInfluencer> influencers = emitterNode.getInfluencers();
+        for (final ParticleInfluencer influencer : influencers.getArray()) {
+            influencer.update(this, tpf);
+        }
 
         tempV3.set(velocity).multLocal(tpf);
         position.addLocal(tempV3);
@@ -518,8 +517,10 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         initialLength = velocity.length();
         initialPosition.set(emitterNode.getWorldTranslation());
 
-        final Array<ParticleInfluencer> influencers = emitterNode.getInfluencers();
-        influencers.forEach(this, ParticleInfluencer::initialize);
+        final SafeArrayList<ParticleInfluencer> influencers = emitterNode.getInfluencers();
+        for (final ParticleInfluencer influencer : influencers.getArray()) {
+            influencer.initialize(this);
+        }
 
         switch (emitterNode.getEmissionPoint()) {
             case EDGE_BOTTOM: {
@@ -609,8 +610,10 @@ public final class ParticleData implements Cloneable, JmeCloneable {
             emitterNode.decActiveParticleCount();
         }
 
-        final Array<ParticleInfluencer> influencers = emitterNode.getInfluencers();
-        influencers.forEach(this, ParticleInfluencer::reset);
+        final SafeArrayList<ParticleInfluencer> influencers = emitterNode.getInfluencers();
+        for (final ParticleInfluencer influencer : influencers.getArray()) {
+            influencer.reset(this);
+        }
 
         emitterNode.setNextIndex(index);
     }

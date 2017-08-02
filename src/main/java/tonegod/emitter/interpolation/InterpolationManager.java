@@ -1,16 +1,13 @@
 package tonegod.emitter.interpolation;
 
 import static java.util.Objects.requireNonNull;
-
+import com.jme3.util.IntMap;
+import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.ss.rlib.util.array.Array;
-import com.ss.rlib.util.array.ArrayFactory;
-import com.ss.rlib.util.dictionary.DictionaryFactory;
-import com.ss.rlib.util.dictionary.IntegerDictionary;
-import com.ss.rlib.util.dictionary.ObjectDictionary;
 
 /**
  * The class for managing available interpolations.
@@ -20,25 +17,25 @@ import com.ss.rlib.util.dictionary.ObjectDictionary;
 public class InterpolationManager {
 
     @NotNull
-    private static final ObjectDictionary<Interpolation, Integer> INTER_TO_ID;
+    private static final Map<Interpolation, Integer> INTER_TO_ID;
 
     @NotNull
-    private static final ObjectDictionary<String, Interpolation> NAME_TO_INTER;
+    private static final Map<String, Interpolation> NAME_TO_INTER;
 
     @NotNull
-    private static final IntegerDictionary<Interpolation> ID_TO_INTER;
+    private static final IntMap<Interpolation> ID_TO_INTER;
 
     @NotNull
-    private static final Array<Interpolation> INTERPOLATIONS;
+    private static final SafeArrayList<Interpolation> INTERPOLATIONS;
 
     @NotNull
     private static final AtomicInteger ID_FACTORY = new AtomicInteger();
 
     static {
-        INTER_TO_ID = DictionaryFactory.newObjectDictionary();
-        ID_TO_INTER = DictionaryFactory.newIntegerDictionary();
-        NAME_TO_INTER = DictionaryFactory.newObjectDictionary();
-        INTERPOLATIONS = ArrayFactory.newArray(Interpolation.class);
+        INTER_TO_ID = new HashMap<>();
+        ID_TO_INTER = new IntMap<>();
+        NAME_TO_INTER = new HashMap<>();
+        INTERPOLATIONS = new SafeArrayList<>(Interpolation.class);
         register(Interpolation.LINEAR);
         register(Interpolation.FADE);
         register(Interpolation.SINE);
@@ -95,7 +92,7 @@ public class InterpolationManager {
      * @return the list of available interpolations.
      */
     @NotNull
-    public static Array<Interpolation> getAvailable() {
+    public static SafeArrayList<Interpolation> getAvailable() {
         return INTERPOLATIONS;
     }
 

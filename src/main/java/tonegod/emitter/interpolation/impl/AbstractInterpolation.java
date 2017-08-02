@@ -2,12 +2,10 @@ package tonegod.emitter.interpolation.impl;
 
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
-
 import org.jetbrains.annotations.NotNull;
+import tonegod.emitter.interpolation.Interpolation;
 
 import java.io.IOException;
-
-import tonegod.emitter.interpolation.Interpolation;
 
 /**
  * The base implementation of the {@link Interpolation}.
@@ -34,6 +32,11 @@ public abstract class AbstractInterpolation implements Interpolation {
     @Override
     public float apply(final float a) {
         return 0;
+    }
+
+    @Override
+    public float apply(final float start, final float end, final float a) {
+        return start + (end - start) * apply(a);
     }
 
     @NotNull

@@ -14,16 +14,14 @@ import com.jme3.renderer.queue.GeometryList;
 import com.jme3.renderer.queue.OpaqueComparator;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
+
+import java.io.IOException;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to give physics reactions of particles.
@@ -290,7 +288,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
                 }
 
             } catch (final Exception ex) {
-                LOGGER.warning(this, ex);
+                ex.printStackTrace();
             }
         }
     }

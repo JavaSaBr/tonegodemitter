@@ -4,9 +4,7 @@ import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
-import com.jme3.math.FastMath;
 import com.jme3.math.Matrix3f;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Mesh;
@@ -15,17 +13,14 @@ import com.jme3.scene.VertexBuffer.Usage;
 import com.jme3.scene.mesh.IndexBuffer;
 import com.jme3.util.BufferUtils;
 import com.jme3.util.clone.Cloner;
-
 import org.jetbrains.annotations.NotNull;
+import tonegod.emitter.BillboardMode;
+import tonegod.emitter.ParticleEmitterNode;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import java.util.Objects;
-
-import tonegod.emitter.BillboardMode;
-import tonegod.emitter.EmitterMesh;
-import tonegod.emitter.ParticleEmitterNode;
 
 /**
  * The implementation of particle data mesh to use like some template.
@@ -90,7 +85,7 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
         try {
             this.finCoords = BufferUtils.createFloatBuffer(templateCoords.capacity() * numParticles);
         } catch (final Exception e) {
-            LOGGER.warning(this, e);
+            e.printStackTrace();
         }
 
         this.finIndexes = BufferUtils.createShortBuffer(templateIndexes.size() * numParticles);
@@ -121,7 +116,7 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
                 }
 
             } catch (final Exception e) {
-                LOGGER.warning(this, e);
+                e.printStackTrace();
             }
 
             for (int v = 0; v < templateIndexes.size(); v++) {
@@ -151,7 +146,7 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
         try {
             setBuffer(VertexBuffer.Type.TexCoord, 2, finCoords);
         } catch (final Exception e) {
-            LOGGER.warning(this, e);
+            e.printStackTrace();
         }
 
         clearBuffer(VertexBuffer.Type.Index);

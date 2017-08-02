@@ -6,15 +6,11 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
-
 import org.jetbrains.annotations.NotNull;
+import tonegod.emitter.ParticleEmitterNode;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-
-import com.ss.rlib.logging.Logger;
-import com.ss.rlib.logging.LoggerManager;
-import tonegod.emitter.ParticleEmitterNode;
 
 /**
  * The type Particle data mesh.
@@ -22,11 +18,6 @@ import tonegod.emitter.ParticleEmitterNode;
  * @author t0neg0d, JavaSaBr
  */
 public abstract class ParticleDataMesh extends Mesh {
-
-    /**
-     * The constant LOGGER.
-     */
-    protected static final Logger LOGGER = LoggerManager.getLogger(ParticleDataMesh.class);
 
     /**
      * The emitter node.
