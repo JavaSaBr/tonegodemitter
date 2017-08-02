@@ -1,8 +1,5 @@
 package tonegod.emitter;
 
-import static com.ss.rlib.util.ClassUtils.unsafeCast;
-import static com.ss.rlib.util.Utils.get;
-import static com.ss.rlib.util.array.ArrayFactory.newArray;
 import static java.lang.Class.forName;
 import static java.util.Objects.requireNonNull;
 import static tonegod.emitter.material.ParticlesMaterial.PROP_TEXTURE;
@@ -31,13 +28,9 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.MagFilter;
 import com.jme3.texture.Texture.MinFilter;
+import com.jme3.util.SafeArrayList;
 import com.jme3.util.clone.Cloner;
 import com.jme3.util.clone.JmeCloneable;
-import com.ss.rlib.logging.Logger;
-import com.ss.rlib.logging.LoggerManager;
-import com.ss.rlib.util.ClassUtils;
-import com.ss.rlib.util.array.Array;
-import com.ss.rlib.util.array.ArrayFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tonegod.emitter.EmitterMesh.DirectionType;
@@ -62,9 +55,6 @@ import java.io.IOException;
 public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable {
 
     @NotNull
-    private static final Logger LOGGER = LoggerManager.getLogger(ParticleEmitterNode.class);
-
-    @NotNull
     private static final ParticleInfluencer[] EMPTY_INFLUENCERS = new ParticleInfluencer[0];
 
     @NotNull
@@ -74,7 +64,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * The Influencers.
      */
     @NotNull
-    protected Array<ParticleInfluencer> influencers;
+    protected SafeArrayList<ParticleInfluencer> influencers;
 
     /**
      * The flags of this emitter.
@@ -467,7 +457,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.emissionPoint = EmissionPoint.CENTER;
         this.directionType = DirectionType.RANDOM;
         this.interpolation = Interpolation.LINEAR;
-        this.influencers = newArray(ParticleInfluencer.class, 0);
+        this.influencers = new SafeArrayList<>(ParticleInfluencer.class);
         this.particleDataMeshType = ParticleDataTriMesh.class;
         this.emitterShape = new EmitterMesh();
         this.emitterShapeTestGeometry = new EmitterShapeGeometry("Emitter Shape Test Geometry");
@@ -479,7 +469,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.particleGeometry = new ParticleGeometry("Particle Geometry");
         this.particleNode = new ParticleNode("Particle Node");
         this.particleNode.attachChild(particleGeometry);
-        initParticleNode(particleNode);
+        this.initParticleNode(particleNode);
         this.forceMax = 0.5f;
         this.forceMin = 0.15f;
         this.lifeMin = 0.999f;
@@ -737,7 +727,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public <T extends ParticleDataMesh> void changeParticleMeshType(@NotNull final Class<T> type,
                                                                     @Nullable final Mesh template) {
-        changeParticleMesh(ClassUtils.newInstance(type), template);
+        try {
+            changeParticleMesh(type.newInstance(), template);
+        } catch (final InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -759,8 +753,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             this.particleDataMesh.extractTemplateFromMesh(template);
         }
 
-        particleGeometry.setMesh(this.particleDataMesh);
-        particleTestGeometry.setMesh(this.particleDataMesh);
+        particleGeometry.setMesh(getParticleDataMesh());
+        particleTestGeometry.setMesh(getParticleDataMesh());
 
         if (!isEmitterInitialized()) return;
 
@@ -780,7 +774,12 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     private <T extends ParticleDataMesh> void initParticles(@NotNull final Class<T> type, @Nullable final Mesh template) {
         if (particleDataMesh != null) return;
-        this.particleDataMesh = ClassUtils.newInstance(type);
+
+        try {
+            this.particleDataMesh = type.newInstance();
+        } catch (final InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
 
         if (template != null) {
             this.particleDataMesh.extractTemplateFromMesh(template);
@@ -1312,10 +1311,16 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * Adds a series of influencers
      *
-     * @param influencers The list of influencers
+     * @param newInfluencers The list of influencers
      */
-    public void addInfluencers(@NotNull final ParticleInfluencer... influencers) {
-        this.influencers.addAll(influencers);
+    public void addInfluencers(@NotNull final ParticleInfluencer... newInfluencers) {
+
+        final SafeArrayList<ParticleInfluencer> influencers = getInfluencers();
+
+        for (final ParticleInfluencer influencer : newInfluencers) {
+            influencers.add(influencer);
+        }
+
         requiresUpdate = true;
     }
 
@@ -1337,7 +1342,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void addInfluencer(@NotNull final ParticleInfluencer influencer, final int index) {
 
-        final Array<ParticleInfluencer> temp = ArrayFactory.newArray(ParticleInfluencer.class, influencers.size() + 1);
+        final SafeArrayList<ParticleInfluencer> temp = new SafeArrayList<>(ParticleInfluencer.class);
+        final SafeArrayList<ParticleInfluencer> influencers = getInfluencers();
 
         for (int i = 0; i < index; i++) {
             temp.add(influencers.get(i));
@@ -1345,7 +1351,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         temp.add(influencer);
 
-        for (int i = index, length = influencers.size(); i < length; i++) {
+        for (int i = index, length = this.influencers.size(); i < length; i++) {
             temp.add(influencers.get(i));
         }
 
@@ -1361,7 +1367,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param influencer the influencer to remove.
      */
     public void removeInfluencer(@NotNull final ParticleInfluencer influencer) {
-        influencers.slowRemove(influencer);
+        influencers.remove(influencer);
         requiresUpdate = true;
     }
 
@@ -1371,7 +1377,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @return The Collection of particle influencers
      */
     @NotNull
-    public Array<ParticleInfluencer> getInfluencers() {
+    public SafeArrayList<ParticleInfluencer> getInfluencers() {
         return influencers;
     }
 
@@ -1384,7 +1390,16 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     @Nullable
     public <T extends ParticleInfluencer> T getInfluencer(@NotNull final Class<T> type) {
-        return unsafeCast(influencers.search(type, (influencer, toCheck) -> influencer.getClass() == toCheck));
+
+        final SafeArrayList<ParticleInfluencer> influencers = getInfluencers();
+
+        for (final ParticleInfluencer influencer : influencers.getArray()) {
+            if (type.isInstance(influencer)) {
+                return type.cast(influencer);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -1396,7 +1411,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public <T extends ParticleInfluencer> void removeInfluencer(@NotNull final Class<T> type) {
         final T influencer = getInfluencer(type);
         if (influencer == null) return;
-        influencers.slowRemove(influencer);
+        influencers.remove(influencer);
         requiresUpdate = true;
     }
 
@@ -1538,8 +1553,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Can be used to override the default Particle material.
      *
      * @param material               The material
-     * @param textureParamName       The material uniform name used for applying a color map (ex: Texture, ColorMap,                               DiffuseMap)
-     * @param applyLightingTransform Forces update of normals and should only be used if the emitter material uses a                               lighting shader
+     * @param textureParamName       The material uniform name used for applying a color map (ex: Texture, ColorMap, DiffuseMap)
+     * @param applyLightingTransform Forces update of normals and should only be used if the emitter material uses a lighting shader
      */
     public void setMaterial(@NotNull final Material material, @NotNull final String textureParamName,
                             final boolean applyLightingTransform) {
@@ -1669,7 +1684,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             initialize(assetManager, true, true);
             return true;
         } catch (final RuntimeException e) {
-            LOGGER.warning(this, e);
+            e.printStackTrace();
             setEnabled(false);
             return false;
         }
@@ -2031,7 +2046,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         final OutputCapsule capsule = exporter.getCapsule(this);
 
-        capsule.write(influencers.toArray(ParticleInfluencer.class), "influencers", EMPTY_INFLUENCERS);
+        capsule.write(influencers.toArray(new ParticleInfluencer[influencers.size()]), "influencers", EMPTY_INFLUENCERS);
         capsule.write(enabled, "enabled", true);
 
         // EMITTER
@@ -2132,8 +2147,12 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setParticlesFollowEmitter(capsule.readBoolean("particlesFollowEmitter", false));
 
         // PARTICLES MESH DATA
-        final Class<? extends ParticleDataMesh> meshType = requireNonNull(get(capsule, cap ->
-                unsafeCast(forName(cap.readString("particleDataMeshType", ParticleDataTriMesh.class.getName())))));
+        final Class<? extends ParticleDataMesh> meshType;
+        try {
+            meshType = (Class<? extends ParticleDataMesh>) forName(capsule.readString("particleDataMeshType", ParticleDataTriMesh.class.getName()));
+        } catch (final ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         final ParticleDataMesh particleDataMesh = (ParticleDataMesh) capsule.readSavable("particleDataMesh", null);
         final Mesh template = (Mesh) capsule.readSavable("particleMeshTemplate", null);
@@ -2188,14 +2207,14 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         particleTestGeometry = cloner.clone(particleTestGeometry);
         particleTestNode = cloner.clone(particleTestNode);
-        
-        if(particleGeometry.getMaterial() != null) {
+
+        if (particleGeometry.getMaterial() != null) {
             material = particleGeometry.getMaterial();
         } else {
             material = cloner.clone(material);
         }
 
-        if(particleGeometry.getMesh() != null) {
+        if (particleGeometry.getMesh() != null) {
             particleDataMesh = (ParticleDataMesh) particleGeometry.getMesh();
         } else {
             particleDataMesh = cloner.clone(particleDataMesh);

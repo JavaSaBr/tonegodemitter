@@ -1,8 +1,8 @@
 package tonegod.emitter;
 
-import java.util.ResourceBundle;
+import tonegod.emitter.util.PropertyLoader;
 
-import com.ss.rlib.util.PropertyLoader;
+import java.util.ResourceBundle;
 
 /**
  * The class with all messages of this library.

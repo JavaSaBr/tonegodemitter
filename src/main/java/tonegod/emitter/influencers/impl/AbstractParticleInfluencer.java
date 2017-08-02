@@ -4,15 +4,11 @@ import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
-
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-
-import com.ss.rlib.logging.Logger;
-import com.ss.rlib.logging.LoggerManager;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
+
+import java.io.IOException;
 
 /**
  * Base implementation of the {@link ParticleInfluencer}.
@@ -20,12 +16,6 @@ import tonegod.emitter.particle.ParticleData;
  * @author JavaSaBr
  */
 public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
-
-    /**
-     * The constant LOGGER.
-     */
-    @NotNull
-    protected static final Logger LOGGER = LoggerManager.getLogger(PhysicsInfluencer.class);
 
     /**
      * The flag of enabling this influencer.

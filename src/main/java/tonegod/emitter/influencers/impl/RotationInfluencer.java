@@ -1,26 +1,18 @@
 package tonegod.emitter.influencers.impl;
 
-import com.jme3.export.InputCapsule;
-import com.jme3.export.JmeExporter;
-import com.jme3.export.JmeImporter;
-import com.jme3.export.OutputCapsule;
+import com.jme3.export.*;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
-
+import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-import java.util.Random;
-
-import com.ss.rlib.util.ArrayUtils;
-import com.ss.rlib.util.array.Array;
-import com.ss.rlib.util.array.ArrayFactory;
-import com.ss.rlib.util.array.UnsafeArray;
 import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 import tonegod.emitter.util.RandomUtils;
+
+import java.io.IOException;
+import java.util.Random;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to rotation particles.
@@ -33,7 +25,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      * The list of speeds.
      */
     @NotNull
-    private UnsafeArray<Vector3f> speeds;
+    private SafeArrayList<Vector3f> speeds;
 
     /**
      * The speed factor.
@@ -81,7 +73,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      * Instantiates a new Rotation influencer.
      */
     public RotationInfluencer() {
-        this.speeds = ArrayFactory.newUnsafeArray(Vector3f.class);
+        this.speeds = new SafeArrayList<>(Vector3f.class);
         this.speedFactor = Vector3f.ZERO.clone();
         this.store = new Vector3f();
         this.randomDirection = true;
@@ -155,7 +147,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
 
         nextRotationSpeed(particleData, index, particleData.endRotationSpeed);
 
-        final Array<Interpolation> interpolations = getInterpolations();
+        final SafeArrayList<Interpolation> interpolations = getInterpolations();
         particleData.rotationInterpolation = interpolations.get(particleData.rotationIndex);
         particleData.rotationInterval -= particleData.rotationDuration;
     }
@@ -192,7 +184,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
             nextRotationSpeed(particleData, particleData.rotationIndex + 1, particleData.endRotationSpeed);
         }
 
-        final Array<Interpolation> interpolations = getInterpolations();
+        final SafeArrayList<Interpolation> interpolations = getInterpolations();
         particleData.rotationInterpolation = interpolations.get(particleData.rotationIndex);
 
         if (isRandomStartRotationX() || isRandomStartRotationY() || isRandomStartRotationZ()) {
@@ -278,7 +270,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      */
     public void removeRotationSpeed(final int index) {
         removeInterpolation(index);
-        speeds.slowRemove(index);
+        speeds.remove(index);
     }
 
     /**
@@ -294,7 +286,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      *
      * @return the list of rotations.
      */
-    public Array<Vector3f> getRotationSpeeds() {
+    public SafeArrayList<Vector3f> getRotationSpeeds() {
         return speeds;
     }
 
@@ -324,13 +316,13 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      */
     public void removeLast() {
 
-        final Array<Vector3f> speeds = getRotationSpeeds();
+        final SafeArrayList<Vector3f> speeds = getRotationSpeeds();
         if (speeds.isEmpty()) return;
 
         final int index = speeds.size() - 1;
 
         removeInterpolation(index);
-        speeds.fastRemove(index);
+        speeds.remove(index);
     }
 
     /**
@@ -461,9 +453,13 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
         super.read(importer);
 
         final InputCapsule capsule = importer.getCapsule(this);
+        final Savable[] readSpeeds = capsule.readSavableArray("speeds", null);
 
-        ArrayUtils.forEach(capsule.readSavableArray("speeds", null), speeds,
-                (savable, toStore) -> toStore.add((Vector3f) savable));
+        if (readSpeeds != null) {
+            for (final Savable speed : readSpeeds) {
+                speeds.add((Vector3f) speed);
+            }
+        }
 
         speedFactor.set((Vector3f) capsule.readSavable("speedFactor", Vector3f.ZERO.clone()));
         randomDirection = capsule.readBoolean("randomDirection", true);
@@ -478,7 +474,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     @Override
     public ParticleInfluencer clone() {
         final RotationInfluencer clone = (RotationInfluencer) super.clone();
-        clone.speeds = ArrayFactory.newUnsafeArray(Vector3f.class);
+        clone.speeds = new SafeArrayList<>(Vector3f.class);
         clone.speeds.addAll(speeds);
         clone.setDirection(direction);
         clone.setRandomDirection(randomDirection);

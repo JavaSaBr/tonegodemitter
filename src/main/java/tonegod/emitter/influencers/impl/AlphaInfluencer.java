@@ -1,25 +1,19 @@
 package tonegod.emitter.influencers.impl;
 
 import static com.jme3.math.FastMath.interpolateLinear;
-
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
-
+import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-
-import com.ss.rlib.util.ArrayUtils;
-import com.ss.rlib.util.array.Array;
-import com.ss.rlib.util.array.ArrayFactory;
-import com.ss.rlib.util.array.UnsafeArray;
 import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
+
+import java.io.IOException;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to change alpha of particles.
@@ -32,7 +26,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      * The list of alphas.
      */
     @NotNull
-    private UnsafeArray<Float> alphas;
+    private SafeArrayList<Float> alphas;
 
     /**
      * The start alpha.
@@ -48,7 +42,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      * Instantiates a new Alpha influencer.
      */
     public AlphaInfluencer() {
-        this.alphas = ArrayFactory.newUnsafeArray(Float.class);
+        this.alphas = new SafeArrayList<>(Float.class);
         this.startAlpha = 1;
     }
 
@@ -72,8 +66,8 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         }
 
         final Interpolation interpolation = particleData.alphaInterpolation;
-        final Array<Float> alphas = getAlphas();
-        final Float[] alphasArray = alphas.array();
+        final SafeArrayList<Float> alphas = getAlphas();
+        final Float[] alphasArray = alphas.getArray();
         final int alphaIndex = particleData.alphaIndex;
 
         blend = interpolation.apply(particleData.alphaInterval / particleData.alphaDuration);
@@ -104,7 +98,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
             particleData.alphaIndex = 0;
         }
 
-        final Array<Interpolation> interpolations = getInterpolations();
+        final SafeArrayList<Interpolation> interpolations = getInterpolations();
         particleData.alphaInterpolation = interpolations.get(particleData.alphaIndex);
         particleData.alphaInterval -= particleData.alphaDuration;
     }
@@ -112,7 +106,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
 
-        final Array<Float> alphas = getAlphas();
+        final SafeArrayList<Float> alphas = getAlphas();
 
         if (alphas.isEmpty()) {
             addAlpha(1F);
@@ -127,7 +121,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
 
-        final Array<Interpolation> interpolations = getInterpolations();
+        final SafeArrayList<Interpolation> interpolations = getInterpolations();
 
         if (isRandomStartAlpha()) {
             particleData.alphaIndex = FastMath.nextRandomInt(0, interpolations.size() - 1);
@@ -185,7 +179,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      * @return the alphas
      */
     @NotNull
-    public Array<Float> getAlphas() {
+    public SafeArrayList<Float> getAlphas() {
         return alphas;
     }
 
@@ -215,13 +209,13 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      */
     public void removeLast() {
 
-        final Array<Float> alphas = getAlphas();
+        final SafeArrayList<Float> alphas = getAlphas();
         if (alphas.isEmpty()) return;
 
         final int index = alphas.size() - 1;
 
         removeInterpolation(index);
-        alphas.fastRemove(index);
+        alphas.remove(index);
     }
 
     /**
@@ -231,7 +225,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      */
     public void removeAlpha(final int index) {
         removeInterpolation(index);
-        alphas.slowRemove(index);
+        alphas.remove(index);
     }
 
     /**
@@ -246,8 +240,12 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     public void write(@NotNull final JmeExporter exporter) throws IOException {
         super.write(exporter);
 
-        final double[] alphasToSave = alphas.stream().
-                mapToDouble(value -> value).toArray();
+        final Float[] values = alphas.getArray();
+        final double[] alphasToSave = new double[alphas.size()];
+
+        for (int i = 0; i < values.length; i++) {
+            alphasToSave[i] = values[i];
+        }
 
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(alphasToSave, "alphas", null);
@@ -259,9 +257,13 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         super.read(importer);
 
         final InputCapsule capsule = importer.getCapsule(this);
+        final double[] readAlphas = capsule.readDoubleArray("alphas", null);
 
-        ArrayUtils.forEach(capsule.readDoubleArray("alphas", null), alphas,
-                (element, toStore) -> toStore.add((float) element));
+        if (readAlphas != null) {
+            for (final double value : readAlphas) {
+                alphas.add((float) value);
+            }
+        }
 
         randomStartAlpha = capsule.readBoolean("randomStartAlpha", false);
     }
@@ -270,7 +272,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     public ParticleInfluencer clone() {
         final AlphaInfluencer clone = (AlphaInfluencer) super.clone();
-        clone.alphas = ArrayFactory.newUnsafeArray(Float.class);
+        clone.alphas = new SafeArrayList<>(Float.class);
         clone.alphas.addAll(alphas);
         clone.randomStartAlpha = randomStartAlpha;
         return clone;

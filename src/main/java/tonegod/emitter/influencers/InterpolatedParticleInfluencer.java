@@ -1,8 +1,7 @@
 package tonegod.emitter.influencers;
 
+import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
-
-import com.ss.rlib.util.array.Array;
 import tonegod.emitter.interpolation.Interpolation;
 
 /**
@@ -44,7 +43,7 @@ public interface InterpolatedParticleInfluencer extends ParticleInfluencer {
      * @return the list of interpolations.
      */
     @NotNull
-    Array<Interpolation> getInterpolations();
+    SafeArrayList<Interpolation> getInterpolations();
 
     /**
      * Is cycle boolean.
