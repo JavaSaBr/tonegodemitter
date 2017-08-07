@@ -2026,6 +2026,16 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public void resetInterval() {
         currentInterval = startAlignedInterval ? targetInterval : 0;
     }
+    
+    /**
+     * Gets if the emitter is alive (it is still emitting particles) or if it has already ended (reached it max life)
+     *
+     * @return if the emitter is currently alive
+     */
+    public boolean isAlive() {
+        return emitterLife == 0F || emittedTime < emitterLife;
+    }
+    
 
     /**
      * This method should not be called.  Particles call this method to help track the next available particle index
