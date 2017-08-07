@@ -2176,7 +2176,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setDirectionType(DirectionType.valueOf(capsule.readInt("directionType", DirectionType.NORMAL.ordinal())));
         setEmitterLife(capsule.readFloat("emitterLife", 0F));
         setEmitterDelay(capsule.readFloat("emitterDelay", 0F));
-        setStartAlignedInterval(capsule.readFloat("startAlignedInterval", false));
+        setStartAlignedInterval(capsule.readBoolean("startAlignedInterval", false));
 
         // PARTICLES
         setBillboardMode(BillboardMode.valueOf(capsule.readInt("billboardMode", BillboardMode.CAMERA.ordinal())));
