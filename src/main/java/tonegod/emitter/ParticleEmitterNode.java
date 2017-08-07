@@ -99,6 +99,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * The current interval.
      */
     protected float currentInterval;
+    
+    /**
+     * The initial interval (value to set the currentInterval each time it is reset).
+     */
+    protected float initialInterval;
 
     /**
      * The life of emitter.
@@ -451,7 +456,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.textureParamName = "Texture";
         this.inverseRotation = Matrix3f.IDENTITY.clone();
         this.targetInterval = 0.00015f;
-        this.currentInterval = 0;
+        this.initialInterval = 0;
+        resetInterval();
         this.velocityStretchFactor = 0.35f;
         this.stretchAxis = ForcedStretchAxis.Y;
         this.emissionPoint = EmissionPoint.CENTER;
@@ -613,6 +619,28 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         return emittedTime;
     }
 
+    /**
+     * Gets the initial interval.
+     *
+     * @return the initial interval.
+     */
+    protected float getInitialInterval() {
+        return initialInterval;
+    }
+    
+    /**
+     * @param initialInterval the initial interval eg: if a particle is to emmit every 1 second and this is set to 1 it will first spawn without any delay).
+     */
+    public void setInitialInterval(float initialInterval) {
+        this.initialInterval = initialInterval;
+
+        if(emittedTime == 0) {
+            resetInterval();
+        }
+    }
+    
+    
+    
     @Override
     protected void setParent(@Nullable final Node parent) {
         super.setParent(parent);
@@ -1833,7 +1861,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         final boolean enabled = isEnabled();
 
         if (!enabled) {
-            currentInterval = 0;
+            resetInterval();
             return;
         } else if (!isEmitterInitialized() && !initialize()) {
             return;
@@ -1981,7 +2009,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void reset() {
         killAllParticles();
-        currentInterval = 0;
+        resetInterval();
         emittedTime = 0;
         requiresUpdate = true;
     }
@@ -1990,7 +2018,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Resets the current emission interval
      */
     public void resetInterval() {
-        currentInterval = 0;
+        currentInterval = initialInterval;
     }
 
     /**
@@ -2064,6 +2092,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         capsule.write(directionType.ordinal(), "directionType", 0);
         capsule.write(emitterLife, "emitterLife", 0);
         capsule.write(emitterDelay, "emitterDelay", 0);
+        capsule.write(initialInterval, "initialInterval", 0);
 
         // PARTICLES
         capsule.write(billboardMode.ordinal(), "billboardMode", 0);
@@ -2141,6 +2170,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setDirectionType(DirectionType.valueOf(capsule.readInt("directionType", DirectionType.NORMAL.ordinal())));
         setEmitterLife(capsule.readFloat("emitterLife", 0F));
         setEmitterDelay(capsule.readFloat("emitterDelay", 0F));
+        setInitialInterval(capsule.readFloat("initialInterval", 0F));
 
         // PARTICLES
         setBillboardMode(BillboardMode.valueOf(capsule.readInt("billboardMode", BillboardMode.CAMERA.ordinal())));
