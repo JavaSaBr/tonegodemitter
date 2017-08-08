@@ -3,6 +3,7 @@ package tonegod.emitter;
 import tonegod.emitter.util.PropertyLoader;
 
 import java.util.ResourceBundle;
+import java.util.Locale;
 
 /**
  * The class with all messages of this library.
@@ -348,7 +349,7 @@ public class Messages {
 
     static {
 
-        final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, PropertyLoader.getInstance());
+        final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault(), Messages.class.getClassLoader(), PropertyLoader.getInstance());
 
         INTERPOLATION_LINEAR = bundle.getString("Interpolation.Linear");
         INTERPOLATION_FADE = bundle.getString("Interpolation.Fade");
