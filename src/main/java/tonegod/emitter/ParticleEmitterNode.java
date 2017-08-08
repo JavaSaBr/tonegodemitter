@@ -99,6 +99,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * The current interval.
      */
     protected float currentInterval;
+    
+    /**
+     * If the interval must be start-aligned (the first emission is when the emitter is started)
+     */
+    protected boolean startAlignedInterval;
 
     /**
      * The life of emitter.
@@ -451,7 +456,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.textureParamName = "Texture";
         this.inverseRotation = Matrix3f.IDENTITY.clone();
         this.targetInterval = 0.00015f;
-        this.currentInterval = 0;
+        this.startAlignedInterval = false;
+        resetInterval();
         this.velocityStretchFactor = 0.35f;
         this.stretchAxis = ForcedStretchAxis.Y;
         this.emissionPoint = EmissionPoint.CENTER;
@@ -613,6 +619,29 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         return emittedTime;
     }
 
+    /**
+     * Gets if the emission interval is start-aligned ((the first emission is when the emitter is started).
+     *
+     * @return if the emission interval is start-aligned.
+     */
+    protected boolean isStartAlignedInterval() {
+        return startAlignedInterval;
+    }
+    
+    /**
+     * @param startAlignedInterval if the emission interval is start-aligned
+     * (eg: if a particle is set to emmit every 1 second, with 0 delay and this is set to true it will first spawn without any delay).
+     */
+    public void setStartAlignedInterval(boolean startAlignedInterval) {
+        this.startAlignedInterval = startAlignedInterval;
+
+        if(emittedTime == 0) {
+            resetInterval();
+        }
+    }
+    
+    
+    
     @Override
     protected void setParent(@Nullable final Node parent) {
         super.setParent(parent);
@@ -879,6 +908,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         this.emissionsPerSecond = emissionsPerSecond;
         targetInterval = 1f / emissionsPerSecond;
+        
+        if(emittedTime == 0) {
+            resetInterval();
+        }
+        
         requiresUpdate = true;
     }
 
@@ -1833,7 +1867,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         final boolean enabled = isEnabled();
 
         if (!enabled) {
-            currentInterval = 0;
+            resetInterval();
             return;
         } else if (!isEmitterInitialized() && !initialize()) {
             return;
@@ -1981,7 +2015,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void reset() {
         killAllParticles();
-        currentInterval = 0;
+        resetInterval();
         emittedTime = 0;
         requiresUpdate = true;
     }
@@ -1990,8 +2024,18 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Resets the current emission interval
      */
     public void resetInterval() {
-        currentInterval = 0;
+        currentInterval = startAlignedInterval ? targetInterval : 0;
     }
+    
+    /**
+     * Gets if the emitter is alive (it is still emitting particles) or if it has already ended (reached it max life)
+     *
+     * @return if the emitter is currently alive
+     */
+    public boolean isAlive() {
+        return emitterLife == 0F || emittedTime < emitterLife;
+    }
+    
 
     /**
      * This method should not be called.  Particles call this method to help track the next available particle index
@@ -2064,6 +2108,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         capsule.write(directionType.ordinal(), "directionType", 0);
         capsule.write(emitterLife, "emitterLife", 0);
         capsule.write(emitterDelay, "emitterDelay", 0);
+        capsule.write(startAlignedInterval, "startAlignedInterval", false);
 
         // PARTICLES
         capsule.write(billboardMode.ordinal(), "billboardMode", 0);
@@ -2141,6 +2186,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setDirectionType(DirectionType.valueOf(capsule.readInt("directionType", DirectionType.NORMAL.ordinal())));
         setEmitterLife(capsule.readFloat("emitterLife", 0F));
         setEmitterDelay(capsule.readFloat("emitterDelay", 0F));
+        setStartAlignedInterval(capsule.readBoolean("startAlignedInterval", false));
 
         // PARTICLES
         setBillboardMode(BillboardMode.valueOf(capsule.readInt("billboardMode", BillboardMode.CAMERA.ordinal())));
