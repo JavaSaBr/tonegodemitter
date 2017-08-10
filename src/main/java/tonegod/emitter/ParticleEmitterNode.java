@@ -451,7 +451,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.textureParamName = "Texture";
         this.inverseRotation = Matrix3f.IDENTITY.clone();
         this.targetInterval = 0.00015f;
-        this.currentInterval = 0;
+        this.currentInterval = targetInterval;
         this.velocityStretchFactor = 0.35f;
         this.stretchAxis = ForcedStretchAxis.Y;
         this.emissionPoint = EmissionPoint.CENTER;
@@ -873,8 +873,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void setEmissionsPerSecond(final float emissionsPerSecond) {
 
-        if (emissionsPerSecond == 0f) {
-            throw new IllegalArgumentException("the emissions per second can't be zero.");
+        if (emissionsPerSecond < 0.1f) {
+            throw new IllegalArgumentException("the emissions per second can't be less than 0.1.");
         }
 
         this.emissionsPerSecond = emissionsPerSecond;
@@ -1833,7 +1833,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         final boolean enabled = isEnabled();
 
         if (!enabled) {
-            currentInterval = 0;
+            currentInterval = targetInterval;
             return;
         } else if (!isEmitterInitialized() && !initialize()) {
             return;
@@ -1846,9 +1846,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
 
         currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
-        if (currentInterval < targetInterval) return;
+        if (currentInterval <= targetInterval) return;
 
-        final boolean delayIsReady = emitterDelay == 0F || emittedTime > emitterDelay;
+        final boolean delayIsReady = emitterDelay == 0F || emittedTime >= emitterDelay;
         final boolean emitterIsAlive = emitterLife == 0F || emittedTime < emitterLife;
 
         if (delayIsReady && emitterIsAlive) {
@@ -1981,7 +1981,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void reset() {
         killAllParticles();
-        currentInterval = 0;
+        currentInterval = targetInterval;
         emittedTime = 0;
         requiresUpdate = true;
     }
@@ -1990,7 +1990,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Resets the current emission interval
      */
     public void resetInterval() {
-        currentInterval = 0;
+        currentInterval = targetInterval;
     }
 
     /**

@@ -349,7 +349,9 @@ public class Messages {
 
     static {
 
-        final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.getDefault(), Messages.class.getClassLoader(), PropertyLoader.getInstance());
+        final Locale locale = Locale.getDefault();
+        final ClassLoader classLoader = Messages.class.getClassLoader();
+        final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, locale, classLoader, PropertyLoader.getInstance());
 
         INTERPOLATION_LINEAR = bundle.getString("Interpolation.Linear");
         INTERPOLATION_FADE = bundle.getString("Interpolation.Fade");
