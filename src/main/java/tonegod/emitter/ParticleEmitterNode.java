@@ -451,7 +451,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.textureParamName = "Texture";
         this.inverseRotation = Matrix3f.IDENTITY.clone();
         this.targetInterval = 0.00015f;
-        this.currentInterval = targetInterval;
         this.velocityStretchFactor = 0.35f;
         this.stretchAxis = ForcedStretchAxis.Y;
         this.emissionPoint = EmissionPoint.CENTER;
@@ -878,7 +877,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
 
         this.emissionsPerSecond = emissionsPerSecond;
-        targetInterval = 1f / emissionsPerSecond;
+        this.targetInterval = 1f / emissionsPerSecond;
+        resetInterval();
         requiresUpdate = true;
     }
 
@@ -1833,7 +1833,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         final boolean enabled = isEnabled();
 
         if (!enabled) {
-            currentInterval = targetInterval;
             return;
         } else if (!isEmitterInitialized() && !initialize()) {
             return;
@@ -1981,7 +1980,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void reset() {
         killAllParticles();
-        currentInterval = targetInterval;
+        resetInterval();
         emittedTime = 0;
         requiresUpdate = true;
     }
