@@ -1848,7 +1848,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         if (currentInterval <= targetInterval) return;
 
         final boolean delayIsReady = emitterDelay == 0F || emittedTime >= emitterDelay;
-        final boolean emitterIsAlive = emitterLife == 0F || emittedTime < emitterLife;
+        final boolean emitterIsAlive = isAlive();
 
         if (delayIsReady && emitterIsAlive) {
             for (int i = 0, count = calcParticlesPerEmission(); i < count; i++) {
@@ -1990,6 +1990,15 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void resetInterval() {
         currentInterval = targetInterval;
+    }
+    
+    /**
+     * Gets if the emitter is alive (it is still emitting particles) or if it has already ended (reached it max life)
+     *
+     * @return if the emitter is currently alive
+     */
+    public boolean isAlive() {
+        return emitterLife == 0F || emittedTime < emitterLife;
     }
 
     /**
