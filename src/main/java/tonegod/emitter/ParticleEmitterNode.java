@@ -58,7 +58,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     private static final ParticleInfluencer[] EMPTY_INFLUENCERS = new ParticleInfluencer[0];
 
     @NotNull
-    private static final ParticleData[] EMPTY_PARTICLE_DATAS = new ParticleData[0];
+    private static final ParticleData[] EMPTY_PARTICLE_DATA = new ParticleData[0];
 
     /**
      * The Influencers.
@@ -184,13 +184,13 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * The test emitter node.
      */
-    @NotNull
+    @Nullable
     protected TestParticleEmitterNode emitterTestNode;
 
     /**
      * Emitter shape test geometry.
      */
-    @NotNull
+    @Nullable
     protected EmitterShapeGeometry emitterShapeTestGeometry;
 
     /** -----------PARTICLES------------- **/
@@ -201,11 +201,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     @NotNull
     protected ParticleNode particleNode;
 
-    /**
-     * The particles test node.
-     */
-    @NotNull
-    protected TestParticleEmitterNode particleTestNode;
 
     /**
      * Particles geometry.
@@ -214,9 +209,15 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     protected ParticleGeometry particleGeometry;
 
     /**
+     * The particles test node.
+     */
+    @Nullable
+    protected TestParticleEmitterNode particleTestNode;
+
+    /**
      * Particles test geometry.
      */
-    @NotNull
+    @Nullable
     protected ParticleGeometry particleTestGeometry;
 
     /**
@@ -447,7 +448,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public ParticleEmitterNode() {
         setName("Emitter Node");
-        this.particles = EMPTY_PARTICLE_DATAS;
+        this.particles = EMPTY_PARTICLE_DATA;
         this.textureParamName = "Texture";
         this.inverseRotation = Matrix3f.IDENTITY.clone();
         this.targetInterval = 0.00015f;
@@ -459,12 +460,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.influencers = new SafeArrayList<>(ParticleInfluencer.class);
         this.particleDataMeshType = ParticleDataTriMesh.class;
         this.emitterShape = new EmitterMesh();
-        this.emitterShapeTestGeometry = new EmitterShapeGeometry("Emitter Shape Test Geometry");
-        this.emitterTestNode = new TestParticleEmitterNode("EmitterTestNode");
-        this.emitterTestNode.attachChild(emitterShapeTestGeometry);
-        this.particleTestGeometry = new ParticleGeometry("Particle Test Geometry");
-        this.particleTestNode = new TestParticleEmitterNode("Particle Test Node");
-        this.particleTestNode.attachChild(particleTestGeometry);
         this.particleGeometry = new ParticleGeometry("Particle Geometry");
         this.particleNode = new ParticleNode("Particle Node");
         this.particleNode.attachChild(particleGeometry);
@@ -490,6 +485,55 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         attachChild(particleNode);
         reset();
         setEmissionsPerSecond(100);
+    }
+
+    /**
+     * Create a material to show debug of this particle system.
+     *
+     * @param assetManager the asset manager.
+     */
+    protected void createTestMaterial(@NotNull final AssetManager assetManager) {
+
+        testMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        testMat.setColor("Color", ColorRGBA.Blue);
+
+        final RenderState renderState = testMat.getAdditionalRenderState();
+        renderState.setFaceCullMode(FaceCullMode.Off);
+        renderState.setWireframe(true);
+    }
+
+    /**
+     * Create things to show debug if the particles.
+     */
+    protected void createParticleTestNode() {
+
+        if (testMat == null) {
+            createTestMaterial(getAssetManager());
+        }
+
+        particleTestGeometry = new ParticleGeometry("Particle Test Geometry");
+        particleTestGeometry.setMesh(getParticleDataMesh());
+        particleTestNode = new TestParticleEmitterNode("Particle Test Node");
+        particleTestNode.attachChild(particleTestGeometry);
+        particleTestNode.setMaterial(testMat);
+    }
+
+    /**
+     * Create things to show debug of the emitter.
+     */
+    protected void createEmitterTestNode() {
+
+        if (testMat == null) {
+            createTestMaterial(getAssetManager());
+        }
+
+        final EmitterMesh emitterShape = getEmitterShape();
+
+        emitterShapeTestGeometry = new EmitterShapeGeometry("Emitter Shape Test Geometry");
+        emitterShapeTestGeometry.setMesh(emitterShape.getMesh());
+        emitterTestNode = new TestParticleEmitterNode("Emitter Test Node");
+        emitterTestNode.attachChild(emitterShapeTestGeometry);
+        emitterTestNode.setMaterial(testMat);
     }
 
     /**
@@ -545,8 +589,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the particle data mesh type
      */
-    @NotNull
-    public Class<? extends ParticleDataMesh> getParticleDataMeshType() {
+    public @NotNull Class<? extends ParticleDataMesh> getParticleDataMeshType() {
         return particleDataMeshType;
     }
 
@@ -555,8 +598,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return The Mesh to use as a particle particleMeshTemplate
      */
-    @Nullable
-    public Mesh getParticleMeshTemplate() {
+    public @Nullable Mesh getParticleMeshTemplate() {
         return particleMeshTemplate;
     }
 
@@ -666,16 +708,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             material = new Material(assetManager, "tonegod/emitter/shaders/Particle.j3md");
             initParticleMaterial(material);
         }
-
-        if (testMat == null) {
-
-            testMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-            testMat.setColor("Color", ColorRGBA.Blue);
-
-            final RenderState renderState = testMat.getAdditionalRenderState();
-            renderState.setFaceCullMode(FaceCullMode.Off);
-            renderState.setWireframe(true);
-        }
     }
 
     /**
@@ -703,8 +735,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the mesh type.
      */
-    @NotNull
-    public ParticleDataMeshInfo getParticleMeshType() {
+    public @NotNull ParticleDataMeshInfo getParticleMeshType() {
         return new ParticleDataMeshInfo(particleDataMeshType, particleMeshTemplate);
     }
 
@@ -753,7 +784,10 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
 
         particleGeometry.setMesh(getParticleDataMesh());
-        particleTestGeometry.setMesh(getParticleDataMesh());
+
+        if (particleTestGeometry != null) {
+            particleTestGeometry.setMesh(getParticleDataMesh());
+        }
 
         if (!isEmitterInitialized()) return;
 
@@ -798,8 +832,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the data mesh of particles.
      */
-    @NotNull
-    protected ParticleDataMesh getParticleDataMesh() {
+    protected @NotNull ParticleDataMesh getParticleDataMesh() {
         return requireNonNull(particleDataMesh);
     }
 
@@ -837,8 +870,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return The EmitterMesh containing the specified shape Mesh
      */
-    @NotNull
-    public EmitterMesh getEmitterShape() {
+    public @NotNull EmitterMesh getEmitterShape() {
         return emitterShape;
     }
 
@@ -926,8 +958,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the direction type
      */
-    @NotNull
-    public DirectionType getDirectionType() {
+    public @NotNull DirectionType getDirectionType() {
         return directionType;
     }
 
@@ -1004,8 +1035,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the forced stretch axis
      */
-    @NotNull
-    public ForcedStretchAxis getForcedStretchAxis() {
+    public @NotNull ForcedStretchAxis getForcedStretchAxis() {
         return stretchAxis;
     }
 
@@ -1024,8 +1054,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the emission point
      */
-    @NotNull
-    public EmissionPoint getEmissionPoint() {
+    public @NotNull EmissionPoint getEmissionPoint() {
         return emissionPoint;
     }
 
@@ -1125,8 +1154,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the interpolation
      */
-    @NotNull
-    public Interpolation getInterpolation() {
+    public @NotNull Interpolation getInterpolation() {
         return interpolation;
     }
 
@@ -1188,8 +1216,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the minimum and maximum time a particle can remain alive once emitted.
      */
-    @NotNull
-    public Vector2f getLifeMinMax() {
+    public @NotNull Vector2f getLifeMinMax() {
         return new Vector2f(lifeMin, lifeMax);
     }
 
@@ -1294,8 +1321,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the minimum and maximum force with which the particle can be emitted.
      */
-    @NotNull
-    public Vector2f getForceMinMax() {
+    public @NotNull Vector2f getForceMinMax() {
         return new Vector2f(forceMin, forceMax);
     }
 
@@ -1376,8 +1402,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return The Collection of particle influencers
      */
-    @NotNull
-    public SafeArrayList<ParticleInfluencer> getInfluencers() {
+    public @NotNull SafeArrayList<ParticleInfluencer> getInfluencers() {
         return influencers;
     }
 
@@ -1388,8 +1413,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param type the type
      * @return the influencer
      */
-    @Nullable
-    public <T extends ParticleInfluencer> T getInfluencer(@NotNull final Class<T> type) {
+    public @Nullable <T extends ParticleInfluencer> T getInfluencer(@NotNull final Class<T> type) {
 
         final SafeArrayList<ParticleInfluencer> influencers = getInfluencers();
 
@@ -1504,8 +1528,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the particle geometry.
      */
-    @NotNull
-    public ParticleGeometry getParticleGeometry() {
+    public @NotNull ParticleGeometry getParticleGeometry() {
         return particleGeometry;
     }
 
@@ -1514,8 +1537,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the sprite settings.
      */
-    @NotNull
-    public Vector2f getSpriteCount() {
+    public @NotNull Vector2f getSpriteCount() {
         return new Vector2f(spriteCols, spriteRows);
     }
 
@@ -1524,8 +1546,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the material
      */
-    @NotNull
-    public Material getMaterial() {
+    public @NotNull Material getMaterial() {
         return requireNonNull(material);
     }
 
@@ -1543,8 +1564,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the current material of these particles.
      */
-    @NotNull
-    public ParticlesMaterial getParticlesMaterial() {
+    public @NotNull ParticlesMaterial getParticlesMaterial() {
         final Material material = getMaterial();
         return new ParticlesMaterial(material, textureParamName, applyLightingTransform);
     }
@@ -1616,8 +1636,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return The current selected BillboardMode
      */
-    @NotNull
-    public BillboardMode getBillboardMode() {
+    public @NotNull BillboardMode getBillboardMode() {
         return billboardMode;
     }
 
@@ -1654,8 +1673,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     /**
      * @return the asset manager.
      */
-    @NotNull
-    private AssetManager getAssetManager() {
+    private @NotNull AssetManager getAssetManager() {
         return requireNonNull(assetManager, "Not found asset manager.");
     }
 
@@ -1738,12 +1756,24 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         final EmitterMesh emitterShape = getEmitterShape();
 
         particleGeometry.setMesh(particleDataMesh);
-        particleTestGeometry.setMesh(particleDataMesh);
-        emitterShapeTestGeometry.setMesh(emitterShape.getMesh());
+
+        if (particleTestGeometry != null) {
+            particleTestGeometry.setMesh(particleDataMesh);
+        }
+
+        if (emitterShapeTestGeometry != null) {
+            emitterShapeTestGeometry.setMesh(emitterShape.getMesh());
+        }
 
         particleNode.setMaterial(material);
-        particleTestNode.setMaterial(testMat);
-        emitterTestNode.setMaterial(testMat);
+
+        if (particleTestNode != null && testMat != null) {
+            particleTestNode.setMaterial(testMat);
+        }
+
+        if (emitterTestNode != null && testMat != null) {
+            emitterTestNode.setMaterial(testMat);
+        }
 
         setEmitterInitialized(true);
     }
@@ -1773,9 +1803,23 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void setEnabledTestEmitter(final boolean testEmitter) {
         if (isEnabledTestEmitter() == testEmitter) return;
+
         this.testEmitter = testEmitter;
-        if (testEmitter) attachChild(emitterTestNode);
-        else emitterTestNode.removeFromParent();
+
+        if (testEmitter) {
+
+            if (emitterTestNode == null) {
+                createEmitterTestNode();
+            }
+
+            attachChild(emitterTestNode);
+
+        } else if (emitterTestNode != null) {
+            emitterTestNode.removeFromParent();
+            emitterTestNode = null;
+            emitterShapeTestGeometry = null;
+        }
+
         requiresUpdate = true;
     }
 
@@ -1786,9 +1830,23 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void setEnabledTestParticles(final boolean testParticles) {
         if (isEnabledTestParticles() == testParticles) return;
+
         this.testParticles = testParticles;
-        if (testParticles) particleNode.attachChild(particleTestNode);
-        else particleTestNode.removeFromParent();
+
+        if (testParticles) {
+
+            if (particleTestNode == null) {
+                createParticleTestNode();
+            }
+
+            particleNode.attachChild(particleTestNode);
+
+        } else if (particleTestNode != null) {
+            particleTestNode.removeFromParent();
+            particleTestNode = null;
+            particleTestGeometry = null;
+        }
+
         requiresUpdate = true;
     }
 
@@ -1797,8 +1855,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the particle test node
      */
-    @NotNull
-    public TestParticleEmitterNode getParticleTestNode() {
+    public @Nullable TestParticleEmitterNode getParticleTestNode() {
         return particleTestNode;
     }
 
@@ -1807,8 +1864,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return the emitter test node
      */
-    @NotNull
-    public TestParticleEmitterNode getEmitterTestNode() {
+    public @Nullable TestParticleEmitterNode getEmitterTestNode() {
         return emitterTestNode;
     }
 
@@ -1817,9 +1873,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         if (isEmitterInitialized() && (isEnabled() || postRequiresUpdate)) {
             particleGeometry.updateModelBound();
-            if (isEnabledTestParticles()) {
+
+            if (particleTestGeometry != null) {
                 particleTestGeometry.updateModelBound();
             }
+
             postRequiresUpdate = false;
         }
 
@@ -2042,7 +2100,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public void write(@NotNull final JmeExporter exporter) throws IOException {
 
         final int childIndex = getChildIndex(particleNode);
-        final int testIndex = getChildIndex(emitterTestNode);
+        final int testIndex = emitterTestNode == null ? -1 : getChildIndex(emitterTestNode);
 
         detachChild(particleNode);
         if (testIndex != -1) detachChild(emitterTestNode);
@@ -2106,15 +2164,12 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setAssetManager(assetManager);
 
         final int particleIndex = getChildIndex(particleNode);
-        final int testIndex = getChildIndex(emitterTestNode);
 
         detachChild(particleNode);
-        if (testIndex != -1) detachChild(emitterTestNode);
 
         super.read(importer);
 
         attachChildAt(particleNode, particleIndex);
-        if (testIndex != -1) attachChildAt(emitterTestNode, testIndex);
 
         final InputCapsule capsule = importer.getCapsule(this);
         final Savable[] influencerses = capsule.readSavableArray("influencers", EMPTY_INFLUENCERS);
@@ -2128,8 +2183,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         // EMITTER
         emitterShape = (EmitterMesh) capsule.readSavable("emitterShape", null);
         emitterShape.setEmitterNode(this);
-        emitterShapeTestGeometry.setMesh(emitterShape.getMesh());
-
         try {
             setEmissionsPerSecond(capsule.readFloat("emissionsPerSecond", 0F));
         } catch (final ClassCastException e) {
@@ -2157,7 +2210,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         // PARTICLES MESH DATA
         final Class<? extends ParticleDataMesh> meshType;
         try {
-            meshType = (Class<? extends ParticleDataMesh>) forName(capsule.readString("particleDataMeshType", ParticleDataTriMesh.class.getName()));
+            meshType = (Class<? extends ParticleDataMesh>) forName(capsule.readString("particleDataMeshType",
+                    ParticleDataTriMesh.class.getName()));
         } catch (final ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -2189,9 +2243,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         setSpriteCount(capsule.readInt("spriteCols", 0), capsule.readInt("spriteRows", 0));
     }
 
-    @NotNull
     @Override
-    public ParticleEmitterNode jmeClone() {
+    public @NotNull ParticleEmitterNode jmeClone() {
         return (ParticleEmitterNode) super.jmeClone();
     }
 
@@ -2206,15 +2259,18 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
 
         emitterShape = cloner.clone(emitterShape);
-        emitterShapeTestGeometry = cloner.clone(emitterShapeTestGeometry);
-        emitterTestNode = cloner.clone(emitterTestNode);
+        emitterShapeTestGeometry = null;
+        emitterTestNode = null;
 
         particles = cloner.clone(particles);
         particleGeometry = cloner.clone(particleGeometry);
         particleNode = cloner.clone(particleNode);
 
-        particleTestGeometry = cloner.clone(particleTestGeometry);
-        particleTestNode = cloner.clone(particleTestNode);
+        particleTestGeometry = null;
+        particleTestNode = null;
+
+        testEmitter = false;
+        testParticles = false;
 
         if (particleGeometry.getMaterial() != null) {
             material = particleGeometry.getMaterial();
