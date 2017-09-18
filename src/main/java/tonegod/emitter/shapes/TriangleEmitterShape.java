@@ -70,9 +70,6 @@ public class TriangleEmitterShape extends Mesh {
      */
     protected float size;
 
-    /**
-     * Instantiates a new Triangle emitter shape.
-     */
     public TriangleEmitterShape() {
         this.vertexes = BufferUtils.createFloatBuffer(9);
         this.indexes = BufferUtils.createShortBuffer(3);
@@ -83,11 +80,6 @@ public class TriangleEmitterShape extends Mesh {
         this.triangle = new Triangle();
     }
 
-    /**
-     * Instantiates a new Triangle emitter shape.
-     *
-     * @param size the size
-     */
     public TriangleEmitterShape(final float size) {
         this();
         updateTo(size);

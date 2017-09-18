@@ -5,16 +5,14 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.FastMath;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
+
+import java.io.IOException;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to animate sprites of particles.
@@ -56,18 +54,14 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
      */
     private boolean cycle;
 
-    /**
-     * Instantiates a new Sprite influencer.
-     */
     public SpriteInfluencer() {
         this.fixedDuration = 0f;
         this.totalFrames = -1;
         this.animate = true;
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_SPRITE;
     }
 
@@ -298,9 +292,8 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
         fixedDuration = capsule.readFloat("fixedDuration", 0f);
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final SpriteInfluencer clone = (SpriteInfluencer) super.clone();
         clone.setAnimate(animate);
         clone.setFixedDuration(fixedDuration);

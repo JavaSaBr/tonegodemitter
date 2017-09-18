@@ -9,6 +9,7 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.mesh.IndexBuffer;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.FloatBuffer;
 
@@ -25,7 +26,7 @@ public final class MeshUtils {
      * @param mesh the mesh
      * @return the position buffer
      */
-    public static FloatBuffer getPositionBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable FloatBuffer getPositionBuffer(@NotNull final Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.Position);
     }
 
@@ -35,7 +36,7 @@ public final class MeshUtils {
      * @param mesh the mesh
      * @return the index buffer
      */
-    public static IndexBuffer getIndexBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable IndexBuffer getIndexBuffer(@NotNull final Mesh mesh) {
         return mesh.getIndexBuffer();
     }
 
@@ -45,7 +46,7 @@ public final class MeshUtils {
      * @param mesh the mesh
      * @return the tex coord buffer
      */
-    public static FloatBuffer getTexCoordBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable FloatBuffer getTexCoordBuffer(@NotNull final Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.TexCoord);
     }
 
@@ -55,7 +56,7 @@ public final class MeshUtils {
      * @param mesh the mesh
      * @return the normals buffer
      */
-    public static FloatBuffer getNormalsBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable FloatBuffer getNormalsBuffer(@NotNull final Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.Normal);
     }
 
@@ -65,7 +66,7 @@ public final class MeshUtils {
      * @param mesh the mesh
      * @return the color buffer
      */
-    public static FloatBuffer getColorBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable FloatBuffer getColorBuffer(@NotNull final Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.Color);
     }
 }

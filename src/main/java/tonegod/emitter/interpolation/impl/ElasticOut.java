@@ -11,13 +11,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ElasticOut extends Elastic {
 
-    /**
-     * Instantiates a new Elastic out.
-     *
-     * @param value the value
-     * @param power the power
-     * @param name  the name
-     */
     public ElasticOut(final float value, final float power, @NotNull final String name) {
         super(value, power, name);
     }

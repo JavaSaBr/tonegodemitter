@@ -5,16 +5,14 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.Vector3f;
-
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-
 import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
+
+import java.io.IOException;
 
 /**
  * The implementation of the {@link ParticleInfluencer} for gravity influence to particles.
@@ -98,9 +96,6 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
      */
     private boolean negativeVelocity;
 
-    /**
-     * Instantiates a new Gravity influencer.
-     */
     public GravityInfluencer() {
         this.alignment = GravityAlignment.WORLD;
         this.gravity = new Vector3f(0, 1f, 0);
@@ -108,9 +103,8 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
         this.magnitude = 1;
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_GRAVITY;
     }
 
@@ -201,8 +195,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
      *
      * @return the alignment
      */
-    @NotNull
-    public final GravityAlignment getAlignment() {
+    public final @NotNull GravityAlignment getAlignment() {
         return alignment;
     }
 
@@ -249,8 +242,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
      *
      * @return the gravity
      */
-    @NotNull
-    public final Vector3f getGravity() {
+    public final @NotNull Vector3f getGravity() {
         return gravity;
     }
 
@@ -259,8 +251,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
      *
      * @return the store.
      */
-    @NotNull
-    protected final Vector3f getStore() {
+    protected final @NotNull Vector3f getStore() {
         return store;
     }
 
@@ -283,9 +274,8 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
                 GravityAlignment.valueOf(capsule.readString("alignment", GravityAlignment.WORLD.name())).ordinal()));
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final GravityInfluencer clone = (GravityInfluencer) super.clone();
         clone.setGravity(gravity);
         clone.negativeVelocity = false;

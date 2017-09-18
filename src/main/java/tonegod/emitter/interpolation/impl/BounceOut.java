@@ -21,13 +21,6 @@ public class BounceOut extends AbstractInterpolation {
     @NotNull
     protected final float[] heights;
 
-    /**
-     * Instantiates a new Bounce out.
-     *
-     * @param widths  the widths
-     * @param heights the heights
-     * @param name    the name
-     */
     public BounceOut(@NotNull final float[] widths, @NotNull final float[] heights, @NotNull final String name) {
         super(name);
 
@@ -39,12 +32,6 @@ public class BounceOut extends AbstractInterpolation {
         this.heights = heights;
     }
 
-    /**
-     * Instantiates a new Bounce out.
-     *
-     * @param bounces the bounces
-     * @param name    the name
-     */
     public BounceOut(final int bounces, @NotNull final String name) {
         super(name);
 

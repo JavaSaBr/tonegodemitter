@@ -25,8 +25,7 @@ public interface InterpolatedParticleInfluencer extends ParticleInfluencer {
      * @return the interpolation for the step.
      * @throws RuntimeException if the index is invalid.
      */
-    @NotNull
-    Interpolation getInterpolation(final int index) throws RuntimeException;
+    @NotNull Interpolation getInterpolation(int index) throws RuntimeException;
 
     /**
      * Update a interpolation for the index.
@@ -35,15 +34,14 @@ public interface InterpolatedParticleInfluencer extends ParticleInfluencer {
      * @param index         the index.
      * @throws RuntimeException if the index is invalid.
      */
-    void updateInterpolation(final @NotNull Interpolation interpolation, final int index) throws RuntimeException;
+    void updateInterpolation(@NotNull Interpolation interpolation, int index) throws RuntimeException;
 
     /**
      * Get the list of all exists interpolations.
      *
      * @return the list of interpolations.
      */
-    @NotNull
-    SafeArrayList<Interpolation> getInterpolations();
+    @NotNull SafeArrayList<Interpolation> getInterpolations();
 
     /**
      * Is cycle boolean.
@@ -65,5 +63,5 @@ public interface InterpolatedParticleInfluencer extends ParticleInfluencer {
      *
      * @param fixedDuration duration between frame updates
      */
-    void setFixedDuration(final float fixedDuration);
+    void setFixedDuration(float fixedDuration);
 }

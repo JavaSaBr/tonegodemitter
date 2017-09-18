@@ -1,16 +1,11 @@
 package tonegod.emitter;
 
 import static tonegod.emitter.material.ParticlesMaterial.PROP_SOFT_PARTICLES;
-
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
-
 import org.jetbrains.annotations.NotNull;
-
-import tonegod.emitter.material.ParticlesMaterial;
 import tonegod.emitter.node.ParticleNode;
 
 /**
@@ -20,18 +15,10 @@ import tonegod.emitter.node.ParticleNode;
  */
 public class SoftParticleEmitterNode extends ParticleEmitterNode {
 
-    /**
-     * Instantiates a new Soft particle emitter node.
-     *
-     * @param assetManager the asset manager
-     */
     public SoftParticleEmitterNode(@NotNull final AssetManager assetManager) {
         super(assetManager);
     }
 
-    /**
-     * Instantiates a new Soft particle emitter node.
-     */
     public SoftParticleEmitterNode() {
     }
 

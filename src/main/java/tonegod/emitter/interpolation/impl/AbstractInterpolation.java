@@ -20,11 +20,6 @@ public abstract class AbstractInterpolation implements Interpolation {
     @NotNull
     private final String name;
 
-    /**
-     * Instantiates a new Abstract interpolation.
-     *
-     * @param name the name
-     */
     protected AbstractInterpolation(@NotNull final String name) {
         this.name = name;
     }
@@ -39,9 +34,8 @@ public abstract class AbstractInterpolation implements Interpolation {
         return start + (end - start) * apply(a);
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return name;
     }
 

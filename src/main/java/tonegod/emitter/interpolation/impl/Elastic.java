@@ -15,18 +15,12 @@ public class Elastic extends AbstractInterpolation {
      * The Value.
      */
     protected final float value;
+
     /**
      * The Power.
      */
     protected final float power;
 
-    /**
-     * Instantiates a new Elastic.
-     *
-     * @param value the value
-     * @param power the power
-     * @param name  the name
-     */
     public Elastic(final float value, final float power, @NotNull final String name) {
         super(name);
         this.value = value;

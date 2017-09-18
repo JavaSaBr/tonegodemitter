@@ -176,9 +176,6 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      */
     private float restitution;
 
-    /**
-     * Instantiates a new Physics influencer.
-     */
     public PhysicsInfluencer() {
         this.geometries = new GeometryList(new OpaqueComparator());
         this.tempGeometries = new GeometryList(new OpaqueComparator());
@@ -200,9 +197,8 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
         geom.updateModelBound();
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_PHYSICS;
     }
 
@@ -225,8 +221,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     /**
      * @return the collision results.
      */
-    @NotNull
-    private CollisionResults getResults() {
+    private @NotNull CollisionResults getResults() {
         return results;
     }
 
@@ -374,8 +369,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      *
      * @return the list of geometries.
      */
-    @NotNull
-    public GeometryList getGeometries() {
+    public @NotNull GeometryList getGeometries() {
         return geometries;
     }
 
@@ -417,8 +411,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      *
      * @return the collision reaction.
      */
-    @NotNull
-    public CollisionReaction getCollisionReaction() {
+    public @NotNull CollisionReaction getCollisionReaction() {
         return collisionReaction;
     }
 
@@ -462,9 +455,8 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      * ** Please note the geometry list is specific to each instance of the physics influencer and must be maintained by
      * the user.  This list is NOT cloned from the original influencer.
      */
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final PhysicsInfluencer clone = (PhysicsInfluencer) super.clone();
         clone.setCollisionReaction(collisionReaction);
         clone.setRestitution(restitution);

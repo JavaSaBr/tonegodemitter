@@ -41,9 +41,6 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
      */
     private boolean cycle;
 
-    /**
-     * Instantiates a new Abstract interpolated particle influencer.
-     */
     public AbstractInterpolatedParticleInfluencer() {
         this.interpolations = new SafeArrayList<>(Interpolation.class);
     }
@@ -110,9 +107,8 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
         return fixedDuration;
     }
 
-    @NotNull
     @Override
-    public final Interpolation getInterpolation(final int index) throws RuntimeException {
+    public final @NotNull Interpolation getInterpolation(final int index) throws RuntimeException {
         if (index < 0 || index >= interpolations.size()) {
             throw new RuntimeException("The index " + index + " isn't correct.");
         }
@@ -127,9 +123,8 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
         interpolations.set(index, interpolation);
     }
 
-    @NotNull
     @Override
-    public final SafeArrayList<Interpolation> getInterpolations() {
+    public final @NotNull SafeArrayList<Interpolation> getInterpolations() {
         return interpolations;
     }
 
@@ -164,9 +159,8 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
         fixedDuration = capsule.readFloat("fixedDuration", 0.125f);
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final AbstractInterpolatedParticleInfluencer clone = (AbstractInterpolatedParticleInfluencer) super.clone();
         clone.interpolations = new SafeArrayList<>(Interpolation.class);
         clone.interpolations.addAll(interpolations);

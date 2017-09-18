@@ -9,11 +9,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class LinearInterpolation extends AbstractInterpolation {
 
-    /**
-     * Instantiates a new Linear interpolation.
-     *
-     * @param name the name
-     */
     public LinearInterpolation(final @NotNull String name) {
         super(name);
     }

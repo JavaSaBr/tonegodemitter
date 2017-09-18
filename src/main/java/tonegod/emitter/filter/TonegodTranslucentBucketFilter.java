@@ -36,18 +36,10 @@ public class TonegodTranslucentBucketFilter extends Filter {
 
     private boolean enabledSoftParticles;
 
-    /**
-     * Instantiates a new Tonegod translucent bucket filter.
-     */
     public TonegodTranslucentBucketFilter() {
         super("TonegodTranslucentBucketFilter");
     }
 
-    /**
-     * Instantiates a new Tonegod translucent bucket filter.
-     *
-     * @param enabledSoftParticles the enabled soft particles
-     */
     public TonegodTranslucentBucketFilter(final boolean enabledSoftParticles) {
         this();
         this.enabledSoftParticles = enabledSoftParticles;

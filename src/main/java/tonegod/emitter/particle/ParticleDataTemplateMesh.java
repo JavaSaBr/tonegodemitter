@@ -47,9 +47,6 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
     private FloatBuffer templateNormals;
     private FloatBuffer templateColors;
 
-    /**
-     * Instantiates a new Particle data template mesh.
-     */
     public ParticleDataTemplateMesh() {
         this.mat3 = new Matrix3f();
     }
@@ -69,8 +66,7 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
      *
      * @return the template mesh.
      */
-    @NotNull
-    public Mesh getTemplateMesh() {
+    public @NotNull Mesh getTemplateMesh() {
         return Objects.requireNonNull(template);
     }
 

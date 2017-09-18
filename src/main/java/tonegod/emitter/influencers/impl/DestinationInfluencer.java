@@ -48,9 +48,6 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      */
     private boolean randomStartDestination;
 
-    /**
-     * Instantiates a new Destination influencer.
-     */
     public DestinationInfluencer() {
         this.destinations = new SafeArrayList<>(Vector3f.class);
         this.weights = new SafeArrayList<>(Float.class);
@@ -58,9 +55,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
         this.weight = 1F;
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_DESTINATION;
     }
 
@@ -220,8 +216,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @param index the index.
      * @return the destination for the index.
      */
-    @NotNull
-    public Vector3f getDestination(final int index) {
+    public @NotNull Vector3f getDestination(final int index) {
         return destinations.get(index);
     }
 
@@ -230,8 +225,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      *
      * @return the weights
      */
-    @NotNull
-    public SafeArrayList<Float> getWeights() {
+    public @NotNull SafeArrayList<Float> getWeights() {
         return weights;
     }
 
@@ -241,8 +235,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @param index the index.
      * @return the weight for the index.
      */
-    @NotNull
-    public Float getWeight(final int index) {
+    public @NotNull Float getWeight(final int index) {
         return weights.get(index);
     }
 
@@ -322,9 +315,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
         randomStartDestination = capsule.readBoolean("randomStartDestination", false);
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final DestinationInfluencer clone = (DestinationInfluencer) super.clone();
         clone.destinations = new SafeArrayList<>(Vector3f.class);
         clone.destinations.addAll(destinations);

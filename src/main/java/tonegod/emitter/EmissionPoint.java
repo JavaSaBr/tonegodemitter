@@ -30,8 +30,7 @@ public enum EmissionPoint {
      * @param index the index
      * @return the emission point
      */
-    @NotNull
-    public static EmissionPoint valueOf(final int index) {
+    public static @NotNull EmissionPoint valueOf(final int index) {
         return VALUES[index];
     }
 

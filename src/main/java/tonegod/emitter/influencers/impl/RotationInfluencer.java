@@ -69,9 +69,6 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      */
     private boolean randomStartRotationZ;
 
-    /**
-     * Instantiates a new Rotation influencer.
-     */
     public RotationInfluencer() {
         this.speeds = new SafeArrayList<>(Vector3f.class);
         this.speedFactor = Vector3f.ZERO.clone();
@@ -81,9 +78,8 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
         this.direction = true;
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_ROTATION;
     }
 
@@ -286,7 +282,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      *
      * @return the list of rotations.
      */
-    public SafeArrayList<Vector3f> getRotationSpeeds() {
+    public @NotNull SafeArrayList<Vector3f> getRotationSpeeds() {
         return speeds;
     }
 
@@ -296,8 +292,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      * @param index the index.
      * @return the rotation speed for the index.
      */
-    @NotNull
-    public Vector3f getRotationSpeed(final int index) {
+    public @NotNull Vector3f getRotationSpeed(final int index) {
         return speeds.get(index);
     }
 
@@ -470,9 +465,8 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
         randomStartRotationZ = capsule.readBoolean("randomStartRotationZ", false);
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final RotationInfluencer clone = (RotationInfluencer) super.clone();
         clone.speeds = new SafeArrayList<>(Vector3f.class);
         clone.speeds.addAll(speeds);

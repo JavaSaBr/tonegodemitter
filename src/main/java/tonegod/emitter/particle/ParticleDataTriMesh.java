@@ -1,9 +1,7 @@
 package tonegod.emitter.particle;
 
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.FastMath;
 import com.jme3.math.Matrix3f;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.VertexBuffer;
@@ -11,16 +9,13 @@ import com.jme3.scene.VertexBuffer.Format;
 import com.jme3.scene.VertexBuffer.Usage;
 import com.jme3.util.BufferUtils;
 import com.jme3.util.clone.Cloner;
-
 import org.jetbrains.annotations.NotNull;
+import tonegod.emitter.BillboardMode;
+import tonegod.emitter.ParticleEmitterNode;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
-
-import tonegod.emitter.BillboardMode;
-import tonegod.emitter.EmitterMesh;
-import tonegod.emitter.ParticleEmitterNode;
 
 /**
  * The type Particle data tri mesh.
@@ -35,9 +30,6 @@ public final class ParticleDataTriMesh extends RotatedParticleDataMesh {
     @NotNull
     protected ColorRGBA color;
 
-    /**
-     * Instantiates a new Particle data tri mesh.
-     */
     public ParticleDataTriMesh() {
         this.color = new ColorRGBA();
     }

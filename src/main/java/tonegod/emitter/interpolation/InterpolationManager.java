@@ -91,8 +91,7 @@ public class InterpolationManager {
      *
      * @return the list of available interpolations.
      */
-    @NotNull
-    public static SafeArrayList<Interpolation> getAvailable() {
+    public static @NotNull SafeArrayList<Interpolation> getAvailable() {
         return INTERPOLATIONS;
     }
 
@@ -102,8 +101,7 @@ public class InterpolationManager {
      * @param name the name.
      * @return the interpolation.
      */
-    @NotNull
-    public static Interpolation getInterpolation(@NotNull final String name) {
+    public static @NotNull Interpolation getInterpolation(@NotNull final String name) {
         return requireNonNull(NAME_TO_INTER.get(name), "Unknown interpolation " + name);
     }
 
@@ -123,8 +121,7 @@ public class InterpolationManager {
      * @param id the id.
      * @return the interpolation.
      */
-    @NotNull
-    public static Interpolation getInterpolation(final int id) {
+    public static @NotNull Interpolation getInterpolation(final int id) {
         return requireNonNull(ID_TO_INTER.get(id), "Unknown id " + id);
     }
 }

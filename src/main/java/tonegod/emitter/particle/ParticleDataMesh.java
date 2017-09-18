@@ -39,9 +39,6 @@ public abstract class ParticleDataMesh extends Mesh {
      */
     private boolean uniqueTexCoords;
 
-    /**
-     * Instantiates a new Particle data mesh.
-     */
     public ParticleDataMesh() {
         this.imagesX = 1;
         this.imagesY = 1;

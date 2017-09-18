@@ -9,12 +9,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SwingIn extends Swing {
 
-    /**
-     * Instantiates a new Swing in.
-     *
-     * @param scale the scale
-     * @param name  the name
-     */
     public SwingIn(float scale, @NotNull final String name) {
         super(scale, name);
     }

@@ -15,10 +15,12 @@ public class ParticlesMaterial {
      * The constant PROP_SOFT_PARTICLES.
      */
     public static final String PROP_SOFT_PARTICLES = "SoftParticles";
+
     /**
      * The constant PROP_TEXTURE.
      */
     public static final String PROP_TEXTURE = "Texture";
+
     /**
      * The constant PROP_QUADRATIC.
      */
@@ -41,14 +43,8 @@ public class ParticlesMaterial {
      */
     private final boolean applyLightingTransform;
 
-    /**
-     * Instantiates a new Particles material.
-     *
-     * @param material               the material
-     * @param textureParam           the texture param
-     * @param applyLightingTransform the apply lighting transform
-     */
-    public ParticlesMaterial(@NotNull final Material material, @NotNull final String textureParam, final boolean applyLightingTransform) {
+    public ParticlesMaterial(@NotNull final Material material, @NotNull final String textureParam,
+                             final boolean applyLightingTransform) {
         this.material = material;
         this.textureParam = textureParam;
         this.applyLightingTransform = applyLightingTransform;
@@ -75,8 +71,7 @@ public class ParticlesMaterial {
      *
      * @return The material of particles.
      */
-    @NotNull
-    public Material getMaterial() {
+    public @NotNull Material getMaterial() {
         return material;
     }
 
@@ -85,8 +80,7 @@ public class ParticlesMaterial {
      *
      * @return the name of material parameter which contains a texture of particles in the material.
      */
-    @NotNull
-    public String getTextureParam() {
+    public @NotNull String getTextureParam() {
         return textureParam;
     }
 

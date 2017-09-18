@@ -14,27 +14,13 @@ import tonegod.emitter.ParticleEmitterNode;
  */
 public class EmitterShapeGeometry extends Geometry {
 
-    /**
-     * Instantiates a new Emitter shape geometry.
-     */
     public EmitterShapeGeometry() {
     }
 
-    /**
-     * Instantiates a new Emitter shape geometry.
-     *
-     * @param name the name
-     */
     public EmitterShapeGeometry(@NotNull final String name) {
         super(name);
     }
 
-    /**
-     * Instantiates a new Emitter shape geometry.
-     *
-     * @param name the name
-     * @param mesh the mesh
-     */
     public EmitterShapeGeometry(@NotNull final String name, @NotNull final Mesh mesh) {
         super(name, mesh);
     }

@@ -13,17 +13,9 @@ import tonegod.emitter.ParticleEmitterNode;
  */
 public class TestParticleEmitterNode extends Node {
 
-    /**
-     * Instantiates a new Test particle emitter node.
-     */
     public TestParticleEmitterNode() {
     }
 
-    /**
-     * Instantiates a new Test particle emitter node.
-     *
-     * @param name the name
-     */
     public TestParticleEmitterNode(@NotNull final String name) {
         super(name);
     }

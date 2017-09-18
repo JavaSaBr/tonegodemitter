@@ -431,11 +431,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public boolean testParticles;
 
-    /**
-     * Creates a new instance of the Emitter
-     *
-     * @param assetManager the asset manager
-     */
     public ParticleEmitterNode(@NotNull final AssetManager assetManager) {
         this();
         changeEmitterShapeMesh(new TriangleEmitterShape(1));
@@ -443,9 +438,6 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         initialize(assetManager, true, true);
     }
 
-    /**
-     * Creates a new instance of the Emitter
-     */
     public ParticleEmitterNode() {
         setName("Emitter Node");
         this.particles = EMPTY_PARTICLE_DATA;

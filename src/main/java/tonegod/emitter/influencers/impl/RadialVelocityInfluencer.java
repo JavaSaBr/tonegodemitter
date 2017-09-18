@@ -4,21 +4,18 @@ import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
-import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-
 import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-import java.util.Random;
-
 import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 import tonegod.emitter.util.RandomUtils;
+
+import java.io.IOException;
+import java.util.Random;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to radial rotation particles.
@@ -232,9 +229,6 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      */
     private boolean randomDirection;
 
-    /**
-     * Instantiates a new Radial velocity influencer.
-     */
     public RadialVelocityInfluencer() {
         this.tangent = new Vector3f();
         this.store = new Vector3f();
@@ -250,9 +244,8 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         this.tangentForce = 1;
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_RADIAL_VELOCITY;
     }
 
@@ -421,8 +414,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      *
      * @return the radial pull alignment
      */
-    @NotNull
-    public RadialPullAlignment getRadialPullAlignment() {
+    public @NotNull RadialPullAlignment getRadialPullAlignment() {
         return pullAlignment;
     }
 
@@ -442,8 +434,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      *
      * @return the radial pull center
      */
-    @NotNull
-    public RadialPullCenter getRadialPullCenter() {
+    public @NotNull RadialPullCenter getRadialPullCenter() {
         return pullCenter;
     }
 
@@ -480,8 +471,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      *
      * @return the radial up alignment
      */
-    @NotNull
-    public RadialUpAlignment getRadialUpAlignment() {
+    public @NotNull RadialUpAlignment getRadialUpAlignment() {
         return upAlignment;
     }
 
@@ -524,9 +514,8 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         upAlignment = RadialUpAlignment.valueOf(capsule.readInt("upAlignment", RadialUpAlignment.UNIT_Y.ordinal()));
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final RadialVelocityInfluencer clone = (RadialVelocityInfluencer) super.clone();
         clone.setRadialPull(radialPull);
         clone.setTangentForce(tangentForce);
