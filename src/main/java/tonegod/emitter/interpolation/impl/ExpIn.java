@@ -9,13 +9,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ExpIn extends Exp {
 
-    /**
-     * Instantiates a new Exp in.
-     *
-     * @param value the value
-     * @param power the power
-     * @param name  the name
-     */
     public ExpIn(final float value, final float power, @NotNull final String name) {
         super(value, power, name);
     }

@@ -11,13 +11,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ElasticIn extends Elastic {
 
-    /**
-     * Instantiates a new Elastic in.
-     *
-     * @param value the value
-     * @param power the power
-     * @param name  the name
-     */
     public ElasticIn(final float value, final float power, @NotNull final String name) {
         super(value, power, name);
     }

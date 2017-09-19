@@ -9,23 +9,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class Bounce extends BounceOut {
 
-    /**
-     * Instantiates a new Bounce.
-     *
-     * @param widths  the widths
-     * @param heights the heights
-     * @param name    the name
-     */
     public Bounce(@NotNull final float[] widths, @NotNull final float[] heights, @NotNull final String name) {
         super(widths, heights, name);
     }
 
-    /**
-     * Instantiates a new Bounce.
-     *
-     * @param bounces the bounces
-     * @param name    the name
-     */
     public Bounce(final int bounces, @NotNull final String name) {
         super(bounces, name);
     }

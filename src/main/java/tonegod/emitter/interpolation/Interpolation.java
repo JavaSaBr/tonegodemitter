@@ -1,33 +1,9 @@
 package tonegod.emitter.interpolation;
 
 import com.jme3.export.Savable;
-
 import org.jetbrains.annotations.NotNull;
-
 import tonegod.emitter.Messages;
-import tonegod.emitter.interpolation.impl.Bounce;
-import tonegod.emitter.interpolation.impl.BounceIn;
-import tonegod.emitter.interpolation.impl.BounceOut;
-import tonegod.emitter.interpolation.impl.CircleInInterpolation;
-import tonegod.emitter.interpolation.impl.CircleInterpolation;
-import tonegod.emitter.interpolation.impl.CircleOutInterpolation;
-import tonegod.emitter.interpolation.impl.Elastic;
-import tonegod.emitter.interpolation.impl.ElasticIn;
-import tonegod.emitter.interpolation.impl.ElasticOut;
-import tonegod.emitter.interpolation.impl.Exp;
-import tonegod.emitter.interpolation.impl.ExpIn;
-import tonegod.emitter.interpolation.impl.ExpOut;
-import tonegod.emitter.interpolation.impl.FadeInterpolation;
-import tonegod.emitter.interpolation.impl.LinearInterpolation;
-import tonegod.emitter.interpolation.impl.Pow;
-import tonegod.emitter.interpolation.impl.PowIn;
-import tonegod.emitter.interpolation.impl.PowOut;
-import tonegod.emitter.interpolation.impl.SineInInterpolation;
-import tonegod.emitter.interpolation.impl.SineInterpolation;
-import tonegod.emitter.interpolation.impl.SineOutInterpolation;
-import tonegod.emitter.interpolation.impl.Swing;
-import tonegod.emitter.interpolation.impl.SwingIn;
-import tonegod.emitter.interpolation.impl.SwingOut;
+import tonegod.emitter.interpolation.impl.*;
 
 /**
  * The interface Interpolation.
@@ -211,6 +187,5 @@ public interface Interpolation extends Savable {
      *
      * @return the name of this interpolation.
      */
-    @NotNull
-    String getName();
+    @NotNull String getName();
 }

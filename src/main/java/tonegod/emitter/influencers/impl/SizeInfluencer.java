@@ -31,6 +31,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
      */
     @NotNull
     private final Vector3f tempV3a;
+
     @NotNull
     private final Vector3f tempV3b;
 
@@ -44,9 +45,6 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
      */
     private boolean randomSize;
 
-    /**
-     * Instantiates a new Size influencer.
-     */
     public SizeInfluencer() {
         this.sizes = new SafeArrayList<>(Vector3f.class);
         this.tempV3a = new Vector3f();
@@ -54,9 +52,8 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
         this.randomSizeTolerance = 0.5f;
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_SIZE;
     }
 
@@ -246,8 +243,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
      * @param index the index.
      * @return the size for the index.
      */
-    @NotNull
-    public Vector3f getSize(final int index) {
+    public @NotNull Vector3f getSize(final int index) {
         return sizes.get(index);
     }
 
@@ -356,9 +352,8 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
         randomSizeTolerance = capsule.readFloat("randomSizeTolerance", 0.5f);
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final SizeInfluencer clone = (SizeInfluencer) super.clone();
         clone.sizes = new SafeArrayList<>(Vector3f.class);
         clone.sizes.addAll(sizes);

@@ -9,12 +9,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PowIn extends Pow {
 
-    /**
-     * Instantiates a new Pow in.
-     *
-     * @param power the power
-     * @param name  the name
-     */
     public PowIn(final int power, @NotNull final String name) {
         super(power, name);
     }

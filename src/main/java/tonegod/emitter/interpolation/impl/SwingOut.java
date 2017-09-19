@@ -9,12 +9,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SwingOut extends Swing {
 
-    /**
-     * Instantiates a new Swing out.
-     *
-     * @param scale the scale
-     * @param name  the name
-     */
     public SwingOut(final float scale, @NotNull final String name) {
         super(scale, name);
     }

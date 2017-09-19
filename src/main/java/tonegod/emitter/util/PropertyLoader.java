@@ -18,11 +18,6 @@ public class PropertyLoader extends ResourceBundle.Control {
 
     private static final PropertyLoader INSTANCE = new PropertyLoader();
 
-    /**
-     * Gets instance.
-     *
-     * @return the instance
-     */
     public static PropertyLoader getInstance() {
         return INSTANCE;
     }

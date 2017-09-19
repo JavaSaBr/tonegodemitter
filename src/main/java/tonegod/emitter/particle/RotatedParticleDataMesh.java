@@ -61,9 +61,6 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
     @NotNull
     protected Quaternion rotStore;
 
-    /**
-     * Instantiates a new Rotated particle data mesh.
-     */
     public RotatedParticleDataMesh() {
         this.left = new Vector3f();
         this.up = new Vector3f();

@@ -342,9 +342,6 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      */
     public boolean active;
 
-    /**
-     * Instantiates a new Particle data.
-     */
     public ParticleData() {
         this.velocity = new Vector3f();
         this.reverseVelocity = new Vector3f();
@@ -387,9 +384,8 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         this.tempV3 = new Vector3f();
     }
 
-    @NotNull
     @Override
-    public ParticleData clone() throws CloneNotSupportedException {
+    public @NotNull ParticleData clone() throws CloneNotSupportedException {
         return (ParticleData) super.clone();
     }
 
@@ -398,8 +394,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      *
      * @return the parent particle emitter.
      */
-    @NotNull
-    public ParticleEmitterNode getEmitterNode() {
+    public @NotNull ParticleEmitterNode getEmitterNode() {
         return requireNonNull(emitterNode);
     }
 
@@ -543,8 +538,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      *
      * @return the size.
      */
-    @NotNull
-    public Vector3f getSize() {
+    public @NotNull Vector3f getSize() {
         return size;
     }
 
@@ -553,8 +547,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      *
      * @return the angles.
      */
-    @NotNull
-    public Vector3f getAngles() {
+    public @NotNull Vector3f getAngles() {
         return angles;
     }
 
@@ -563,8 +556,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      *
      * @return the velocity.
      */
-    @NotNull
-    public Vector3f getVelocity() {
+    public @NotNull Vector3f getVelocity() {
         return velocity;
     }
 
@@ -573,8 +565,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      *
      * @return the reverse velocity.
      */
-    @NotNull
-    public Vector3f getReverseVelocity() {
+    public @NotNull Vector3f getReverseVelocity() {
         return reverseVelocity;
     }
 
@@ -583,8 +574,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      *
      * @return the position.
      */
-    @NotNull
-    public Vector3f getPosition() {
+    public @NotNull Vector3f getPosition() {
         return position;
     }
 
@@ -593,8 +583,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      *
      * @return the random offset.
      */
-    @NotNull
-    public Vector3f getRandomOffset() {
+    public @NotNull Vector3f getRandomOffset() {
         return randomOffset;
     }
 

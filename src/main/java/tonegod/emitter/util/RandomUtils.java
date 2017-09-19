@@ -17,8 +17,7 @@ public class RandomUtils {
      *
      * @return the random.
      */
-    @NotNull
-    public static Random getRandom() {
+    public static @NotNull Random getRandom() {
         return ThreadLocalRandom.current();
     }
 

@@ -27,9 +27,6 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
      */
     private boolean initialized;
 
-    /**
-     * Instantiates a new Abstract particle influencer.
-     */
     public AbstractParticleInfluencer() {
         this.enabled = true;
     }
@@ -117,9 +114,8 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
         enabled = capsule.readBoolean("enabled", true);
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         try {
             final AbstractParticleInfluencer clone = (AbstractParticleInfluencer) super.clone();
             clone.enabled = enabled;

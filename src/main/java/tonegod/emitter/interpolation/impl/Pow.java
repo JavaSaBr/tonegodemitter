@@ -14,12 +14,6 @@ public class Pow extends AbstractInterpolation {
      */
     protected final int power;
 
-    /**
-     * Instantiates a new Pow.
-     *
-     * @param power the power
-     * @param name  the name
-     */
     public Pow(final int power, @NotNull final String name) {
         super(name);
         this.power = power;

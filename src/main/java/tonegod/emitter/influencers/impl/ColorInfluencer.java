@@ -48,9 +48,6 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
      */
     private boolean randomStartColor;
 
-    /**
-     * Instantiates a new Color influencer.
-     */
     public ColorInfluencer() {
         this.colors = new SafeArrayList<>(ColorRGBA.class);
         this.resetColor = new ColorRGBA(0, 0, 0, 0);
@@ -58,9 +55,8 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         this.endColor = new ColorRGBA(ColorRGBA.Yellow);
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_COLOR;
     }
 
@@ -214,8 +210,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
      *
      * @return the list of colors.
      */
-    @NotNull
-    public SafeArrayList<ColorRGBA> getColors() {
+    public @NotNull SafeArrayList<ColorRGBA> getColors() {
         return colors;
     }
 
@@ -225,8 +220,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
      * @param index the index.
      * @return the color for the index.
      */
-    @NotNull
-    public ColorRGBA getColor(final int index) {
+    public @NotNull ColorRGBA getColor(final int index) {
         return colors.get(index);
     }
 
@@ -279,9 +273,8 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         randomStartColor = capsule.readBoolean("randomStartColor", false);
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final ColorInfluencer clone = (ColorInfluencer) super.clone();
         clone.colors = new SafeArrayList<>(ColorRGBA.class);
         clone.colors.addAll(colors);

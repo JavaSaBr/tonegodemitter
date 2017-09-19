@@ -26,13 +26,6 @@ public class Exp extends AbstractInterpolation {
      */
     protected final float scale;
 
-    /**
-     * Instantiates a new Exp.
-     *
-     * @param value the value
-     * @param power the power
-     * @param name  the name
-     */
     public Exp(final float value, final float power, @NotNull final String name) {
         super(name);
         this.value = value;

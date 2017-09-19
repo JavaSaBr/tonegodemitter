@@ -18,16 +18,14 @@ public interface ParticleInfluencer extends Savable, Cloneable {
      *
      * @return the name of this influencer.
      */
-    @NotNull
-    String getName();
+    @NotNull String getName();
 
     /**
      * This method clones the influencer instance.
      *
      * @return cloned instance
      */
-    @NotNull
-    ParticleInfluencer clone();
+    @NotNull ParticleInfluencer clone();
 
     /**
      * Update loop for the particle influencer

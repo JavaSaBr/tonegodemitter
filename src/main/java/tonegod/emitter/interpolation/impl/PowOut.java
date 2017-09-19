@@ -9,12 +9,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PowOut extends Pow {
 
-    /**
-     * Instantiates a new Pow out.
-     *
-     * @param power the power
-     * @param name  the name
-     */
     public PowOut(final int power, @NotNull final String name) {
         super(power, name);
     }

@@ -7,13 +7,11 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.VertexBuffer.Format;
 import com.jme3.scene.VertexBuffer.Usage;
 import com.jme3.util.BufferUtils;
-
 import org.jetbrains.annotations.NotNull;
+import tonegod.emitter.ParticleEmitterNode;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-
-import tonegod.emitter.ParticleEmitterNode;
 
 /**
  * The implementation of data mesh to use point mesh.
@@ -22,9 +20,6 @@ import tonegod.emitter.ParticleEmitterNode;
  */
 public final class ParticleDataPointMesh extends ParticleDataMesh {
 
-    /**
-     * Instantiates a new Particle data point mesh.
-     */
     public ParticleDataPointMesh() {
         super();
     }

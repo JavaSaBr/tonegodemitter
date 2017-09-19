@@ -56,8 +56,7 @@ public enum BillboardMode {
      * @param index the index
      * @return the billboard mode
      */
-    @NotNull
-    public static BillboardMode valueOf(final int index) {
+    public static @NotNull BillboardMode valueOf(final int index) {
         return VALUES[index];
     }
 

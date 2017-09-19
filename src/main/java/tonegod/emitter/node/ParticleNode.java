@@ -13,17 +13,9 @@ import tonegod.emitter.ParticleEmitterNode;
  */
 public class ParticleNode extends Node {
 
-    /**
-     * Instantiates a new Particle node.
-     */
     public ParticleNode() {
     }
 
-    /**
-     * Instantiates a new Particle node.
-     *
-     * @param name the name
-     */
     public ParticleNode(@NotNull final String name) {
         super(name);
     }

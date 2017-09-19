@@ -10,16 +10,13 @@ import com.jme3.scene.VertexBuffer.Format;
 import com.jme3.scene.VertexBuffer.Usage;
 import com.jme3.util.BufferUtils;
 import com.jme3.util.clone.Cloner;
-
 import org.jetbrains.annotations.NotNull;
+import tonegod.emitter.BillboardMode;
+import tonegod.emitter.ParticleEmitterNode;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
-
-import tonegod.emitter.BillboardMode;
-import tonegod.emitter.EmitterMesh;
-import tonegod.emitter.ParticleEmitterNode;
 
 /**
  * The type Particle data impostor mesh.
@@ -45,9 +42,6 @@ public class ParticleDataImpostorMesh extends RotatedParticleDataMesh {
 
     private Quaternion q33;
 
-    /**
-     * Instantiates a new Particle data impostor mesh.
-     */
     public ParticleDataImpostorMesh() {
         left33 = new Vector3f();
         left66 = new Vector3f();

@@ -38,17 +38,13 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      */
     private boolean randomStartAlpha;
 
-    /**
-     * Instantiates a new Alpha influencer.
-     */
     public AlphaInfluencer() {
         this.alphas = new SafeArrayList<>(Float.class);
         this.startAlpha = 1;
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_ALPHA;
     }
 
@@ -178,8 +174,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      *
      * @return the alphas
      */
-    @NotNull
-    public SafeArrayList<Float> getAlphas() {
+    public @NotNull SafeArrayList<Float> getAlphas() {
         return alphas;
     }
 
@@ -189,8 +184,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      * @param index the index.
      * @return the alpha for the index.
      */
-    @NotNull
-    public Float getAlpha(final int index) {
+    public @NotNull Float getAlpha(final int index) {
         return alphas.get(index);
     }
 
@@ -268,9 +262,8 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         randomStartAlpha = capsule.readBoolean("randomStartAlpha", false);
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final AlphaInfluencer clone = (AlphaInfluencer) super.clone();
         clone.alphas = new SafeArrayList<>(Float.class);
         clone.alphas.addAll(alphas);

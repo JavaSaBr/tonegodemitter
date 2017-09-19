@@ -62,7 +62,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
          * @param index the index
          * @return the direction type
          */
-        public static DirectionType valueOf(final int index) {
+        public static @NotNull DirectionType valueOf(final int index) {
             return VALUES[index];
         }
 
@@ -154,9 +154,6 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      */
     private int currentTriangle;
 
-    /**
-     * Instantiates a new Emitter mesh.
-     */
     public EmitterMesh() {
         this.triangle = new Triangle();
         this.pointNode = new Node();
@@ -204,8 +201,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      *
      * @return The particle emitter shape mesh
      */
-    @NotNull
-    public Mesh getMesh() {
+    public @NotNull Mesh getMesh() {
         return requireNonNull(mesh);
     }
 
@@ -214,8 +210,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      *
      * @return the emitter node.
      */
-    @NotNull
-    public ParticleEmitterNode getEmitterNode() {
+    public @NotNull ParticleEmitterNode getEmitterNode() {
         return requireNonNull(emitterNode);
     }
 
@@ -301,8 +296,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      *
      * @return the normal of current triangle.
      */
-    @NotNull
-    public Vector3f getNormal() {
+    public @NotNull Vector3f getNormal() {
         return triangle.getNormal();
     }
 
@@ -311,16 +305,14 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      *
      * @return A Vector3f representing the local translation of the selected emission point
      */
-    @NotNull
-    public Vector3f getNextTranslation() {
+    public @NotNull Vector3f getNextTranslation() {
         return triangle.getCenter();
     }
 
     /**
      * @return the triangle.
      */
-    @NotNull
-    private Triangle getTriangle() {
+    private @NotNull Triangle getTriangle() {
         return triangle;
     }
 
@@ -329,8 +321,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      *
      * @return the translation.
      */
-    @NotNull
-    public Vector3f getRandomTranslation() {
+    public @NotNull Vector3f getRandomTranslation() {
 
         final Triangle triangle = getTriangle();
         final Vector3f center = triangle.getCenter();
@@ -370,8 +361,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
      *
      * @return A Vector3f containing the normal of the selected emission point
      */
-    @NotNull
-    public Vector3f getNextDirection() {
+    public @NotNull Vector3f getNextDirection() {
 
         final ParticleEmitterNode emitterNode = getEmitterNode();
 
@@ -417,16 +407,14 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
     /**
      * @return the direction normal.
      */
-    @NotNull
-    private Vector3f getDirectionNormal() {
+    private @NotNull Vector3f getDirectionNormal() {
         return triangle.getNormal();
     }
 
     /**
      * @return the random direction.
      */
-    @NotNull
-    private Vector3f getDirectionRandom() {
+    private @NotNull Vector3f getDirectionRandom() {
 
         final Random random = RandomUtils.getRandom();
 
@@ -444,8 +432,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
     /**
      * @return the direction random target.
      */
-    @NotNull
-    private Vector3f getDirectionRandomTangent() {
+    private @NotNull Vector3f getDirectionRandomTangent() {
 
         final Random random = RandomUtils.getRandom();
         final Vector3f normal = getNormal();

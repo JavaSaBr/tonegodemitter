@@ -48,9 +48,6 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
      */
     private float strength;
 
-    /**
-     * Instantiates a new Impulse influencer.
-     */
     public ImpulseInfluencer() {
         this.temp = new Vector3f();
         this.velocityStore = new Vector3f();
@@ -59,9 +56,8 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
         this.strength = 3;
     }
 
-    @NotNull
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_IMPULSE;
     }
 
@@ -159,9 +155,8 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
         strength = capsule.readFloat("strength", 3f);
     }
 
-    @NotNull
     @Override
-    public ParticleInfluencer clone() {
+    public @NotNull ParticleInfluencer clone() {
         final ImpulseInfluencer clone = (ImpulseInfluencer) super.clone();
         clone.setChance(chance);
         clone.setMagnitude(magnitude);

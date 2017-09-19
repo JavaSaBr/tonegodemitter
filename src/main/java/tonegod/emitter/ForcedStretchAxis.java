@@ -30,8 +30,7 @@ public enum ForcedStretchAxis {
      * @param index the index
      * @return the forced stretch axis
      */
-    @NotNull
-    public static ForcedStretchAxis valueOf(final int index) {
+    public static @NotNull ForcedStretchAxis valueOf(final int index) {
         return VALUES[index];
     }
 
