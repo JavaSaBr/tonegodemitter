@@ -1,6 +1,7 @@
 package tonegod.emitter.test;
 
 import com.jme3.app.SimpleApplication;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.util.concurrent.CountDownLatch;
@@ -16,27 +17,29 @@ public class SetUpTest {
 
     private static SimpleApplication application = null;
 
-    private static synchronized SimpleApplication getApplication() {
+    protected static synchronized @NotNull SimpleApplication getApplication() {
 
         if (application == null) {
 
-            application = new SimpleApplication() {
+            final SimpleApplication app = new SimpleApplication() {
                 @Override
                 public void simpleInitApp() {
                     COUNT_DOWN_LATCH.countDown();
                 }
             };
-            application.setShowSettings(false);
+            app.setShowSettings(false);
 
-            final Thread appthread = new Thread(() -> application.start());
-            appthread.setDaemon(true);
-            appthread.start();
+            final Thread appThread = new Thread(app::start);
+            appThread.setDaemon(true);
+            appThread.start();
 
             try {
                 COUNT_DOWN_LATCH.await();
             } catch (final InterruptedException e) {
                 throw new RuntimeException(e);
             }
+
+            application = app;
         }
 
         return application;

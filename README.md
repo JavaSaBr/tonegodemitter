@@ -1,4 +1,4 @@
-# Toneg0d.Emitter 2.4.0 #
+# Toneg0d.Emitter 2.4.1 #
 
 It's a fork of toneg0d.emitter to integrate it to jME3-SpaceShift-Editor.
 
@@ -17,7 +17,7 @@ allprojects {
 }
 
 dependencies {
-    compile 'com.github.JavaSaBr:tonegodemitter:2.4.0'
+    compile 'com.github.JavaSaBr:tonegodemitter:2.4.1'
 }
 ```
 
@@ -38,6 +38,6 @@ dependencies {
     <dependency>
         <groupId>com.github.JavaSaBr</groupId>
         <artifactId>tonegodemitter</artifactId>
-        <version>2.4.0</version>
+        <version>2.4.1</version>
     </dependency>
 ```
