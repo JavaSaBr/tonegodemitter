@@ -853,7 +853,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public final void changeEmitterShapeMesh(@NotNull final Mesh mesh) {
         emitterShape.setShape(this, mesh);
-        emitterShapeTestGeometry.setMesh(mesh);
+
+        if (emitterShapeTestGeometry != null) {
+            emitterShapeTestGeometry.setMesh(mesh);
+        }
+
         requiresUpdate = true;
     }
 
