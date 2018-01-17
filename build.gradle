@@ -46,11 +46,10 @@ repositories {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/org.jetbrains/annotations
     compile group: 'org.jetbrains', name: 'annotations', version: '15.0'
     compile "org.jmonkeyengine:jme3-core:$jmeVersion"
 
-    testCompile 'com.github.JavaSaBr:Rlib:6.3.0'
+    testCompile 'com.github.JavaSaBr:RLib:6.7.4'
     testCompile "org.junit.platform:junit-platform-commons:$junitPlatformVersion"
     testRuntime "org.junit.platform:junit-platform-engine:$junitPlatformVersion"
     testRuntime "org.jmonkeyengine:jme3-lwjgl:$jmeVersion"
@@ -76,7 +75,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.3'
+    gradleVersion = '4.4'
 }
 
 artifacts {
