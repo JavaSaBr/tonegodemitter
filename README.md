@@ -1,34 +1,24 @@
 # Toneg0d.Emitter 2.4.1 #
 
-It's a fork of toneg0d.emitter to integrate it to jME3-SpaceShift-Editor.
+It's a fork of toneg0d.emitter.
 
 ## How to use
 
 #### Gradle
 
-
-```
-#!groovy
-
-allprojects {
-    repositories {
+```groovy
+repositories {
         maven { url 'https://jitpack.io' }
     }
-}
-
 dependencies {
     compile 'com.github.JavaSaBr:tonegodemitter:2.4.1'
 }
 ```
 
-    
 #### Maven
 
-```
-#!xml
-
-
-<repositories>
+```xml
+    <repositories>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
