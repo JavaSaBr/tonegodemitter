@@ -8,8 +8,9 @@ It's a fork of toneg0d.emitter.
 
 ```groovy
 repositories {
-        maven { url 'https://jitpack.io' }
-    }
+    maven { url 'https://jitpack.io' }
+}
+
 dependencies {
     compile 'com.github.JavaSaBr:tonegodemitter:2.4.1'
 }
