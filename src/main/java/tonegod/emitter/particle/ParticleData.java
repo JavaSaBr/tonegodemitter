@@ -14,6 +14,9 @@ import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * The particle data class.
  *
@@ -21,34 +24,21 @@ import tonegod.emitter.interpolation.Interpolation;
  */
 public final class ParticleData implements Cloneable, JmeCloneable {
 
-    /** COLOR INFLUENCER */
+    public interface DataFactory<T> {
+        @NotNull T create(@NotNull String name);
+    }
+
+    /**
+     * The data map.
+     */
+    @NotNull
+    private final Map<String, Object> data;
 
     /**
      * The color.
      */
     @NotNull
     public final ColorRGBA color;
-
-    /**
-     * The color index.
-     */
-    public int colorIndex;
-
-    /**
-     * The color interval.
-     */
-    public float colorInterval;
-
-    /**
-     * The duration.
-     */
-    public float colorDuration;
-
-    /**
-     * The color interpolation.
-     */
-    @NotNull
-    public Interpolation colorInterpolation;
 
     /** ALPHA INFLUENCER */
 
@@ -240,7 +230,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /** PARTICLE DATA */
 
     /**
-     * The parent particle emitter
+     * The particle emitter node.
      */
     @Nullable
     public ParticleEmitterNode emitterNode;
@@ -343,13 +333,11 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public boolean active;
 
     public ParticleData() {
+        this.data = new HashMap<>(10, 0.4F);
+        this.color = new ColorRGBA(1, 1, 1, 1);
         this.velocity = new Vector3f();
         this.reverseVelocity = new Vector3f();
         this.position = new Vector3f();
-
-        this.color = new ColorRGBA(1, 1, 1, 1);
-        this.colorDuration = 1f;
-        this.colorInterpolation = Interpolation.LINEAR;
 
         this.alpha = 1;
         this.alphaDuration = 1;
@@ -384,31 +372,80 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         this.tempV3 = new Vector3f();
     }
 
+    /**
+     * Set the data be the name.
+     *
+     * @param name the data's name.
+     * @param data the data.
+     */
+    public void setData(@NotNull final String name, @NotNull final Object data) {
+        this.data.put(name, data);
+    }
+
+    /**
+     * Get data by the name.
+     *
+     * @param name the data's name.
+     * @param <T>  the data's type.
+     * @return the saved data or null.
+     */
+    public @Nullable <T> T getData(@NotNull final String name) {
+        return (T) this.data.get(name);
+    }
+
+    /**
+     * Get or create data by the name.
+     *
+     * @param name    the data's name.
+     * @param factory the data factory.
+     * @param <T>     the data's type.
+     * @return the saved data or created data.
+     */
+    public @NotNull <T> T getData(@NotNull final String name, @NotNull final DataFactory<T> factory) {
+
+        Object result = data.get(name);
+        if (result == null) {
+            result = factory.create(name);
+            data.put(name, result);
+        }
+
+        return (T) result;
+    }
+
+    /**
+     * Removed data by the name.
+     *
+     * @param name the data's name.
+     */
+    public void removeData(@NotNull final String name) {
+        this.data.remove(name);
+    }
+
     @Override
     public @NotNull ParticleData clone() throws CloneNotSupportedException {
         return (ParticleData) super.clone();
     }
 
     /**
-     * Gets emitter node.
+     * Get the emitter node.
      *
-     * @return the parent particle emitter.
+     * @return the particle emitter node.
      */
     public @NotNull ParticleEmitterNode getEmitterNode() {
         return requireNonNull(emitterNode);
     }
 
     /**
-     * Sets emitter node.
+     * Set the emitter node.
      *
-     * @param emitterNode the parent particle emitter.
+     * @param emitterNode the emitter node.
      */
     public void setEmitterNode(@NotNull final ParticleEmitterNode emitterNode) {
         this.emitterNode = emitterNode;
     }
 
     /**
-     * Update a state of this particle.
+     * Update state of this particle.
      *
      * @param tpf the time per frame.
      */
@@ -453,7 +490,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
-     * Gets initial length.
+     * Get the initial length.
      *
      * @return the initial length.
      */
@@ -462,7 +499,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
-     * Called once per particle use when the particle is emitted
+     * Called once per particle use when the particle is emitted.
      */
     public void initialize() {
 
@@ -534,7 +571,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
-     * Gets size.
+     * Get the size.
      *
      * @return the size.
      */
@@ -543,7 +580,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
-     * Gets angles.
+     * Get the angles.
      *
      * @return the angles.
      */
@@ -552,7 +589,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
-     * Gets velocity.
+     * Get the velocity.
      *
      * @return the velocity.
      */
@@ -561,7 +598,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
-     * Gets reverse velocity.
+     * Get the reverse velocity.
      *
      * @return the reverse velocity.
      */
@@ -570,7 +607,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
-     * Gets position.
+     * Get the position.
      *
      * @return the position.
      */
@@ -579,7 +616,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     /**
-     * Gets random offset.
+     * Get the random offset.
      *
      * @return the random offset.
      */

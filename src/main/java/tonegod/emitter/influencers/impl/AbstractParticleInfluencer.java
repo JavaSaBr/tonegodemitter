@@ -49,7 +49,7 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
     /**
      * Handle first initializing this influencer.
      *
-     * @param particleData the particle data
+     * @param particleData the particle data.
      */
     protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
     }
