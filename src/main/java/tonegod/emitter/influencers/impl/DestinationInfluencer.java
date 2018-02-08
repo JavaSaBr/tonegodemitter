@@ -12,6 +12,7 @@ import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to change destinations of particles.
@@ -19,6 +20,45 @@ import java.io.IOException;
  * @author t0neg0d, JavaSaBr
  */
 public class DestinationInfluencer extends AbstractInterpolatedParticleInfluencer {
+
+    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+
+    @NotNull
+    private static final Callable<DestinationInfluencerData> DATA_FACTORY = new Callable<DestinationInfluencerData>() {
+        @Override
+        public DestinationInfluencerData call() throws Exception {
+            return new DestinationInfluencerData();
+        }
+    };
+
+    private static class DestinationInfluencerData {
+
+        /**
+         * The interpolation.
+         */
+        @NotNull
+        public Interpolation interpolation;
+
+        /**
+         * The index.
+         */
+        public int index;
+
+        /**
+         * The interval.
+         */
+        public float interval;
+
+        /**
+         * The duration.
+         */
+        public float duration;
+
+        private DestinationInfluencerData() {
+            this.interpolation = Interpolation.LINEAR;
+            this.duration = 1;
+        }
+    }
 
     /**
      * The list of destinations.
@@ -62,25 +102,27 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
 
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-        particleData.destinationInterval += tpf;
 
-        if (particleData.destinationIndex >= destinations.size()) {
-            particleData.destinationIndex = 0;
+        final DestinationInfluencerData data = particleData.getObjectData(DATA_ID);
+        data.interval += tpf;
+
+        if (data.index >= destinations.size()) {
+            data.index = 0;
         }
 
-        if (particleData.destinationInterval >= particleData.destinationDuration) {
-            updateDestination(particleData);
+        if (data.interval >= data.duration) {
+            updateDestination(data);
         }
 
-        final Interpolation interpolation = particleData.destinationInterpolation;
+        final Interpolation interpolation = data.interpolation;
         final Vector3f position = particleData.getPosition();
 
-        final int destinationIndex = particleData.destinationIndex;
+        final int destinationIndex = data.index;
         final Vector3f destination = destinations.get(destinationIndex);
 
         final float dist = position.distance(destination);
 
-        blend = interpolation.apply(particleData.destinationInterval / particleData.destinationDuration);
+        blend = interpolation.apply(data.interval / data.duration);
 
         //TODO recheck
         // destinationDir.set(destination.subtract(particleData.position));
@@ -93,20 +135,20 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Update a destination.
+     * Update the destination.
      *
-     * @param particleData the particle data.
+     * @param data the infuelncer's data.
      */
-    private void updateDestination(@NotNull final ParticleData particleData) {
-        particleData.destinationIndex++;
+    private void updateDestination(@NotNull final DestinationInfluencerData data) {
+        data.index++;
 
-        if (particleData.destinationIndex >= destinations.size()) {
-            particleData.destinationIndex = 0;
+        if (data.index >= destinations.size()) {
+            data.index = 0;
         }
 
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        particleData.destinationInterpolation = interpolations.get(particleData.destinationIndex);
-        particleData.destinationInterval -= particleData.destinationDuration;
+        data.interpolation = interpolations.get(data.index);
+        data.interval -= data.duration;
     }
 
     @Override
@@ -121,17 +163,20 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
+        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
+
+        final DestinationInfluencerData data = particleData.getObjectData(DATA_ID);
 
         if (isRandomStartDestination()) {
-            particleData.destinationIndex = nextRandomInt(getRandom(), 0, destinations.size() - 1);
+            data.index = nextRandomInt(getRandom(), 0, destinations.size() - 1);
         } else {
-            particleData.destinationIndex = 0;
+            data.index = 0;
         }
 
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        particleData.destinationInterval = 0f;
-        particleData.destinationDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) destinations.size());
-        particleData.destinationInterpolation = interpolations.get(particleData.destinationIndex);
+        data.interval = 0f;
+        data.duration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) destinations.size());
+        data.interpolation = interpolations.get(data.index);
     }
 
     /**
@@ -181,7 +226,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Removes the destination step value at the supplied index
+     * Removes the destination step value at the supplied index.
      *
      * @param index the index
      */
@@ -192,7 +237,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Removes all destination step values
+     * Removes all destination step values.
      */
     public void removeAll() {
         clearInterpolations();
@@ -201,39 +246,38 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Returns an array containing all destination step values
+     * Returns an array containing all destination step values.
      *
-     * @return the destinations
+     * @return the destination steps.
      */
-    @NotNull
-    public SafeArrayList<Vector3f> getDestinations() {
+    public @NotNull SafeArrayList<Vector3f> getDestinations() {
         return destinations;
     }
 
     /**
-     * Gets destination.
+     * Get the destination by the index.
      *
      * @param index the index.
-     * @return the destination for the index.
+     * @return the destination.
      */
     public @NotNull Vector3f getDestination(final int index) {
         return destinations.get(index);
     }
 
     /**
-     * Returns an array containing all step value interpolations
+     * Returns the array with all step value interpolations.
      *
-     * @return the weights
+     * @return the weights.
      */
     public @NotNull SafeArrayList<Float> getWeights() {
         return weights;
     }
 
     /**
-     * Gets weight.
+     * Get the weight by the index.
      *
      * @param index the index.
-     * @return the weight for the index.
+     * @return the weight.
      */
     public @NotNull Float getWeight(final int index) {
         return weights.get(index);
@@ -265,7 +309,9 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     public void removeLast() {
 
         final SafeArrayList<Float> weights = getWeights();
-        if (weights.isEmpty()) return;
+        if (weights.isEmpty()) {
+            return;
+        }
 
         final int index = weights.size() - 1;
 
