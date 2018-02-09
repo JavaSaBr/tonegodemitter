@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.github.JavaSaBr:tonegodemitter:2.5.0'
+    compile 'com.github.JavaSaBr:tonegodemitter:2.6.0'
 }
 ```
 
@@ -29,6 +29,6 @@ dependencies {
     <dependency>
         <groupId>com.github.JavaSaBr</groupId>
         <artifactId>tonegodemitter</artifactId>
-        <version>2.5.0</version>
+        <version>2.6.0</version>
     </dependency>
 ```

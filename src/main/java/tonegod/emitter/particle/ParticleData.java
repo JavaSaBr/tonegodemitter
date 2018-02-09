@@ -14,25 +14,139 @@ import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The particle data class.
+ * The particle objectData class.
  *
  * @author t0neg0d, JavaSaBr
  */
 public final class ParticleData implements Cloneable, JmeCloneable {
 
-    public interface DataFactory<T> {
-        @NotNull T create(@NotNull String name);
+    @NotNull
+    private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+
+    @NotNull
+    private static final int[] EMPTY_INT_ARRAY = new int[0];
+
+    @NotNull
+    private static final float[] EMPTY_FLOAT_ARRAY = new float[0];
+
+    /**
+     * The object objectData id factory.
+     */
+    @NotNull
+    private static final AtomicInteger OBJECT_DATA_ID_FACTORY = new AtomicInteger(0);
+
+    /**
+     * The int objectData id factory.
+     */
+    @NotNull
+    private static final AtomicInteger INT_DATA_ID_FACTORY = new AtomicInteger(0);
+
+    /**
+     * The float objectData id factory.
+     */
+    @NotNull
+    private static final AtomicInteger FLOAT_DATA_ID_FACTORY = new AtomicInteger(0);
+
+    /**
+     * The current max object objectData id.
+     */
+    private static int currentObjectMaxDataId = -1;
+
+    /**
+     * The current max int objectData id.
+     */
+    private static int currentIntMaxDataId = -1;
+
+    /**
+     * The current max float objectData id.
+     */
+    private static int currentFloatMaxDataId = -1;
+
+    /**
+     * Reserve the new object objectData id.
+     *
+     * @return the new object objectData id.
+     */
+    public static int reserveObjectDataId() {
+        return OBJECT_DATA_ID_FACTORY.incrementAndGet();
     }
 
     /**
-     * The data map.
+     * Reserve the new int objectData id.
+     *
+     * @return the new int objectData id.
      */
-    @NotNull
-    private final Map<String, Object> data;
+    public static int reserveIntDataId() {
+        return INT_DATA_ID_FACTORY.incrementAndGet();
+    }
+
+    /**
+     * Reserve the new float objectData id.
+     *
+     * @return the new float objectData id.
+     */
+    public static int reserveFloatDataId() {
+        return FLOAT_DATA_ID_FACTORY.incrementAndGet();
+    }
+
+    /**
+     * Get the current max object objectData id.
+     *
+     * @return the current max object objectData id.
+     */
+    private static int getCurrentMaxObjectDataId() {
+        if (currentObjectMaxDataId == -1) {
+            synchronized (ParticleData.class) {
+                if (currentObjectMaxDataId == -1) {
+                    final int lastReservedId = OBJECT_DATA_ID_FACTORY.get();
+                    ParticleData.currentObjectMaxDataId = lastReservedId;
+                    return lastReservedId;
+                }
+            }
+        }
+        return currentObjectMaxDataId;
+    }
+
+    /**
+     * Get the current max int objectData id.
+     *
+     * @return the current max int objectData id.
+     */
+    private static int getCurrentMaxIntDataId() {
+        if (currentIntMaxDataId == -1) {
+            synchronized (ParticleData.class) {
+                if (currentIntMaxDataId == -1) {
+                    final int lastReservedId = INT_DATA_ID_FACTORY.get();
+                    ParticleData.currentIntMaxDataId = lastReservedId;
+                    return lastReservedId;
+                }
+            }
+        }
+        return currentIntMaxDataId;
+    }
+
+    /**
+     * Get the current max float objectData id.
+     *
+     * @return the current max float objectData id.
+     */
+    private static int getCurrentMaxFloatDataId() {
+        if (currentFloatMaxDataId == -1) {
+            synchronized (ParticleData.class) {
+                if (currentFloatMaxDataId == -1) {
+                    final int lastReservedId = FLOAT_DATA_ID_FACTORY.get();
+                    ParticleData.currentFloatMaxDataId = lastReservedId;
+                    return lastReservedId;
+                }
+            }
+        }
+        return currentFloatMaxDataId;
+    }
 
     /**
      * The color.
@@ -40,194 +154,23 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     @NotNull
     public final ColorRGBA color;
 
-    /** ALPHA INFLUENCER */
-
     /**
-     * The alpha.
-     */
-    public float alpha;
-
-    /**
-     * The alpha interval.
-     */
-    public float alphaInterval;
-
-    /**
-     * The alpha duration.
-     */
-    public float alphaDuration;
-
-    /**
-     * The alpha index.
-     */
-    public int alphaIndex;
-
-    /**
-     * The alpha interpolation.
+     * The object data map.
      */
     @NotNull
-    public Interpolation alphaInterpolation;
-
-    /** SIZE INFLUENCER */
+    private Object[] objectData;
 
     /**
-     * The size.
+     * The int data map.
      */
     @NotNull
-    public final Vector3f size;
+    private int[] intData;
 
     /**
-     * The start size.
+     * The float data map.
      */
     @NotNull
-    public final Vector3f startSize;
-
-    /**
-     * The end size.
-     */
-    @NotNull
-    public final Vector3f endSize;
-
-    /**
-     * The size index.
-     */
-    public int sizeIndex;
-
-    /**
-     * The size interval.
-     */
-    public float sizeInterval;
-
-    /**
-     * The size duration.
-     */
-    public float sizeDuration;
-
-    /**
-     * The size interpolation.
-     */
-    @NotNull
-    public Interpolation sizeInterpolation;
-
-    /**
-     * DESTINATION INFLUENCER
-     */
-
-    /**
-     * The destination index.
-     */
-    public int destinationIndex;
-
-    /**
-     * The destination interval.
-     */
-    public float destinationInterval;
-
-    /**
-     * The destination duration.
-     */
-    public float destinationDuration;
-
-    /**
-     * The destination interpolation.
-     */
-    @NotNull
-    public Interpolation destinationInterpolation;
-
-    /** ROTATION INFLUENCER */
-
-    /**
-     * The rotation angle speed per axis (in radians).
-     */
-    @NotNull
-    public final Vector3f rotationSpeed;
-
-    /**
-     * The start rotation speed.
-     */
-    @NotNull
-    public final Vector3f startRotationSpeed;
-
-    /**
-     * The end rotation speed.
-     */
-    @NotNull
-    public final Vector3f endRotationSpeed;
-
-    /**
-     * The rotation index.
-     */
-    public int rotationIndex;
-
-    /**
-     * The rotation interval.
-     */
-    public float rotationInterval;
-
-    /**
-     * The rotation duration.
-     */
-    public float rotationDuration;
-
-    /**
-     * The rotation interpolation.
-     */
-    @NotNull
-    public Interpolation rotationInterpolation;
-
-    /**
-     * The direction each axis' rotation will rotate in
-     */
-    public boolean rotateDirectionX;
-    /**
-     * The Rotate direction y.
-     */
-    public boolean rotateDirectionY;
-    /**
-     * The Rotate direction z.
-     */
-    public boolean rotateDirectionZ;
-
-    /** SPRITE INFLUENCER */
-
-    /**
-     * The sprite columns.
-     */
-    public int spriteCol;
-
-    /**
-     * The sprite rows.
-     */
-    public int spriteRow;
-
-    /**
-     * The sprite index.
-     */
-    public int spriteIndex;
-
-    /**
-     * The sprite interval.
-     */
-    public float spriteInterval;
-
-    /**
-     * The sprite duration.
-     */
-    public float spriteDuration;
-
-    /** PHYSICS INFLUENCER */
-
-    /**
-     * The collision flag.
-     */
-    public boolean collision;
-
-    /**
-     * The collision interval.
-     */
-    public float collisionInterval;
-
-    /** PARTICLE DATA */
+    private float[] floatData;
 
     /**
      * The particle emitter node.
@@ -236,16 +179,22 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public ParticleEmitterNode emitterNode;
 
     /**
-     * The Initial position.
+     * The initial position.
      */
     @NotNull
     public final Vector3f initialPosition;
 
     /**
-     * The Random offset.
+     * The random offset.
      */
     @NotNull
     public final Vector3f randomOffset;
+
+    /**
+     * The size.
+     */
+    @NotNull
+    public final Vector3f size;
 
     /**
      * The velocity.
@@ -260,13 +209,13 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public final Vector3f reverseVelocity;
 
     /**
-     * THe current particle position.
+     * The current particle position.
      */
     @NotNull
     public final Vector3f position;
 
     /**
-     * ParticleData rotation angle per axis (in radians).
+     * The rotation angles per axis (in radians).
      */
     @NotNull
     public final Vector3f angles;
@@ -287,10 +236,6 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * The force at which the particle was emitted
      */
     public float force;
-    /**
-     * The Tangent force.
-     */
-    public float tangentForce;
 
     /**
      * The life, in seconds.
@@ -300,7 +245,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * The total particle lifespan.
      */
-    public float startlife;
+    public float startLife;
 
     /**
      * The current blend value.
@@ -323,6 +268,21 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public float initialLength;
 
     /**
+     * The alpha.
+     */
+    public float alpha;
+
+    /**
+     * The sprite columns.
+     */
+    public int spriteCol;
+
+    /**
+     * The sprite rows.
+     */
+    public int spriteRow;
+
+    /**
      * The particles index
      */
     public int index;
@@ -333,92 +293,170 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public boolean active;
 
     public ParticleData() {
-        this.data = new HashMap<>(10, 0.4F);
+        this.objectData = EMPTY_OBJECT_ARRAY;
+        this.intData = EMPTY_INT_ARRAY;
+        this.floatData = EMPTY_FLOAT_ARRAY;
         this.color = new ColorRGBA(1, 1, 1, 1);
+        this.size = new Vector3f(1f, 1f, 1f);
         this.velocity = new Vector3f();
         this.reverseVelocity = new Vector3f();
         this.position = new Vector3f();
-
         this.alpha = 1;
-        this.alphaDuration = 1;
-        this.alphaInterpolation = Interpolation.LINEAR;
-
         this.initialPosition = new Vector3f();
         this.randomOffset = new Vector3f();
-
-        this.size = new Vector3f(1f, 1f, 1f);
-        this.startSize = new Vector3f(1, 1, 1);
-        this.endSize = new Vector3f(0, 0, 0);
-        this.sizeDuration = 1;
-        this.sizeInterpolation = Interpolation.LINEAR;
-
-        this.destinationDuration = 1;
-        this.destinationInterpolation = Interpolation.LINEAR;
-
-        this.rotationSpeed = new Vector3f();
-        this.startRotationSpeed = new Vector3f();
-        this.endRotationSpeed = new Vector3f();
-        this.rotationDuration = 1;
-        this.rotateDirectionX = true;
-        this.rotateDirectionY = true;
-        this.rotateDirectionZ = true;
-        this.rotationInterpolation = Interpolation.LINEAR;
-
         this.angles = new Vector3f();
-
-        this.spriteDuration = 1;
-
         this.upVec = new Vector3f(0, 1, 0);
         this.tempV3 = new Vector3f();
     }
 
     /**
-     * Set the data be the name.
+     * Reserve an object slot for the data id.
      *
-     * @param name the data's name.
-     * @param data the data.
+     * @param dataId the data id.
      */
-    public void setData(@NotNull final String name, @NotNull final Object data) {
-        this.data.put(name, data);
-    }
-
-    /**
-     * Get data by the name.
-     *
-     * @param name the data's name.
-     * @param <T>  the data's type.
-     * @return the saved data or null.
-     */
-    public @Nullable <T> T getData(@NotNull final String name) {
-        return (T) this.data.get(name);
-    }
-
-    /**
-     * Get or create data by the name.
-     *
-     * @param name    the data's name.
-     * @param factory the data factory.
-     * @param <T>     the data's type.
-     * @return the saved data or created data.
-     */
-    public @NotNull <T> T getData(@NotNull final String name, @NotNull final DataFactory<T> factory) {
-
-        Object result = data.get(name);
-        if (result == null) {
-            result = factory.create(name);
-            data.put(name, result);
+    public void reserveObjectData(final int dataId) {
+        if (objectData == EMPTY_OBJECT_ARRAY) {
+            objectData = new Object[Math.max(getCurrentMaxObjectDataId(), dataId + 1)];
+        } else if (dataId >= objectData.length) {
+            objectData = Arrays.copyOf(objectData, dataId + 1);
         }
-
-        return (T) result;
     }
 
     /**
-     * Removed data by the name.
+     * Reverse a slot for an object data and create the data if it doesn't exists.
      *
-     * @param name the data's name.
+     * @param dataId  the data id.
+     * @param factory the data factory.
      */
-    public void removeData(@NotNull final String name) {
-        this.data.remove(name);
+    public void initializeObjectData(final int dataId, @NotNull final Callable<?> factory) {
+        reserveObjectData(dataId);
+
+        if (!hasObjectData(dataId)) {
+            try {
+                setObjectData(dataId, factory.call());
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    /**
+     * Reserve an int slot for the data id.
+     *
+     * @param dataId the data id.
+     */
+    public void reserveIntData(final int dataId) {
+        if (intData == EMPTY_INT_ARRAY) {
+            intData = new int[Math.max(getCurrentMaxIntDataId(), dataId + 1)];
+        } else if (dataId >= objectData.length) {
+            intData = Arrays.copyOf(intData, dataId + 1);
+        }
+    }
+
+    /**
+     * Reverse a slot for an int data and set the initialized data.
+     *
+     * @param dataId the data id.
+     * @param data   the initialized data.
+     */
+    public void initializeIntData(final int dataId, final int data) {
+        reserveIntData(dataId);
+        setIntData(dataId, data);
+    }
+
+    /**
+     * Reserve a float slot for the data id.
+     *
+     * @param dataId the data id.
+     */
+    public void reserveFloatData(final int dataId) {
+        if (floatData == EMPTY_FLOAT_ARRAY) {
+            floatData = new float[Math.max(getCurrentMaxFloatDataId(), dataId + 1)];
+        } else if (dataId >= objectData.length) {
+            floatData = Arrays.copyOf(floatData, dataId + 1);
+        }
+    }
+
+    /**
+     * Reverse a slot for an float data and set the initialized data.
+     *
+     * @param dataId the data id.
+     * @param data   the initialized data.
+     */
+    public void initializeFloatData(final int dataId, final float data) {
+        reserveFloatData(dataId);
+        setFloatData(dataId, data);
+    }
+
+    /**
+     * Set the object data by the data id.
+     *
+     * @param dataId the data id.
+     * @param data   the object data.
+     */
+    public void setObjectData(final int dataId, @NotNull final Object data) {
+        this.objectData[dataId] = data;
+    }
+
+    /**
+     * Set the int data by the data id.
+     *
+     * @param dataId the data id.
+     * @param data   the int data.
+     */
+    public void setIntData(final int dataId, final int data) {
+        this.intData[dataId] = data;
+    }
+
+    /**
+     * Set the float data by the data id.
+     *
+     * @param dataId the data id.
+     * @param data   the float data.
+     */
+    public void setFloatData(final int dataId, final float data) {
+        this.floatData[dataId] = data;
+    }
+
+    /**
+     * Return true if data be the data id is exist.
+     *
+     * @param dataId the data id.
+     * @return true if data be the data id is exist.
+     */
+    public boolean hasObjectData(final int dataId) {
+        return objectData[dataId] != null;
+    }
+
+    /**
+     * Get object data by the data id.
+     *
+     * @param dataId the data id.
+     * @param <T>    the object data's type.
+     * @return the saved object data or null.
+     */
+    public @NotNull <T> T getObjectData(final int dataId) {
+        return (T) objectData[dataId];
+    }
+
+    /**
+     * Get int data by the data id.
+     *
+     * @param dataId the data id.
+     * @return the saved int data or 0.
+     */
+    public int getIntData(final int dataId) {
+        return intData[dataId];
+    }
+
+    /**
+     * Get float data by the data id.
+     *
+     * @param dataId the data id.
+     * @return the float object data or -.
+     */
+    public float getFloatData(final int dataId) {
+        return floatData[dataId];
     }
 
     @Override
@@ -463,7 +501,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
 
             final Interpolation interpolation = emitterNode.getInterpolation();
 
-            blend = 1.0f * (startlife - life) / startlife;
+            blend = 1.0f * (startLife - life) / startLife;
             interpBlend = interpolation.apply(blend);
         }
 
@@ -511,15 +549,15 @@ public final class ParticleData implements Cloneable, JmeCloneable {
 
         active = true;
         blend = 0;
-        size.set(0, 0, 0);
+        size.set(1, 1, 1);
 
         if (lifeMin != lifeMax) {
-            startlife = (lifeMax - lifeMin) * FastMath.nextRandomFloat() + lifeMin;
+            startLife = (lifeMax - lifeMin) * FastMath.nextRandomFloat() + lifeMin;
         } else {
-            startlife = lifeMax;
+            startLife = lifeMax;
         }
 
-        life = startlife;
+        life = startLife;
 
         final float forceMin = emitterNode.getForceMin();
         final float forceMax = emitterNode.getForceMax();
@@ -557,13 +595,13 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         switch (emitterNode.getEmissionPoint()) {
             case EDGE_BOTTOM: {
                 tempV3.set(emitterShape.getNextDirection()).normalizeLocal();
-                tempV3.multLocal(startSize.getY());
+                tempV3.multLocal(size.getY());
                 position.addLocal(tempV3);
                 break;
             }
             case EDGE_TOP: {
                 tempV3.set(emitterShape.getNextDirection()).normalizeLocal();
-                tempV3.multLocal(startSize.getY());
+                tempV3.multLocal(size.getY());
                 position.subtractLocal(tempV3);
                 break;
             }

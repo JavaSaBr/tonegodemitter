@@ -9,7 +9,6 @@ import tonegod.emitter.Messages;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
-import tonegod.emitter.particle.ParticleData.DataFactory;
 
 import java.io.IOException;
 
@@ -20,46 +19,7 @@ import java.io.IOException;
  */
 public final class ColorInfluencer extends AbstractInterpolatedParticleInfluencer {
 
-    @NotNull
-    private static final String DATA_KEY = "Default.ColorInfluencer";
-
-    @NotNull
-    private static final DataFactory<ColorInfluencerData> DATA_FACTORY = new DataFactory<ColorInfluencerData>() {
-
-        @Override
-        public @NotNull ColorInfluencer.ColorInfluencerData create(@NotNull final String name) {
-            return new ColorInfluencerData();
-        }
-    };
-
-    private static class ColorInfluencerData {
-
-        /**
-         * The color index.
-         */
-        int index;
-
-        /**
-         * The color interval.
-         */
-        float interval;
-
-        /**
-         * The duration.
-         */
-        float duration;
-
-        /**
-         * The color interpolation.
-         */
-        @NotNull
-        Interpolation interpolation;
-
-        private ColorInfluencerData() {
-            this.duration = 1f;
-            this.interpolation = Interpolation.LINEAR;
-        }
-    }
+    private static final int DATA_ID = ParticleData.reserveObjectDataId();
 
     /**
      * The list of colors.
@@ -105,7 +65,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        final ColorInfluencerData data = particleData.getData(DATA_KEY, DATA_FACTORY);
+        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
         data.interval += tpf;
 
         if (data.index >= colors.size()) {
@@ -113,7 +73,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         }
 
         if (data.interval >= data.duration) {
-            updateColor(data);
+            updateInterpolation(data, getColors());
         }
 
         final Interpolation interpolation = data.interpolation;
@@ -134,23 +94,6 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         super.updateImpl(particleData, tpf);
     }
 
-    /**
-     * Update the color.
-     *
-     * @param data the particle's data.
-     */
-    private void updateColor(@NotNull final ColorInfluencerData data) {
-        data.index++;
-
-        if (data.index >= colors.size()) {
-            data.index = 0;
-        }
-
-        final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        data.interpolation = interpolations.get(data.index);
-        data.interval -= data.duration;
-    }
-
     @Override
     protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
 
@@ -168,9 +111,10 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
+        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
 
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        final ColorInfluencerData data = particleData.getData(DATA_KEY, DATA_FACTORY);
+        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
 
         if (isRandomStartColor()) {
             data.index = nextRandomInt(0, colors.size() - 1);
@@ -179,7 +123,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
         }
 
         data.interval = 0F;
-        data.duration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) interpolations.size() - 1);
+        data.duration = isCycle() ? getFixedDuration() : particleData.startLife / ((float) interpolations.size() - 1);
         data.interpolation = interpolations.get(data.index);
 
         particleData.color.set(colors.get(data.index));
@@ -191,7 +135,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     public void reset(@NotNull final ParticleData particleData) {
         particleData.color.set(resetColor);
 
-        final ColorInfluencerData data = particleData.getData(DATA_KEY, DATA_FACTORY);
+        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
         data.index = 0;
         data.interval = 0;
 

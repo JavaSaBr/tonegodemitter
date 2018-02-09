@@ -22,6 +22,7 @@ import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to give physics reactions of particles.
@@ -30,8 +31,34 @@ import java.io.IOException;
  */
 public class PhysicsInfluencer extends AbstractParticleInfluencer {
 
+    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+
+    @NotNull
+    protected static final Callable<PhysicsInfluencerData> DATA_FACTORY = new Callable<PhysicsInfluencerData>() {
+        @Override
+        public PhysicsInfluencerData call() throws Exception {
+            return new PhysicsInfluencerData();
+        }
+    };
+
+    protected static class PhysicsInfluencerData {
+
+        /**
+         * The flag.
+         */
+        public boolean collision;
+
+        /**
+         * The interval.
+         */
+        public float interval;
+
+        private PhysicsInfluencerData() {
+        }
+    }
+
     /**
-     * The enum Collision reaction.
+     * The list of reactions on collisions.
      */
     public enum CollisionReaction {
         /**
@@ -50,12 +77,12 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
         private static final CollisionReaction[] VALUES = values();
 
         /**
-         * Value of collision reaction.
+         * Get a collision reaction by the index.
          *
-         * @param index the index
-         * @return the collision reaction
+         * @param index the index.
+         * @return the collision reaction.
          */
-        public static CollisionReaction valueOf(final int index) {
+        public static @NotNull CollisionReaction valueOf(final int index) {
             return VALUES[index];
         }
 
@@ -67,7 +94,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return name;
         }
     }
@@ -79,7 +106,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     private final GeometryList geometries;
 
     /**
-     * The list of temprary collidable geometries.
+     * The temp list of collidable geometries.
      */
     @NotNull
     private final GeometryList tempGeometries;
@@ -205,13 +232,15 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        if (!particleData.collision) {
+        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
+
+        if (!data.collision) {
             findCollisions(particleData, tpf);
         } else {
-            particleData.collisionInterval += tpf;
-            if (particleData.collisionInterval >= collisionThreshold) {
-                particleData.collision = false;
-                particleData.collisionInterval = 0;
+            data.interval += tpf;
+            if (data.interval >= collisionThreshold) {
+                data.collision = false;
+                data.interval = 0;
             }
         }
 
@@ -219,6 +248,8 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
+     * Get the collision results.
+     *
      * @return the collision results.
      */
     private @NotNull CollisionResults getResults() {
@@ -233,6 +264,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      */
     private void findCollisions(final @NotNull ParticleData particleData, final float tpf) {
 
+        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
         final CollisionReaction collisionReaction = getCollisionReaction();
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         final GeometryList geometries = getGeometries();
@@ -260,16 +292,20 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
 
                 switch (collisionReaction) {
                     case BOUNCE: {
+
                         result.getTriangle(contactSurface);
                         normal.set(contactSurface.getNormal());
                         twoDot = 2.0f * velocity.dot(normal);
                         two.set(twoDot, twoDot, twoDot);
+
                         reflect.set(two.mult(normal, tempVec)
                                 .subtract(velocity, tempVec2))
                                 .negateLocal().normalizeLocal();
+
                         length = velocity.length() * (restitution - 0.1f) + (FastMath.nextRandomFloat() * 0.2f);
+
                         velocity.set(reflect).multLocal(length);
-                        particleData.collision = true;
+                        data.collision = true;
                         break;
                     }
                     case STICK: {
@@ -286,6 +322,12 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
                 ex.printStackTrace();
             }
         }
+    }
+
+    @Override
+    protected void initializeImpl(@NotNull final ParticleData particleData) {
+        super.initializeImpl(particleData);
+        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
     }
 
     /**
@@ -330,8 +372,12 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      * Remove a last geometry.
      */
     public void removeLast() {
+
         final int size = geometries.size();
-        if (size < 1) return;
+        if (size < 1) {
+            return;
+        }
+
         removeCollidable(geometries.get(size - 1));
     }
 
@@ -393,21 +439,22 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
 
     @Override
     public void reset(@NotNull final ParticleData particleData) {
-        particleData.collision = false;
-        particleData.collisionInterval = 0;
+        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
+        data.collision = false;
+        data.interval = 0;
     }
 
     /**
-     * Defines the response when a particle collides with a geometry in the collidables list
+     * Defines the response when a particle collides with a geometry in the collidables list.
      *
-     * @param collisionReaction the collision reaction
+     * @param collisionReaction the collision reaction.
      */
     public void setCollisionReaction(@NotNull final CollisionReaction collisionReaction) {
         this.collisionReaction = collisionReaction;
     }
 
     /**
-     * Gets collision reaction.
+     * Get the collision reaction.
      *
      * @return the collision reaction.
      */
@@ -416,7 +463,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Gets collision threshold.
+     * Gets the collision threshold.
      *
      * @return the collision threshold value.
      */

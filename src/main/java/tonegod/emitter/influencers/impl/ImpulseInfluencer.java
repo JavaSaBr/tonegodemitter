@@ -65,7 +65,9 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
         final Random random = RandomUtils.getRandom();
-        if (random.nextFloat() <= 1 - (chance + tpf)) return;
+        if (random.nextFloat() <= 1 - (chance + tpf)) {
+            return;
+        }
 
         velocityStore.set(particleData.velocity);
 

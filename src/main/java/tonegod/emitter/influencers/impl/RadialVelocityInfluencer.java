@@ -24,8 +24,10 @@ import java.util.Random;
  */
 public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
 
+    private static final int TANGENT_FORCE_ID = ParticleData.reserveFloatDataId();
+
     /**
-     * The enum Radial pull alignment.
+     * The list of radial pull alignments.
      */
     public enum RadialPullAlignment {
         /**
@@ -40,12 +42,12 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         private static final RadialPullAlignment[] VALUES = values();
 
         /**
-         * Value of radial pull alignment.
+         * Get a radial pull alignment by the index.
          *
-         * @param index the index
-         * @return the radial pull alignment
+         * @param index the index.
+         * @return the radial pull alignment.
          */
-        public static RadialPullAlignment valueOf(final int index) {
+        public static @NotNull RadialPullAlignment valueOf(final int index) {
             return VALUES[index];
         }
 
@@ -57,13 +59,13 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return name;
         }
     }
 
     /**
-     * The enum Radial pull center.
+     * The list of radial pull centers.
      */
     public enum RadialPullCenter {
         /**
@@ -86,12 +88,12 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         private static final RadialPullCenter[] VALUES = values();
 
         /**
-         * Value of radial pull center.
+         * Get a radial pull center by the index.
          *
-         * @param index the index
-         * @return the radial pull center
+         * @param index the index.
+         * @return the radial pull center.
          */
-        public static RadialPullCenter valueOf(final int index) {
+        public static @NotNull RadialPullCenter valueOf(final int index) {
             return VALUES[index];
         }
 
@@ -109,7 +111,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * The enum Radial up alignment.
+     * The list of radial up alignments.
      */
     public enum RadialUpAlignment {
         /**
@@ -132,12 +134,12 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         private static final RadialUpAlignment[] VALUES = values();
 
         /**
-         * Value of radial up alignment.
+         * Get a radial up alignment by the index.
          *
-         * @param index the index
-         * @return the radial up alignment
+         * @param index the index.
+         * @return the radial up alignment.
          */
-        public static RadialUpAlignment valueOf(final int index) {
+        public static @NotNull RadialUpAlignment valueOf(final int index) {
             return VALUES[index];
         }
 
@@ -149,7 +151,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return name;
         }
     }
@@ -276,7 +278,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         tangent.set(store)
                 .crossLocal(left)
                 .normalizeLocal()
-                .multLocal(particleData.tangentForce)
+                .multLocal(particleData.getFloatData(TANGENT_FORCE_ID))
                 .multLocal(tpf);
 
         particleData.velocity.subtractLocal(tangent);
@@ -367,41 +369,41 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     protected void initializeImpl(@NotNull final ParticleData particleData) {
 
         if (!isRandomDirection()) {
-            particleData.tangentForce = tangentForce;
+            particleData.initializeFloatData(TANGENT_FORCE_ID, tangentForce);
             return;
         }
 
         final Random random = RandomUtils.getRandom();
 
         if (random.nextBoolean()) {
-            particleData.tangentForce = tangentForce;
+            particleData.initializeFloatData(TANGENT_FORCE_ID, tangentForce);
         } else {
-            particleData.tangentForce = -tangentForce;
+            particleData.initializeFloatData(TANGENT_FORCE_ID, -tangentForce);
         }
 
         super.initializeImpl(particleData);
     }
 
     /**
-     * The tangent force to apply when updating the particles trajectory
+     * The tangent force to apply when updating the particles trajectory.
      *
-     * @param force the force
+     * @param tangentForce the tangent force.
      */
-    public void setTangentForce(final float force) {
-        this.tangentForce = force;
+    public void setTangentForce(final float tangentForce) {
+        this.tangentForce = tangentForce;
     }
 
     /**
-     * Returns the defined tangent force used when calculating the particles trajectory
+     * Returns the defined tangent force used when calculating the particles trajectory.
      *
-     * @return the tangent force
+     * @return the tangent force.
      */
     public float getTangentForce() {
         return tangentForce;
     }
 
     /**
-     * Defines the point of origin that the particle will use in calculating it's trajectory
+     * Defines the point of origin that the particle will use in calculating it's trajectory.
      *
      * @param alignment the pullAlignment.
      */
@@ -410,9 +412,9 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Returns the defined point of origin parameter
+     * Returns the defined point of origin parameter.
      *
-     * @return the radial pull alignment
+     * @return the radial pull alignment.
      */
     public @NotNull RadialPullAlignment getRadialPullAlignment() {
         return pullAlignment;
@@ -423,16 +425,16 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      * components of the point of origin vector, but use the individual particles Y component when calculating the
      * updated trajectory.
      *
-     * @param center the center
+     * @param center the center.
      */
     public void setRadialPullCenter(@NotNull final RadialPullCenter center) {
         this.pullCenter = center;
     }
 
     /**
-     * Returns the defined varient for the point of origin vector
+     * Returns the defined variant for the point of origin vector.
      *
-     * @return the radial pull center
+     * @return the radial pull center.
      */
     public @NotNull RadialPullCenter getRadialPullCenter() {
         return pullCenter;
@@ -440,36 +442,36 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
 
     /**
      * Defines the gravitational force pulling against the tangent force - Or, how the orbit will tighten or decay over
-     * time
+     * time.
      *
-     * @param radialPull the radial pull
+     * @param radialPull the radial pull.
      */
     public void setRadialPull(final float radialPull) {
         this.radialPull = radialPull;
     }
 
     /**
-     * Returns the defined radial pull used when calculating the particles trajectory
+     * Returns the defined radial pull used when calculating the particles trajectory.
      *
-     * @return the radial pull
+     * @return the radial pull.
      */
     public float getRadialPull() {
         return radialPull;
     }
 
     /**
-     * Defines the up vector used to calculate rotation around a pullCenter point
+     * Defines the up vector used to calculate rotation around a pullCenter point.
      *
-     * @param upAlignment the up alignment
+     * @param upAlignment the up alignment.
      */
     public void setRadialUpAlignment(@NotNull final RadialUpAlignment upAlignment) {
         this.upAlignment = upAlignment;
     }
 
     /**
-     * Returns the defined up vector parameter
+     * Returns the defined up vector parameter.
      *
-     * @return the radial up alignment
+     * @return the radial up alignment.
      */
     public @NotNull RadialUpAlignment getRadialUpAlignment() {
         return upAlignment;
@@ -486,9 +488,9 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Returns if the influencer allows random reverse rotation
+     * Returns true if the influencer allows random reverse rotation.
      *
-     * @return the boolean
+     * @return true if the influencer allows random reverse rotation.
      */
     public boolean isRandomDirection() {
         return randomDirection;
