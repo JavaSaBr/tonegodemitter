@@ -134,11 +134,6 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     public void reset(@NotNull final ParticleData particleData) {
         particleData.color.set(resetColor);
-
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
-        data.index = 0;
-        data.interval = 0;
-
         super.reset(particleData);
     }
 

@@ -203,13 +203,8 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
 
     @Override
     public void reset(@NotNull final ParticleData particleData) {
-
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
-        data.index = 0;
-
         particleData.spriteCol = 0;
         particleData.spriteRow = 0;
-
         super.reset(particleData);
     }
 

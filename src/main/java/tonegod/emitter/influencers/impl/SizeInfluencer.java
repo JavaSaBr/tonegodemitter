@@ -217,13 +217,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
 
     @Override
     public void reset(@NotNull final ParticleData particleData) {
-
         particleData.size.set(1, 1, 1);
-
-        final SizeInfluencerData data = particleData.getObjectData(DATA_ID);
-        data.startSize.set(0f, 0f, 0f);
-        data.endSize.set(0, 0, 0);
-
         super.reset(particleData);
     }
 
