@@ -248,6 +248,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
 
         calculateTransform();
 
+        triangle.setNormal(triangleNormal);
         triangle.calculateCenter();
         triangle.calculateNormal();
     }
