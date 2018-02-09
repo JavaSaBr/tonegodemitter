@@ -14,7 +14,6 @@ import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to change alpha of particles.
@@ -24,43 +23,6 @@ import java.util.concurrent.Callable;
 public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluencer {
 
     private static final int DATA_ID = ParticleData.reserveObjectDataId();
-
-    @NotNull
-    private static final Callable<AlphaInfluencerData> DATA_FACTORY = new Callable<AlphaInfluencerData>() {
-        @Override
-        public AlphaInfluencerData call() throws Exception {
-            return new AlphaInfluencerData();
-        }
-    };
-
-    private static class AlphaInfluencerData {
-
-        /**
-         * The alpha interpolation.
-         */
-        @NotNull
-        public Interpolation interpolation;
-
-        /**
-         * The interval.
-         */
-        public float interval;
-
-        /**
-         * The duration.
-         */
-        public float duration;
-
-        /**
-         * The index.
-         */
-        public int index;
-
-        private AlphaInfluencerData() {
-            this.duration = 1;
-            this.interpolation = Interpolation.LINEAR;
-        }
-    }
 
     /**
      * The list of alphas.
@@ -91,7 +53,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        final AlphaInfluencerData data = particleData.getObjectData(DATA_ID);
+        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
         data.interval += tpf;
 
         if (data.index >= alphas.size()) {
@@ -99,7 +61,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         }
 
         if (data.interval >= data.duration) {
-            updateAlpha(data);
+            updateInterpolation(data, getAlphas());
         }
 
         final Interpolation interpolation = data.interpolation;
@@ -123,23 +85,6 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         super.updateImpl(particleData, tpf);
     }
 
-    /**
-     * Update the alpha value for the data.
-     *
-     * @param data the influencer's data.
-     */
-    private void updateAlpha(@NotNull final AlphaInfluencerData data) {
-        data.index++;
-
-        if (data.index >= alphas.size()) {
-            data.index = 0;
-        }
-
-        final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        data.interpolation = interpolations.get(data.index);
-        data.interval -= data.duration;
-    }
-
     @Override
     protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
 
@@ -159,7 +104,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     protected void initializeImpl(@NotNull final ParticleData particleData) {
         particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
 
-        final AlphaInfluencerData data = particleData.getObjectData(DATA_ID);
+        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
 
         if (isRandomStartAlpha()) {
@@ -169,7 +114,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
         }
 
         data.interval = 0F;
-        data.duration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) interpolations.size() - 1);
+        data.duration = isCycle() ? getFixedDuration() : particleData.startLife / ((float) interpolations.size() - 1);
 
         particleData.alpha = alphas.get(data.index);
 

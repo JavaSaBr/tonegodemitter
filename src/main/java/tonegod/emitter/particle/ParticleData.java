@@ -173,165 +173,28 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     private float[] floatData;
 
     /**
-     * The alpha.
-     */
-    public float alpha;
-
-
-    /** SIZE INFLUENCER */
-
-    /**
-     * The size.
-     */
-    @NotNull
-    public final Vector3f size;
-
-    /**
-     * The start size.
-     */
-    @NotNull
-    public final Vector3f startSize;
-
-    /**
-     * The end size.
-     */
-    @NotNull
-    public final Vector3f endSize;
-
-    /**
-     * The size index.
-     */
-    public int sizeIndex;
-
-    /**
-     * The size interval.
-     */
-    public float sizeInterval;
-
-    /**
-     * The size duration.
-     */
-    public float sizeDuration;
-
-    /**
-     * The size interpolation.
-     */
-    @NotNull
-    public Interpolation sizeInterpolation;
-
-
-    /** ROTATION INFLUENCER */
-
-    /**
-     * The rotation angle speed per axis (in radians).
-     */
-    @NotNull
-    public final Vector3f rotationSpeed;
-
-    /**
-     * The start rotation speed.
-     */
-    @NotNull
-    public final Vector3f startRotationSpeed;
-
-    /**
-     * The end rotation speed.
-     */
-    @NotNull
-    public final Vector3f endRotationSpeed;
-
-    /**
-     * The rotation index.
-     */
-    public int rotationIndex;
-
-    /**
-     * The rotation interval.
-     */
-    public float rotationInterval;
-
-    /**
-     * The rotation duration.
-     */
-    public float rotationDuration;
-
-    /**
-     * The rotation interpolation.
-     */
-    @NotNull
-    public Interpolation rotationInterpolation;
-
-    /**
-     * The direction each axis' rotation will rotate in
-     */
-    public boolean rotateDirectionX;
-    /**
-     * The Rotate direction y.
-     */
-    public boolean rotateDirectionY;
-    /**
-     * The Rotate direction z.
-     */
-    public boolean rotateDirectionZ;
-
-    /** SPRITE INFLUENCER */
-
-    /**
-     * The sprite columns.
-     */
-    public int spriteCol;
-
-    /**
-     * The sprite rows.
-     */
-    public int spriteRow;
-
-    /**
-     * The sprite index.
-     */
-    public int spriteIndex;
-
-    /**
-     * The sprite interval.
-     */
-    public float spriteInterval;
-
-    /**
-     * The sprite duration.
-     */
-    public float spriteDuration;
-
-    /** PHYSICS INFLUENCER */
-
-    /**
-     * The collision flag.
-     */
-    public boolean collision;
-
-    /**
-     * The collision interval.
-     */
-    public float collisionInterval;
-
-    /** PARTICLE DATA */
-
-    /**
      * The particle emitter node.
      */
     @Nullable
     public ParticleEmitterNode emitterNode;
 
     /**
-     * The Initial position.
+     * The initial position.
      */
     @NotNull
     public final Vector3f initialPosition;
 
     /**
-     * The Random offset.
+     * The random offset.
      */
     @NotNull
     public final Vector3f randomOffset;
+
+    /**
+     * The size.
+     */
+    @NotNull
+    public final Vector3f size;
 
     /**
      * The velocity.
@@ -346,13 +209,13 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public final Vector3f reverseVelocity;
 
     /**
-     * THe current particle position.
+     * The current particle position.
      */
     @NotNull
     public final Vector3f position;
 
     /**
-     * ParticleData rotation angle per axis (in radians).
+     * The rotation angles per axis (in radians).
      */
     @NotNull
     public final Vector3f angles;
@@ -373,10 +236,6 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * The force at which the particle was emitted
      */
     public float force;
-    /**
-     * The Tangent force.
-     */
-    public float tangentForce;
 
     /**
      * The life, in seconds.
@@ -386,7 +245,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     /**
      * The total particle lifespan.
      */
-    public float startlife;
+    public float startLife;
 
     /**
      * The current blend value.
@@ -409,6 +268,21 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public float initialLength;
 
     /**
+     * The alpha.
+     */
+    public float alpha;
+
+    /**
+     * The sprite columns.
+     */
+    public int spriteCol;
+
+    /**
+     * The sprite rows.
+     */
+    public int spriteRow;
+
+    /**
      * The particles index
      */
     public int index;
@@ -423,34 +297,14 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         this.intData = EMPTY_INT_ARRAY;
         this.floatData = EMPTY_FLOAT_ARRAY;
         this.color = new ColorRGBA(1, 1, 1, 1);
+        this.size = new Vector3f(1f, 1f, 1f);
         this.velocity = new Vector3f();
         this.reverseVelocity = new Vector3f();
         this.position = new Vector3f();
-
         this.alpha = 1;
-
         this.initialPosition = new Vector3f();
         this.randomOffset = new Vector3f();
-
-        this.size = new Vector3f(1f, 1f, 1f);
-        this.startSize = new Vector3f(1, 1, 1);
-        this.endSize = new Vector3f(0, 0, 0);
-        this.sizeDuration = 1;
-        this.sizeInterpolation = Interpolation.LINEAR;
-
-        this.rotationSpeed = new Vector3f();
-        this.startRotationSpeed = new Vector3f();
-        this.endRotationSpeed = new Vector3f();
-        this.rotationDuration = 1;
-        this.rotateDirectionX = true;
-        this.rotateDirectionY = true;
-        this.rotateDirectionZ = true;
-        this.rotationInterpolation = Interpolation.LINEAR;
-
         this.angles = new Vector3f();
-
-        this.spriteDuration = 1;
-
         this.upVec = new Vector3f(0, 1, 0);
         this.tempV3 = new Vector3f();
     }
@@ -505,7 +359,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param dataId the data id.
      * @param data   the initialized data.
      */
-    public void initializIntData(final int dataId, final int data) {
+    public void initializeIntData(final int dataId, final int data) {
         reserveIntData(dataId);
         setIntData(dataId, data);
     }
@@ -529,7 +383,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param dataId the data id.
      * @param data   the initialized data.
      */
-    public void initializFloatData(final int dataId, final float data) {
+    public void initializeFloatData(final int dataId, final float data) {
         reserveFloatData(dataId);
         setFloatData(dataId, data);
     }
@@ -647,7 +501,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
 
             final Interpolation interpolation = emitterNode.getInterpolation();
 
-            blend = 1.0f * (startlife - life) / startlife;
+            blend = 1.0f * (startLife - life) / startLife;
             interpBlend = interpolation.apply(blend);
         }
 
@@ -695,15 +549,15 @@ public final class ParticleData implements Cloneable, JmeCloneable {
 
         active = true;
         blend = 0;
-        size.set(0, 0, 0);
+        size.set(1, 1, 1);
 
         if (lifeMin != lifeMax) {
-            startlife = (lifeMax - lifeMin) * FastMath.nextRandomFloat() + lifeMin;
+            startLife = (lifeMax - lifeMin) * FastMath.nextRandomFloat() + lifeMin;
         } else {
-            startlife = lifeMax;
+            startLife = lifeMax;
         }
 
-        life = startlife;
+        life = startLife;
 
         final float forceMin = emitterNode.getForceMin();
         final float forceMax = emitterNode.getForceMax();
@@ -741,13 +595,13 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         switch (emitterNode.getEmissionPoint()) {
             case EDGE_BOTTOM: {
                 tempV3.set(emitterShape.getNextDirection()).normalizeLocal();
-                tempV3.multLocal(startSize.getY());
+                tempV3.multLocal(size.getY());
                 position.addLocal(tempV3);
                 break;
             }
             case EDGE_TOP: {
                 tempV3.set(emitterShape.getNextDirection()).normalizeLocal();
-                tempV3.multLocal(startSize.getY());
+                tempV3.multLocal(size.getY());
                 position.subtractLocal(tempV3);
                 break;
             }

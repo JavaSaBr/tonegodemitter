@@ -12,6 +12,8 @@ import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.interpolation.InterpolationManager;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * The base implementation of the {@link InterpolatedParticleInfluencer}.
@@ -19,6 +21,43 @@ import java.io.IOException;
  * @author JavaSaBr
  */
 public abstract class AbstractInterpolatedParticleInfluencer extends AbstractParticleInfluencer implements InterpolatedParticleInfluencer {
+
+    @NotNull
+    protected static final Callable<BaseInterpolationData> DATA_FACTORY = new Callable<BaseInterpolationData>() {
+        @Override
+        public BaseInterpolationData call() throws Exception {
+            return new BaseInterpolationData();
+        }
+    };
+
+    protected static class BaseInterpolationData {
+
+        /**
+         * The interpolation.
+         */
+        @NotNull
+        Interpolation interpolation;
+
+        /**
+         * The index.
+         */
+        int index;
+
+        /**
+         * The interval.
+         */
+        float interval;
+
+        /**
+         * The duration.
+         */
+        float duration;
+
+        protected BaseInterpolationData() {
+            this.duration = 1f;
+            this.interpolation = Interpolation.LINEAR;
+        }
+    }
 
     /**
      * The list of interpolations.
@@ -43,6 +82,23 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
 
     public AbstractInterpolatedParticleInfluencer() {
         this.interpolations = new SafeArrayList<>(Interpolation.class);
+    }
+
+    /**
+     * Update the interpolation.
+     *
+     * @param data the influencer's data.
+     */
+    protected void updateInterpolation(@NotNull final BaseInterpolationData data, @NotNull final List<?> steps) {
+        data.index++;
+
+        if (data.index >= steps.size()) {
+            data.index = 0;
+        }
+
+        final SafeArrayList<Interpolation> interpolations = getInterpolations();
+        data.interpolation = interpolations.get(data.index);
+        data.interval -= data.duration;
     }
 
     @Override

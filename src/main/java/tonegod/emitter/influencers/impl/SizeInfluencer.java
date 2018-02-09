@@ -12,6 +12,7 @@ import tonegod.emitter.util.RandomUtils;
 
 import java.io.IOException;
 import java.util.Random;
+import java.util.concurrent.Callable;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to change size of particles.
@@ -19,6 +20,36 @@ import java.util.Random;
  * @author t0neg0d, JavaSaBr
  */
 public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer {
+
+    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+
+    @NotNull
+    protected static final Callable<SizeInfluencerData> DATA_FACTORY = new Callable<SizeInfluencerData>() {
+        @Override
+        public SizeInfluencerData call() throws Exception {
+            return new SizeInfluencerData();
+        }
+    };
+
+    protected static class SizeInfluencerData extends BaseInterpolationData {
+
+        /**
+         * The start size.
+         */
+        @NotNull
+        public final Vector3f startSize;
+
+        /**
+         * The end size.
+         */
+        @NotNull
+        public final Vector3f endSize;
+
+        private SizeInfluencerData() {
+            this.startSize = new Vector3f(1, 1, 1);
+            this.endSize = new Vector3f(0, 0, 0);
+        }
+    }
 
     /**
      * The list of sizes.
@@ -31,7 +62,6 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
      */
     @NotNull
     private final Vector3f tempV3a;
-
     @NotNull
     private final Vector3f tempV3b;
 
@@ -60,41 +90,43 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        particleData.sizeInterval += tpf;
+        final SizeInfluencerData data = particleData.getObjectData(DATA_ID);
+        data.interval += tpf;
 
-        if (particleData.sizeIndex >= sizes.size()) {
-            particleData.sizeIndex = 0;
+        if (data.index >= sizes.size()) {
+            data.index = 0;
         }
 
-        if (particleData.sizeInterval >= particleData.sizeDuration) {
-            updateSize(particleData);
+        if (data.interval >= data.duration) {
+            updateSize(data, particleData);
         }
 
-        final Interpolation interpolation = particleData.sizeInterpolation;
+        final Interpolation interpolation = data.interpolation;
 
-        blend = interpolation.apply(particleData.sizeInterval / particleData.sizeDuration);
-        particleData.size.interpolateLocal(particleData.startSize, particleData.endSize, blend);
+        blend = interpolation.apply(data.interval / data.duration);
+        particleData.size.interpolateLocal(data.startSize, data.endSize, blend);
 
         super.updateImpl(particleData, tpf);
     }
 
     /**
-     * Update a size for the particle data.
+     * Update size.
      *
-     * @param particleData the particle data.
+     * @param data the influencer's data.
+     * @param particleData the particle's data.
      */
-    private void updateSize(@NotNull final ParticleData particleData) {
-        particleData.sizeIndex++;
+    private void updateSize(@NotNull final SizeInfluencerData data, @NotNull final ParticleData particleData) {
+        data.index++;
 
-        if (particleData.sizeIndex >= sizes.size()) {
-            particleData.sizeIndex = 0;
+        if (data.index >= sizes.size()) {
+            data.index = 0;
         }
 
-        calculateNextSizeRange(particleData);
+        calculateNextSizeRange(data, particleData);
 
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        particleData.sizeInterpolation = interpolations.get(particleData.sizeIndex);
-        particleData.sizeInterval -= particleData.sizeDuration;
+        data.interpolation = interpolations.get(data.index);
+        data.interval -= data.duration;
     }
 
     @Override
@@ -114,77 +146,84 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
+        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
 
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
+        final SizeInfluencerData data = particleData.getObjectData(DATA_ID);
+        data.index = 0;
+        data.interval = 0F;
+        data.duration = isCycle() ? getFixedDuration() :
+                particleData.startLife / ((float) interpolations.size() - 1 - data.index);
 
-        particleData.sizeIndex = 0;
-        particleData.sizeInterval = 0F;
-        particleData.sizeDuration = isCycle() ? getFixedDuration() : particleData.startlife / ((float) interpolations.size() - 1 - particleData.sizeIndex);
+        calculateNextSizeRange(data, particleData);
 
-        calculateNextSizeRange(particleData);
-
-        particleData.sizeInterpolation = interpolations.get(particleData.sizeIndex);
+        data.interpolation = interpolations.get(data.index);
 
         super.initializeImpl(particleData);
     }
 
     /**
-     * Calculate a next size.
+     * Calculate next size.
      *
-     * @param particleData the particle data.
+     * @param data the influencer's data.
+     * @param particleData the particle's data.
      */
-    private void calculateNextSizeRange(@NotNull final ParticleData particleData) {
+    private void calculateNextSizeRange(@NotNull final SizeInfluencerData data, @NotNull final ParticleData particleData) {
 
         final SafeArrayList<Vector3f> sizes = getSizes();
 
-        if (particleData.sizeIndex == 0) {
+        if (data.index == 0) {
 
-            particleData.startSize.set(sizes.get(particleData.sizeIndex));
+            data.startSize.set(sizes.get(data.index));
 
             if (isRandomSize()) {
                 final Random random = RandomUtils.getRandom();
-                tempV3a.set(particleData.startSize);
+                tempV3a.set(data.startSize);
                 tempV3b.set(tempV3a).multLocal(randomSizeTolerance);
                 tempV3a.subtractLocal(tempV3b);
                 tempV3b.multLocal(random.nextFloat());
                 tempV3a.addLocal(tempV3b);
-                particleData.startSize.set(tempV3a);
+                data.startSize.set(tempV3a);
             }
 
         } else {
-            particleData.startSize.set(particleData.endSize);
+            data.startSize.set(data.endSize);
         }
 
         if (sizes.size() > 1) {
 
-            if (particleData.sizeIndex == sizes.size() - 1) {
-                particleData.endSize.set(sizes.get(0));
+            if (data.index == sizes.size() - 1) {
+                data.endSize.set(sizes.get(0));
             } else {
-                particleData.endSize.set(sizes.get(particleData.sizeIndex + 1));
+                data.endSize.set(sizes.get(data.index + 1));
             }
 
             if (isRandomSize()) {
                 final Random random = RandomUtils.getRandom();
-                tempV3a.set(particleData.endSize);
+                tempV3a.set(data.endSize);
                 tempV3b.set(tempV3a).multLocal(randomSizeTolerance);
                 tempV3a.subtractLocal(tempV3b);
                 tempV3b.multLocal(random.nextFloat());
                 tempV3a.addLocal(tempV3b);
-                particleData.endSize.set(tempV3a);
+                data.endSize.set(tempV3a);
             }
 
         } else {
-            particleData.endSize.set(particleData.startSize);
+            data.endSize.set(data.startSize);
         }
 
-        particleData.size.set(particleData.startSize);
+        particleData.size.set(data.startSize);
     }
 
     @Override
     public void reset(@NotNull final ParticleData particleData) {
-        particleData.size.set(0, 0, 0);
-        particleData.startSize.set(0f, 0f, 0f);
-        particleData.endSize.set(0, 0, 0);
+
+        particleData.size.set(1, 1, 1);
+
+        final SizeInfluencerData data = particleData.getObjectData(DATA_ID);
+        data.startSize.set(0f, 0f, 0f);
+        data.endSize.set(0, 0, 0);
+
         super.reset(particleData);
     }
 
@@ -228,32 +267,31 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Gets sizes.
+     * Get the list of sizes.
      *
      * @return the list of sizes.
      */
-    @NotNull
-    public SafeArrayList<Vector3f> getSizes() {
+    public @NotNull SafeArrayList<Vector3f> getSizes() {
         return sizes;
     }
 
     /**
-     * Gets size.
+     * Get size by the index.
      *
      * @param index the index.
-     * @return the size for the index.
+     * @return the size by the index.
      */
     public @NotNull Vector3f getSize(final int index) {
         return sizes.get(index);
     }
 
     /**
-     * Change a size for the index.
+     * Set the size by the index.
      *
      * @param size  the new size.
      * @param index the index.
      */
-    public void updateSize(final @NotNull Vector3f size, final int index) {
+    public void updateSize(@NotNull final Vector3f size, final int index) {
         sizes.set(index, size);
     }
 
@@ -281,7 +319,9 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     public void removeLast() {
 
         final SafeArrayList<Vector3f> sizes = getSizes();
-        if (sizes.isEmpty()) return;
+        if (sizes.isEmpty()) {
+            return;
+        }
 
         final int index = sizes.size() - 1;
 
@@ -299,7 +339,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Is random size boolean.
+     * Return true if the random size is enabled.
      *
      * @return true if the random size is enabled.
      */

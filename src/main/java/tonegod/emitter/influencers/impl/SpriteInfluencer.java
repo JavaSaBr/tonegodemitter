@@ -1,5 +1,6 @@
 package tonegod.emitter.influencers.impl;
 
+import static tonegod.emitter.influencers.impl.AbstractInterpolatedParticleInfluencer.DATA_FACTORY;
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
+import tonegod.emitter.influencers.impl.AbstractInterpolatedParticleInfluencer.BaseInterpolationData;
 import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
@@ -20,6 +22,8 @@ import java.io.IOException;
  * @author t0neg0d, JavaSaBr
  */
 public class SpriteInfluencer extends AbstractParticleInfluencer {
+
+    private static final int DATA_ID = ParticleData.reserveObjectDataId();
 
     private transient float targetInterval;
 
@@ -45,7 +49,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     private boolean randomStatImage;
 
     /**
-     * The flag of unsing animation..
+     * The flag of using animation.
      */
     private boolean animate;
 
@@ -67,30 +71,36 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
 
     @Override
     public void update(@NotNull final ParticleData particleData, final float tpf) {
-        if (!isAnimate()) return;
+
+        if (!isAnimate()) {
+            return;
+        }
+
         super.update(particleData, tpf);
     }
 
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        particleData.spriteInterval += tpf;
+        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+        data.interval += tpf;
 
-        targetInterval = isCycle() ? (fixedDuration / 100F) : particleData.spriteDuration;
+        targetInterval = isCycle() ? (fixedDuration / 100F) : data.duration;
 
-        if (particleData.spriteInterval >= targetInterval) {
-            updateFrame(particleData);
+        if (data.interval >= targetInterval) {
+            updateFrame(data, particleData);
         }
 
         super.updateImpl(particleData, tpf);
     }
 
     /**
-     * Update a frame for the particle data.
+     * Update a frame for the particle.
      *
-     * @param particleData the particle data.
+     * @param data         influencer's data.
+     * @param particleData the particle's data.
      */
-    private void updateFrame(@NotNull final ParticleData particleData) {
+    private void updateFrame(@NotNull final BaseInterpolationData data, @NotNull final ParticleData particleData) {
 
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
 
@@ -109,66 +119,74 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
 
         } else {
 
-            particleData.spriteIndex++;
+            data.index++;
 
-            if (particleData.spriteIndex == frameSequence.length) {
-                particleData.spriteIndex = 0;
+            if (data.index == frameSequence.length) {
+                data.index = 0;
             }
 
-            final int frame = frameSequence[particleData.spriteIndex];
+            final int frame = frameSequence[data.index];
 
             particleData.spriteRow = (int) FastMath.floor(frame / emitterNode.getSpriteRowCount()) - 2;
             particleData.spriteCol = frame % emitterNode.getSpriteColCount();
         }
 
-        particleData.spriteInterval -= targetInterval;
+        data.interval -= targetInterval;
     }
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
+        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
 
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
+        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
 
         final int spriteRowCount = emitterNode.getSpriteRowCount();
         final int spriteColCount = emitterNode.getSpriteColCount();
 
         if (totalFrames == -1) {
             totalFrames = spriteColCount * spriteRowCount;
-            if (totalFrames == 1) setAnimate(false);
+            if (totalFrames == 1) {
+                setAnimate(false);
+            }
         }
 
         if (isRandomStartImage()) {
             if (frameSequence == null) {
-                particleData.spriteIndex = FastMath.nextRandomInt(0, totalFrames - 1);
-                particleData.spriteRow = (int) FastMath.floor(particleData.spriteIndex / spriteRowCount) - 1;
-                particleData.spriteCol = particleData.spriteIndex % spriteColCount;
+                data.index = FastMath.nextRandomInt(0, totalFrames - 1);
+                particleData.spriteRow = (int) FastMath.floor(data.index / spriteRowCount) - 1;
+                particleData.spriteCol = data.index % spriteColCount;
             } else {
-                particleData.spriteIndex = FastMath.nextRandomInt(0, frameSequence.length - 1);
-                particleData.spriteRow = (int) FastMath.floor(frameSequence[particleData.spriteIndex] / spriteRowCount) - 1;
-                particleData.spriteCol = frameSequence[particleData.spriteIndex] % spriteColCount;
+                data.index = FastMath.nextRandomInt(0, frameSequence.length - 1);
+                particleData.spriteRow = (int) FastMath.floor(frameSequence[data.index] / spriteRowCount) - 1;
+                particleData.spriteCol = frameSequence[data.index] % spriteColCount;
             }
         } else {
             if (frameSequence != null) {
-                particleData.spriteIndex = frameSequence[0];
-                particleData.spriteRow = (int) FastMath.floor(frameSequence[particleData.spriteIndex] / spriteRowCount) - 2;
-                particleData.spriteCol = frameSequence[particleData.spriteIndex] % spriteColCount;
+                data.index = frameSequence[0];
+                particleData.spriteRow = (int) FastMath.floor(frameSequence[data.index] / spriteRowCount) - 2;
+                particleData.spriteCol = frameSequence[data.index] % spriteColCount;
             } else {
-                particleData.spriteIndex = 0;
+                data.index = 0;
                 particleData.spriteRow = 0;
                 particleData.spriteCol = 0;
             }
         }
 
-        if (!isAnimate()) return;
+        if (!isAnimate()) {
+            return;
+        }
 
-        particleData.spriteInterval = 0;
+        data.interval = 0;
 
-        if (isCycle()) return;
+        if (isCycle()) {
+            return;
+        }
 
         if (frameSequence == null) {
-            particleData.spriteDuration = particleData.startlife / (float) totalFrames;
+            data.duration = particleData.startLife / (float) totalFrames;
         } else {
-            particleData.spriteDuration = particleData.startlife / (float) frameSequence.length;
+            data.duration = particleData.startLife / (float) frameSequence.length;
         }
 
         super.initializeImpl(particleData);
@@ -185,9 +203,13 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
 
     @Override
     public void reset(@NotNull final ParticleData particleData) {
-        particleData.spriteIndex = 0;
+
+        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+        data.index = 0;
+
         particleData.spriteCol = 0;
         particleData.spriteRow = 0;
+
         super.reset(particleData);
     }
 
@@ -255,7 +277,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     /**
      * Animated texture should cycle and use the provided duration between frames (0 diables cycling)
      *
-     * @param fixedDuration duration between frame updates
+     * @param fixedDuration duration between frame updates.
      */
     public void setFixedDuration(float fixedDuration) {
         if (fixedDuration != 0) {
@@ -270,7 +292,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     /**
      * Returns the current duration used between frames for cycled animation
      *
-     * @return the fixed duration
+     * @return the fixed duration.
      */
     public float getFixedDuration() {
         return fixedDuration;

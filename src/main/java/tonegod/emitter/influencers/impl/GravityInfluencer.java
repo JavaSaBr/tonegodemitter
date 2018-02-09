@@ -67,7 +67,6 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
         }
     }
 
-
     /**
      * The vector for storing results.
      */
@@ -110,8 +109,12 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
 
     @Override
     public void update(@NotNull final ParticleData particleData, final float tpf) {
+
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
-        if (emitterNode.isStaticParticles()) return;
+        if (emitterNode.isStaticParticles()) {
+            return;
+        }
+
         super.update(particleData, tpf);
     }
 
