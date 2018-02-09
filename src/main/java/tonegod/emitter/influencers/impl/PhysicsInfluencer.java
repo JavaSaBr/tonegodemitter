@@ -326,8 +326,13 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
-        super.initializeImpl(particleData);
         particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
+
+        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
+        data.collision = false;
+        data.interval = 0;
+
+        super.initializeImpl(particleData);
     }
 
     /**
@@ -435,13 +440,6 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      */
     public float getRestitution() {
         return restitution;
-    }
-
-    @Override
-    public void reset(@NotNull final ParticleData particleData) {
-        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
-        data.collision = false;
-        data.interval = 0;
     }
 
     /**

@@ -153,15 +153,18 @@ public final class ParticleDataTriMesh extends RotatedParticleDataMesh {
                 up.multLocal(size.y);
                 left.multLocal(size.x);
 
-                rotStore.fromAngleAxis(angles.y, left);
+                rotStore.fromAngleNormalAxis(angles.y, tempV3.set(left).normalizeLocal());
+
                 left.set(rotStore.mult(left, tempV2));
                 up.set(rotStore.mult(up, tempV2));
 
-                rotStore.fromAngleAxis(angles.x, up);
+                rotStore.fromAngleNormalAxis(angles.x, tempV3.set(up).normalizeLocal());
+
                 left.set(rotStore.mult(left, tempV2));
                 up.set(rotStore.mult(up, tempV2));
 
-                rotStore.fromAngleAxis(angles.z, dir);
+                rotStore.fromAngleNormalAxis(angles.z, tempV3.set(dir).normalizeLocal());
+
                 left.set(rotStore.mult(left, tempV2));
                 up.set(rotStore.mult(up, tempV2));
 
@@ -237,7 +240,6 @@ public final class ParticleDataTriMesh extends RotatedParticleDataMesh {
     @Override
     public void cloneFields(@NotNull final Cloner cloner, @NotNull final Object original) {
         super.cloneFields(cloner, original);
-
         color = cloner.clone(color);
     }
 }

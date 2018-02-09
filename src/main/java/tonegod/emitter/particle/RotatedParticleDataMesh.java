@@ -44,16 +44,22 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
     protected Vector3f lock;
 
     /**
-     * The Temp v 1.
+     * The first temp vector.
      */
     @NotNull
     protected Vector3f tempV1;
 
     /**
-     * The Temp v 2.
+     * The second temp vector.
      */
     @NotNull
     protected Vector3f tempV2;
+
+    /**
+     * The third temp vector.
+     */
+    @NotNull
+    protected Vector3f tempV3;
 
     /**
      * The Rot store.
@@ -67,6 +73,7 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
         this.dir = new Vector3f();
         this.tempV1 = new Vector3f();
         this.tempV2 = new Vector3f();
+        this.tempV3 = new Vector3f();
         this.rotStore = new Quaternion();
         this.lock = new Vector3f(0, 0.99f, 0.01f);
     }
