@@ -110,6 +110,9 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
     private Node node3;
 
     @NotNull
+    private Vector3f triangleNormal;
+
+    @NotNull
     private Vector3f point1;
 
     @NotNull
@@ -173,6 +176,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
         this.tempDirection2 = new Vector3f();
         this.tempQuaternion = new Quaternion();
         this.tempQuaternion2 = new Quaternion();
+        this.triangleNormal = new Vector3f();
     }
 
     /**
@@ -261,6 +265,7 @@ public class EmitterMesh implements Cloneable, JmeCloneable, Savable {
         calculateTransform();
 
         final Triangle triangle = getTriangle();
+        triangle.setNormal(triangleNormal);
         triangle.calculateCenter();
         triangle.calculateNormal();
     }
