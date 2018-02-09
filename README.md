@@ -1,4 +1,4 @@
-# Toneg0d.Emitter 2.6.2 #
+# Toneg0d.Emitter 2.6.3 #
 
 It's a fork of toneg0d.emitter.
 
@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.github.JavaSaBr:tonegodemitter:2.6.2'
+    compile 'com.github.JavaSaBr:tonegodemitter:2.6.3'
 }
 ```
 
@@ -29,6 +29,6 @@ dependencies {
     <dependency>
         <groupId>com.github.JavaSaBr</groupId>
         <artifactId>tonegodemitter</artifactId>
-        <version>2.6.2</version>
+        <version>2.6.3</version>
     </dependency>
 ```
