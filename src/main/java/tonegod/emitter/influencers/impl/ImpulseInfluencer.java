@@ -7,6 +7,7 @@ import com.jme3.export.OutputCapsule;
 import com.jme3.math.Vector3f;
 import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.Messages;
+import tonegod.emitter.influencers.InfluencerData;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 import tonegod.emitter.util.RandomUtils;
@@ -62,7 +63,7 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleData particleData, final InfluencerData data, final float tpf) {
 
         final Random random = RandomUtils.getRandom();
         if (random.nextFloat() <= 1 - (chance + tpf)) {
@@ -84,7 +85,7 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
 
         particleData.velocity.interpolateLocal(velocityStore, magnitude);
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(particleData, data, tpf);
     }
 
     /**

@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
+import tonegod.emitter.influencers.InfluencerData;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
@@ -108,18 +109,18 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
+    public void update(@NotNull final ParticleData particleData, final InfluencerData data, final float tpf) {
 
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         if (emitterNode.isStaticParticles()) {
             return;
         }
 
-        super.update(particleData, tpf);
+        super.update(particleData, data, tpf);
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleData particleData, final InfluencerData data, final float tpf) {
 
         final Vector3f velocity = particleData.getVelocity();
         final Vector3f store = getStore();
@@ -169,11 +170,11 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
             }
         }
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(particleData, data, tpf);
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(@NotNull final ParticleData particleData, final InfluencerData data) {
 
         store.set(particleData.getVelocity())
                 .negateLocal()
@@ -181,7 +182,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
 
         particleData.reverseVelocity.set(store);
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**

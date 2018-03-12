@@ -20,9 +20,7 @@ import java.util.concurrent.Callable;
  *
  * @author t0neg0d, JavaSaBr
  */
-public final class RotationInfluencer extends AbstractInterpolatedParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+public final class RotationInfluencer extends AbstractInterpolatedParticleInfluencer<RotationInfluencer.RotationInfluencerData> {
 
     @NotNull
     protected static final Callable<RotationInfluencerData> DATA_FACTORY = new Callable<RotationInfluencerData>() {
@@ -72,6 +70,11 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
             this.rotateDirectionX = true;
             this.rotateDirectionY = true;
             this.rotateDirectionZ = true;
+        }
+
+        @Override
+        public RotationInfluencerData create() {
+            return new RotationInfluencerData();
         }
     }
 
@@ -138,9 +141,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-
-        final RotationInfluencerData data = particleData.getObjectData(DATA_ID);
+    protected void updateImpl(@NotNull final ParticleData particleData, final RotationInfluencerData data, final float tpf) {
         final Vector3f rotationSpeed = data.speed;
 
         if (speeds.size() > 1) {
@@ -167,7 +168,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
 
         particleData.angles.addLocal(rotationSpeed.mult(tpf, store));
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(particleData, data, tpf);
     }
 
     /**
@@ -214,10 +215,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
-
-        final RotationInfluencerData data = particleData.getObjectData(DATA_ID);
+    protected void initializeImpl(@NotNull final ParticleData particleData, final RotationInfluencerData data) {
         data.index = 0;
         data.interval = 0f;
         data.duration = isCycle() ? getFixedDuration() : particleData.startLife / ((float) speeds.size() - 1);
@@ -246,7 +244,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
             particleData.angles.set(0, 0, 0);
         }
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**

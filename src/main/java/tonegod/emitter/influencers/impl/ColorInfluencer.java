@@ -1,6 +1,5 @@
 package tonegod.emitter.influencers.impl;
 
-import static com.jme3.math.FastMath.nextRandomInt;
 import com.jme3.export.*;
 import com.jme3.math.ColorRGBA;
 import com.jme3.util.SafeArrayList;
@@ -12,14 +11,14 @@ import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
 
+import static com.jme3.math.FastMath.nextRandomInt;
+
 /**
  * The implementation of the {@link ParticleInfluencer} to change color of particles.
  *
  * @author t0neg0d, JavaSaBr
  */
-public final class ColorInfluencer extends AbstractInterpolatedParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+public final class ColorInfluencer extends AbstractInterpolatedParticleInfluencer<BaseInterpolationData> {
 
     /**
      * The list of colors.
@@ -63,9 +62,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+    protected void updateImpl(@NotNull final ParticleData particleData, final BaseInterpolationData data, final float tpf) {
         data.interval += tpf;
 
         if (data.index >= colors.size()) {
@@ -91,7 +88,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
 
         particleData.color.interpolateLocal(startColor, endColor, blend);
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(particleData, data, tpf);
     }
 
     @Override
@@ -110,11 +107,8 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
-
+    protected void initializeImpl(@NotNull final ParticleData particleData, final BaseInterpolationData data) {
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
 
         if (isRandomStartColor()) {
             data.index = nextRandomInt(0, colors.size() - 1);
@@ -128,7 +122,7 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
 
         particleData.color.set(colors.get(data.index));
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     @Override

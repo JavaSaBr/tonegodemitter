@@ -1,6 +1,5 @@
 package tonegod.emitter.particle;
 
-import static java.util.Objects.requireNonNull;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
@@ -11,12 +10,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.ParticleEmitterNode;
-import tonegod.emitter.influencers.ParticleInfluencer;
+import tonegod.emitter.influencers.InfluencerData;
 import tonegod.emitter.interpolation.Interpolation;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * The particle objectData class.
@@ -92,6 +93,25 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      */
     public static int reserveFloatDataId() {
         return FLOAT_DATA_ID_FACTORY.incrementAndGet();
+    }
+
+
+    private InfluencerData[] values = new InfluencerData[0];
+
+    public void setData(int dataId, InfluencerData dataValue) {
+        if(dataId <= values.length) {
+            values = Arrays.copyOf(values, dataId + 1);
+        }
+
+        values[dataId] = dataValue;
+    }
+
+    public <T extends InfluencerData> T getData(int dataId) {
+        if(dataId < 0) {
+            return null;
+        }
+
+        return (T) values[dataId];
     }
 
     /**
@@ -505,9 +525,8 @@ public final class ParticleData implements Cloneable, JmeCloneable {
             interpBlend = interpolation.apply(blend);
         }
 
-        final SafeArrayList<ParticleInfluencer> influencers = emitterNode.getInfluencers();
-        for (final ParticleInfluencer influencer : influencers.getArray()) {
-            influencer.update(this, tpf);
+        for (final ParticleEmitterNode.InfluencerInstance influencerInstance : emitterNode.getInfluencerInstances()) {
+            influencerInstance.getInfluencer().update(this, getData(influencerInstance.getId()), tpf);
         }
 
         tempV3.set(velocity).multLocal(tpf);
@@ -587,9 +606,13 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         initialLength = velocity.length();
         initialPosition.set(emitterNode.getWorldTranslation());
 
-        final SafeArrayList<ParticleInfluencer> influencers = emitterNode.getInfluencers();
-        for (final ParticleInfluencer influencer : influencers.getArray()) {
-            influencer.initialize(this);
+//        final SafeArrayList<ParticleInfluencer> influencers = emitterNode.getInfluencers();
+//        for (final ParticleInfluencer influencer : influencers.getArray()) {
+//            influencer.initialize(this);
+//        }
+
+        for (final ParticleEmitterNode.InfluencerInstance influencerInstance : emitterNode.getInfluencerInstances()) {
+            initializeInfluencer(influencerInstance);
         }
 
         switch (emitterNode.getEmissionPoint()) {
@@ -606,6 +629,17 @@ public final class ParticleData implements Cloneable, JmeCloneable {
                 break;
             }
         }
+    }
+
+    /**
+     * Do not call. Only for internal use.
+     */
+    public void initializeInfluencer(ParticleEmitterNode.InfluencerInstance influencerInstance) {
+        if(influencerInstance.hasData()) {
+            setData(influencerInstance.getId(), influencerInstance.createData());
+        }
+
+        influencerInstance.getInfluencer().initialize(this, getData(influencerInstance.getId()));
     }
 
     /**
@@ -674,9 +708,9 @@ public final class ParticleData implements Cloneable, JmeCloneable {
             emitterNode.decActiveParticleCount();
         }
 
-        final SafeArrayList<ParticleInfluencer> influencers = emitterNode.getInfluencers();
-        for (final ParticleInfluencer influencer : influencers.getArray()) {
-            influencer.reset(this);
+        final SafeArrayList<ParticleEmitterNode.InfluencerInstance> influencerInstances = emitterNode.getInfluencerInstances();
+        for (final ParticleEmitterNode.InfluencerInstance influencerInstance : influencerInstances.getArray()) {
+            influencerInstance.getInfluencer().reset(this);
         }
 
         emitterNode.setNextIndex(index);

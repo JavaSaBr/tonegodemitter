@@ -11,7 +11,7 @@ import tonegod.emitter.particle.ParticleData;
  *
  * @author t0neg0d, JavaSaBr
  */
-public interface ParticleInfluencer extends Savable, Cloneable {
+public interface ParticleInfluencer<T extends InfluencerData> extends Savable, Cloneable {
 
     /**
      * Gets name.
@@ -33,14 +33,14 @@ public interface ParticleInfluencer extends Savable, Cloneable {
      * @param particleData The particle to update
      * @param tpf          The time since last frame
      */
-    void update(@NotNull ParticleData particleData, float tpf);
+    void update(@NotNull ParticleData particleData, T influencerData, float tpf);
 
     /**
      * Called when a particle is emitted.
      *
      * @param particleData The particle being emitted
      */
-    void initialize(@NotNull ParticleData particleData);
+    void initialize(@NotNull ParticleData particleData, T influencerData);
 
     /**
      * Called once the life span of the particle has been reached.

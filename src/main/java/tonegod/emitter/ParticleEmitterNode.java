@@ -1,8 +1,5 @@
 package tonegod.emitter;
 
-import static java.lang.Class.forName;
-import static java.util.Objects.requireNonNull;
-import static tonegod.emitter.material.ParticlesMaterial.PROP_TEXTURE;
 import com.jme3.animation.AnimChannel;
 import com.jme3.animation.AnimControl;
 import com.jme3.animation.LoopMode;
@@ -36,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import tonegod.emitter.EmitterMesh.DirectionType;
 import tonegod.emitter.geometry.EmitterShapeGeometry;
 import tonegod.emitter.geometry.ParticleGeometry;
+import tonegod.emitter.influencers.InfluencerData;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.material.ParticlesMaterial;
@@ -45,6 +43,14 @@ import tonegod.emitter.particle.*;
 import tonegod.emitter.shapes.TriangleEmitterShape;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
+import static java.lang.Class.forName;
+import static java.util.Objects.requireNonNull;
+import static tonegod.emitter.material.ParticlesMaterial.PROP_TEXTURE;
 
 /**
  * The implementation of a {@link Node} to emit particles.
@@ -53,6 +59,77 @@ import java.io.IOException;
  */
 @SuppressWarnings("WeakerAccess")
 public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable {
+
+
+    public class InfluencerInstance implements JmeCloneable {
+        private int id = -1;
+        private InfluencerData dataSample;
+        private ParticleInfluencer influencer;
+
+        private InfluencerInstance() { }
+
+        public InfluencerInstance(ParticleInfluencer influencer, Class<InfluencerData> dataClass) {
+            if(dataClass != null) {
+                this.id = reservations++;
+
+                try {
+                    Constructor<InfluencerData> constructor = dataClass.getDeclaredConstructor();
+                    constructor.setAccessible(true);
+                    this.dataSample = constructor.newInstance();
+                } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            this.influencer = influencer;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public ParticleInfluencer getInfluencer() {
+            return influencer;
+        }
+
+        public boolean hasData() {
+            return id >= 0;
+        }
+
+        public InfluencerData createData() {
+            return dataSample.create();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if(o instanceof ParticleInfluencer) {
+                return o.equals(influencer);
+            }
+
+            if (this == o) return true;
+
+            if (o == null || getClass() != o.getClass()) return false;
+
+            InfluencerInstance other = (InfluencerInstance) o;
+
+            return this.influencer.equals(other.influencer);
+        }
+
+        @Override
+        public int hashCode() {
+            return influencer.hashCode();
+        }
+
+        @Override
+        public Object jmeClone() {
+            try { return super.clone(); } catch (CloneNotSupportedException ex) { throw new RuntimeException(ex); }
+        }
+
+        @Override
+        public void cloneFields(Cloner cloner, Object original) {
+            influencer = cloner.clone(influencer);
+        }
+    }
 
     @NotNull
     private static final ParticleInfluencer[] EMPTY_INFLUENCERS = new ParticleInfluencer[0];
@@ -64,7 +141,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * The Influencers.
      */
     @NotNull
-    protected SafeArrayList<ParticleInfluencer> influencers;
+    protected SafeArrayList<InfluencerInstance> influencerInstances;
+    private int reservations;
 
     /**
      * The flags of this emitter.
@@ -449,7 +527,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         this.emissionPoint = EmissionPoint.CENTER;
         this.directionType = DirectionType.RANDOM;
         this.interpolation = Interpolation.LINEAR;
-        this.influencers = new SafeArrayList<>(ParticleInfluencer.class);
+        this.influencerInstances = new SafeArrayList<>(InfluencerInstance.class);
         this.particleDataMeshType = ParticleDataTriMesh.class;
         this.emitterShape = new EmitterMesh();
         this.particleGeometry = new ParticleGeometry("Particle Geometry");
@@ -1337,13 +1415,10 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void addInfluencers(@NotNull final ParticleInfluencer... newInfluencers) {
 
-        final SafeArrayList<ParticleInfluencer> influencers = getInfluencers();
-
         for (final ParticleInfluencer influencer : newInfluencers) {
-            influencers.add(influencer);
+            addInfluencer(influencer);
         }
 
-        requiresUpdate = true;
     }
 
     /**
@@ -1352,7 +1427,26 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param influencer The particle influencer to add to the chain
      */
     public void addInfluencer(@NotNull final ParticleInfluencer influencer) {
-        influencers.add(influencer);
+        Type type = influencer.getClass().getGenericSuperclass();
+
+        Class generic = null;
+        if(type instanceof ParameterizedType) {
+            generic = (Class) ((ParameterizedType) type).getActualTypeArguments()[0];
+        }
+
+//        Class generic = (Class) ((ParameterizedType)influencer.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+
+        InfluencerInstance influencerInstance = new InfluencerInstance(influencer, generic);
+        influencerInstances.add(influencerInstance);
+
+        if(isEmitterInitialized()) {
+            for(ParticleData particleData : particles) {
+                if(particleData.isActive()) {
+                    particleData.initializeInfluencer(influencerInstance);
+                }
+            }
+        }
+
         requiresUpdate = true;
     }
 
@@ -1364,23 +1458,27 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public void addInfluencer(@NotNull final ParticleInfluencer influencer, final int index) {
 
-        final SafeArrayList<ParticleInfluencer> temp = new SafeArrayList<>(ParticleInfluencer.class);
-        final SafeArrayList<ParticleInfluencer> influencers = getInfluencers();
+        final SafeArrayList<InfluencerInstance> aux = new SafeArrayList<>(InfluencerInstance.class);
+        final SafeArrayList<InfluencerInstance> influencerInstances = getInfluencerInstances();
+
+        aux.addAll(influencerInstances);
+
+        influencerInstances.clear();
 
         for (int i = 0; i < index; i++) {
-            temp.add(influencers.get(i));
+            influencerInstances.add(aux.get(i));
         }
 
-        temp.add(influencer);
+        addInfluencer(influencer);
 
-        for (int i = index, length = this.influencers.size(); i < length; i++) {
-            temp.add(influencers.get(i));
+        for (int i = index, length = this.influencerInstances.size(); i < length; i++) {
+            influencerInstances.add(aux.get(i));
         }
 
-        influencers.clear();
-        influencers.addAll(temp);
+//        influencers.clear();
+//        influencers.addAll(temp);
 
-        requiresUpdate = true;
+//        requiresUpdate = true;
     }
 
     /**
@@ -1389,7 +1487,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param influencer the influencer to remove.
      */
     public void removeInfluencer(@NotNull final ParticleInfluencer influencer) {
-        influencers.remove(influencer);
+        influencerInstances.remove(influencer);
         requiresUpdate = true;
     }
 
@@ -1398,8 +1496,20 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @return The Collection of particle influencers
      */
+    @Deprecated
     public @NotNull SafeArrayList<ParticleInfluencer> getInfluencers() {
+
+        SafeArrayList<ParticleInfluencer> influencers = new SafeArrayList<>(ParticleInfluencer.class);
+
+        for(InfluencerInstance influencerInstance : influencerInstances.getArray()) {
+            influencers.add(influencerInstance.getInfluencer());
+        }
+
         return influencers;
+    }
+
+    public @NotNull SafeArrayList<InfluencerInstance> getInfluencerInstances() {
+        return influencerInstances;
     }
 
     /**
@@ -1411,11 +1521,11 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     public @Nullable <T extends ParticleInfluencer> T getInfluencer(@NotNull final Class<T> type) {
 
-        final SafeArrayList<ParticleInfluencer> influencers = getInfluencers();
+        final SafeArrayList<InfluencerInstance> influencerInstances = getInfluencerInstances();
 
-        for (final ParticleInfluencer influencer : influencers.getArray()) {
-            if (type.isInstance(influencer)) {
-                return type.cast(influencer);
+        for (final InfluencerInstance influencerInstance : influencerInstances.getArray()) {
+            if (type.isInstance(influencerInstance.influencer)) {
+                return type.cast(influencerInstance.influencer);
             }
         }
 
@@ -1431,7 +1541,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public <T extends ParticleInfluencer> void removeInfluencer(@NotNull final Class<T> type) {
         final T influencer = getInfluencer(type);
         if (influencer == null) return;
-        influencers.remove(influencer);
+
+        influencerInstances.remove(influencer);
         requiresUpdate = true;
     }
 
@@ -1439,7 +1550,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * Removes all influencers
      */
     public void removeAllInfluencers() {
-        influencers.clear();
+        influencerInstances.clear();
         requiresUpdate = true;
     }
 
@@ -1895,7 +2006,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         emittedTime += tpf;
 
         for (final ParticleData particleData : particles) {
-            if (particleData.isActive()) particleData.update(tpf);
+            if (particleData.isActive()) {
+                particleData.update(tpf);
+            }
         }
 
         currentInterval += (tpf <= targetInterval) ? tpf : targetInterval;
@@ -2108,7 +2221,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         final OutputCapsule capsule = exporter.getCapsule(this);
 
-        capsule.write(influencers.toArray(new ParticleInfluencer[influencers.size()]), "influencers", EMPTY_INFLUENCERS);
+        SafeArrayList<ParticleInfluencer> influencers = getInfluencers();
+        capsule.write(influencers.getArray(), "influencers", EMPTY_INFLUENCERS);
         capsule.write(enabled, "enabled", true);
 
         // EMITTER
@@ -2168,9 +2282,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         attachChildAt(particleNode, particleIndex);
 
         final InputCapsule capsule = importer.getCapsule(this);
-        final Savable[] influencerses = capsule.readSavableArray("influencers", EMPTY_INFLUENCERS);
+        final Savable[] influencers = capsule.readSavableArray("influencers", EMPTY_INFLUENCERS);
 
-        for (final Savable influencer : influencerses) {
+        for (final Savable influencer : influencers) {
             addInfluencer((ParticleInfluencer) influencer);
         }
 
@@ -2248,11 +2362,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public void cloneFields(@NotNull final Cloner cloner, @NotNull final Object original) {
         super.cloneFields(cloner, original);
 
-        influencers = cloner.clone(influencers);
-
-        for (int i = 0; i < influencers.size(); i++) {
-            influencers.set(i, cloner.clone(influencers.get(i)));
-        }
+        influencerInstances = cloner.clone(influencerInstances);
 
         emitterShape = cloner.clone(emitterShape);
         emitterShapeTestGeometry = null;

@@ -1,7 +1,5 @@
 package tonegod.emitter.influencers.impl;
 
-import static tonegod.emitter.util.RandomUtils.getRandom;
-import static tonegod.emitter.util.RandomUtils.nextRandomInt;
 import com.jme3.export.*;
 import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
@@ -13,14 +11,15 @@ import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
 
+import static tonegod.emitter.util.RandomUtils.getRandom;
+import static tonegod.emitter.util.RandomUtils.nextRandomInt;
+
 /**
  * The implementation of the {@link ParticleInfluencer} to change destinations of particles.
  *
  * @author t0neg0d, JavaSaBr
  */
-public class DestinationInfluencer extends AbstractInterpolatedParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+public class DestinationInfluencer extends AbstractInterpolatedParticleInfluencer<BaseInterpolationData> {
 
     /**
      * The list of destinations.
@@ -63,9 +62,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+    protected void updateImpl(@NotNull final ParticleData particleData, final BaseInterpolationData data, final float tpf) {
         data.interval += tpf;
 
         if (data.index >= destinations.size()) {
@@ -107,11 +104,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
-
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
-
+    protected void initializeImpl(@NotNull final ParticleData particleData, final BaseInterpolationData data) {
         if (isRandomStartDestination()) {
             data.index = nextRandomInt(getRandom(), 0, destinations.size() - 1);
         } else {

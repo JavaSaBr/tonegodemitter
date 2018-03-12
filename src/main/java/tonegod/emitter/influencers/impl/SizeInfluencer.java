@@ -12,24 +12,13 @@ import tonegod.emitter.util.RandomUtils;
 
 import java.io.IOException;
 import java.util.Random;
-import java.util.concurrent.Callable;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to change size of particles.
  *
  * @author t0neg0d, JavaSaBr
  */
-public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
-
-    @NotNull
-    protected static final Callable<SizeInfluencerData> DATA_FACTORY = new Callable<SizeInfluencerData>() {
-        @Override
-        public SizeInfluencerData call() throws Exception {
-            return new SizeInfluencerData();
-        }
-    };
+public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer<SizeInfluencer.SizeInfluencerData> {
 
     protected static class SizeInfluencerData extends BaseInterpolationData {
 
@@ -48,6 +37,11 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
         private SizeInfluencerData() {
             this.startSize = new Vector3f(1, 1, 1);
             this.endSize = new Vector3f(0, 0, 0);
+        }
+
+        @Override
+        public SizeInfluencerData create() {
+            return new SizeInfluencerData();
         }
     }
 
@@ -88,9 +82,8 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleData particleData, SizeInfluencerData data, final float tpf) {
 
-        final SizeInfluencerData data = particleData.getObjectData(DATA_ID);
         data.interval += tpf;
 
         if (data.index >= sizes.size()) {
@@ -106,7 +99,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
         blend = interpolation.apply(data.interval / data.duration);
         particleData.size.interpolateLocal(data.startSize, data.endSize, blend);
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(particleData, data, tpf);
     }
 
     /**
@@ -145,11 +138,9 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
+    protected void initializeImpl(@NotNull final ParticleData particleData, SizeInfluencerData data) {
 
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        final SizeInfluencerData data = particleData.getObjectData(DATA_ID);
         data.index = 0;
         data.interval = 0F;
         data.duration = isCycle() ? getFixedDuration() :
@@ -159,7 +150,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
 
         data.interpolation = interpolations.get(data.index);
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**

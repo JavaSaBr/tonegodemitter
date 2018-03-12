@@ -6,6 +6,7 @@ import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
+import tonegod.emitter.influencers.InfluencerData;
 import tonegod.emitter.influencers.InterpolatedParticleInfluencer;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
@@ -13,51 +14,13 @@ import tonegod.emitter.interpolation.InterpolationManager;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * The base implementation of the {@link InterpolatedParticleInfluencer}.
  *
  * @author JavaSaBr
  */
-public abstract class AbstractInterpolatedParticleInfluencer extends AbstractParticleInfluencer implements InterpolatedParticleInfluencer {
-
-    @NotNull
-    protected static final Callable<BaseInterpolationData> DATA_FACTORY = new Callable<BaseInterpolationData>() {
-        @Override
-        public BaseInterpolationData call() throws Exception {
-            return new BaseInterpolationData();
-        }
-    };
-
-    protected static class BaseInterpolationData {
-
-        /**
-         * The interpolation.
-         */
-        @NotNull
-        Interpolation interpolation;
-
-        /**
-         * The index.
-         */
-        int index;
-
-        /**
-         * The interval.
-         */
-        float interval;
-
-        /**
-         * The duration.
-         */
-        float duration;
-
-        protected BaseInterpolationData() {
-            this.duration = 1f;
-            this.interpolation = Interpolation.LINEAR;
-        }
-    }
+public abstract class AbstractInterpolatedParticleInfluencer<T extends InfluencerData> extends AbstractParticleInfluencer<T> implements InterpolatedParticleInfluencer<T> {
 
     /**
      * The list of interpolations.
