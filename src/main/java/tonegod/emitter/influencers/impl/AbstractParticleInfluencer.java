@@ -5,6 +5,7 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import org.jetbrains.annotations.NotNull;
+import tonegod.emitter.influencers.InfluencerData;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
@@ -15,7 +16,7 @@ import java.io.IOException;
  *
  * @author JavaSaBr
  */
-public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
+public abstract class AbstractParticleInfluencer<T extends InfluencerData> implements ParticleInfluencer<T> {
 
     /**
      * The flag of enabling this influencer.
@@ -36,14 +37,14 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void initialize(@NotNull final ParticleData particleData) {
+    public void initialize(@NotNull final ParticleData particleData, final T influencerData) {
 
         if (!isInitialized()) {
             firstInitializeImpl(particleData);
             setInitialized(true);
         }
 
-        initializeImpl(particleData);
+        initializeImpl(particleData, influencerData);
     }
 
     /**
@@ -58,14 +59,15 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
      * Handle initializing this influencer.
      *
      * @param particleData the particle data
+     * @param influencerData
      */
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(@NotNull final ParticleData particleData, T influencerData) {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
+    public void update(@NotNull final ParticleData particleData, final T influencerData, final float tpf) {
         if (!isEnabled()) return;
-        updateImpl(particleData, tpf);
+        updateImpl(particleData, influencerData, tpf);
     }
 
     /**
@@ -74,7 +76,7 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
      * @param particleData the particle data
      * @param tpf          the tpf
      */
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleData particleData, final T influencerData, final float tpf) {
 
     }
 

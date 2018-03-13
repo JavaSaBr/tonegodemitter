@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
+import tonegod.emitter.influencers.InfluencerData;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
@@ -29,9 +30,7 @@ import java.util.concurrent.Callable;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class PhysicsInfluencer extends AbstractParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+public class PhysicsInfluencer extends AbstractParticleInfluencer<PhysicsInfluencer.PhysicsInfluencerData> {
 
     @NotNull
     protected static final Callable<PhysicsInfluencerData> DATA_FACTORY = new Callable<PhysicsInfluencerData>() {
@@ -41,7 +40,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
         }
     };
 
-    protected static class PhysicsInfluencerData {
+    protected static class PhysicsInfluencerData implements InfluencerData<PhysicsInfluencerData> {
 
         /**
          * The flag.
@@ -54,6 +53,11 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
         public float interval;
 
         private PhysicsInfluencerData() {
+        }
+
+        @Override
+        public PhysicsInfluencerData create() {
+            return new PhysicsInfluencerData();
         }
     }
 
@@ -230,12 +234,10 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-
-        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
+    protected void updateImpl(@NotNull final ParticleData particleData, final PhysicsInfluencerData data, final float tpf) {
 
         if (!data.collision) {
-            findCollisions(particleData, tpf);
+            findCollisions(particleData, data, tpf);
         } else {
             data.interval += tpf;
             if (data.interval >= collisionThreshold) {
@@ -244,7 +246,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
             }
         }
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(particleData, data, tpf);
     }
 
     /**
@@ -262,9 +264,8 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      * @param particleData the particle data.
      * @param tpf          the tpf.
      */
-    private void findCollisions(final @NotNull ParticleData particleData, final float tpf) {
+    private void findCollisions(final @NotNull ParticleData particleData, final PhysicsInfluencerData data, final float tpf) {
 
-        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
         final CollisionReaction collisionReaction = getCollisionReaction();
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         final GeometryList geometries = getGeometries();
@@ -325,14 +326,11 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
-
-        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
+    protected void initializeImpl(@NotNull final ParticleData particleData, final PhysicsInfluencerData data) {
         data.collision = false;
         data.interval = 0;
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**

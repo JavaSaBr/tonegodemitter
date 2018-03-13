@@ -1,6 +1,5 @@
 package tonegod.emitter.influencers.impl;
 
-import static com.jme3.math.FastMath.interpolateLinear;
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
@@ -15,14 +14,14 @@ import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
 
+import static com.jme3.math.FastMath.interpolateLinear;
+
 /**
  * The implementation of the {@link ParticleInfluencer} to change alpha of particles.
  *
  * @author t0neg0d, JavaSaBr
  */
-public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluencer<BaseInterpolationData> {
 
     /**
      * The list of alphas.
@@ -51,9 +50,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+    protected void updateImpl(@NotNull final ParticleData particleData, final BaseInterpolationData data, final float tpf) {
         data.interval += tpf;
 
         if (data.index >= alphas.size()) {
@@ -82,7 +79,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
 
         particleData.alpha = interpolateLinear(blend, startAlpha, endAlpha);
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(particleData, data, tpf);
     }
 
     @Override
@@ -101,10 +98,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
-
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+    protected void initializeImpl(@NotNull final ParticleData particleData, final BaseInterpolationData data) {
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
 
         if (isRandomStartAlpha()) {
@@ -120,7 +114,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
 
         data.interpolation = interpolations.get(data.index);
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**

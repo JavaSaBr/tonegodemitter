@@ -1,6 +1,5 @@
 package tonegod.emitter.influencers.impl;
 
-import static tonegod.emitter.influencers.impl.AbstractInterpolatedParticleInfluencer.DATA_FACTORY;
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
@@ -11,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
-import tonegod.emitter.influencers.impl.AbstractInterpolatedParticleInfluencer.BaseInterpolationData;
 import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
@@ -21,9 +19,7 @@ import java.io.IOException;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class SpriteInfluencer extends AbstractParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+public class SpriteInfluencer extends AbstractParticleInfluencer<BaseInterpolationData> {
 
     private transient float targetInterval;
 
@@ -70,19 +66,18 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
+    public void update(@NotNull final ParticleData particleData, final BaseInterpolationData data, final float tpf) {
 
         if (!isAnimate()) {
             return;
         }
 
-        super.update(particleData, tpf);
+        super.update(particleData, data, tpf);
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleData particleData, final BaseInterpolationData data, final float tpf) {
 
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
         data.interval += tpf;
 
         targetInterval = isCycle() ? (fixedDuration / 100F) : data.duration;
@@ -91,7 +86,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
             updateFrame(data, particleData);
         }
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(particleData, data, tpf);
     }
 
     /**
@@ -135,11 +130,9 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
+    protected void initializeImpl(@NotNull final ParticleData particleData, BaseInterpolationData data) {
 
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
 
         final int spriteRowCount = emitterNode.getSpriteRowCount();
         final int spriteColCount = emitterNode.getSpriteColCount();
@@ -189,7 +182,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
             data.duration = particleData.startLife / (float) frameSequence.length;
         }
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**

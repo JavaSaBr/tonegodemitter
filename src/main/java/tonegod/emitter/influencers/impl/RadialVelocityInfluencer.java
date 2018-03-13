@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
+import tonegod.emitter.influencers.InfluencerData;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 import tonegod.emitter.util.RandomUtils;
@@ -22,9 +23,16 @@ import java.util.Random;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
+public class RadialVelocityInfluencer extends AbstractParticleInfluencer<RadialVelocityInfluencer.RadialInfluencerData> {
 
-    private static final int TANGENT_FORCE_ID = ParticleData.reserveFloatDataId();
+    protected static class RadialInfluencerData implements InfluencerData<RadialInfluencerData> {
+        float tangentForce;
+
+        @Override
+        public RadialInfluencerData create() {
+            return new RadialInfluencerData();
+        }
+    }
 
     /**
      * The list of radial pull alignments.
@@ -252,7 +260,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleData particleData, final RadialInfluencerData data, final float tpf) {
 
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         final EmitterMesh emitterShape = emitterNode.getEmitterShape();
@@ -278,13 +286,13 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         tangent.set(store)
                 .crossLocal(left)
                 .normalizeLocal()
-                .multLocal(particleData.getFloatData(TANGENT_FORCE_ID))
+                .multLocal(data.tangentForce)
                 .multLocal(tpf);
 
         particleData.velocity.subtractLocal(tangent);
         particleData.velocity.addLocal(store.mult(radialPull, tempStore));
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(particleData, data, tpf);
     }
 
     /**
@@ -366,22 +374,18 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(@NotNull final ParticleData particleData, final RadialInfluencerData data) {
 
         if (!isRandomDirection()) {
-            particleData.initializeFloatData(TANGENT_FORCE_ID, tangentForce);
+            data.tangentForce = tangentForce;
             return;
         }
 
         final Random random = RandomUtils.getRandom();
 
-        if (random.nextBoolean()) {
-            particleData.initializeFloatData(TANGENT_FORCE_ID, tangentForce);
-        } else {
-            particleData.initializeFloatData(TANGENT_FORCE_ID, -tangentForce);
-        }
+        data.tangentForce = random.nextBoolean() ? tangentForce : -tangentForce;
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**
