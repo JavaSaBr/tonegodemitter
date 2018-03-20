@@ -82,7 +82,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+        final BaseInterpolationData data = particleData.getData(DATA_ID);
         data.interval += tpf;
 
         targetInterval = isCycle() ? (fixedDuration / 100F) : data.duration;
@@ -136,10 +136,10 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
+        particleData.initializeData(DATA_ID, DATA_FACTORY);
 
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+        final BaseInterpolationData data = particleData.getData(DATA_ID);
 
         final int spriteRowCount = emitterNode.getSpriteRowCount();
         final int spriteColCount = emitterNode.getSpriteColCount();

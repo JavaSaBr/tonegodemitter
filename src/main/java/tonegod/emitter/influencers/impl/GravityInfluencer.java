@@ -131,7 +131,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
                 break;
             }
             case REVERSE_VELOCITY: {
-                store.set(particleData.getReverseVelocity()).multLocal(tpf);
+                store.set(particleData.getReversedVelocity()).multLocal(tpf);
                 velocity.addLocal(store);
                 break;
             }
@@ -179,7 +179,7 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
                 .negateLocal()
                 .multLocal(magnitude);
 
-        particleData.reverseVelocity.set(store);
+        particleData.reversedVelocity.set(store);
 
         super.initializeImpl(particleData);
     }

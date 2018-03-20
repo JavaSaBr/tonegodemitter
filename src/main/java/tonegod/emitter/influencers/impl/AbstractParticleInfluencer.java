@@ -5,6 +5,8 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
@@ -15,7 +17,7 @@ import java.io.IOException;
  *
  * @author JavaSaBr
  */
-public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
+public abstract class AbstractParticleInfluencer<D> implements ParticleInfluencer<D> {
 
     /**
      * The flag of enabling this influencer.
@@ -32,11 +34,25 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void reset(@NotNull final ParticleData particleData) {
+    public @NotNull D newDataObject() {
+        throw new IllegalStateException("This influencer doesn't use its own data object.");
     }
 
     @Override
-    public void initialize(@NotNull final ParticleData particleData) {
+    public boolean isUsedDataObject() {
+        return false;
+    }
+
+    @Override
+    public void reset(@NotNull final ParticleEmitterNode emitterNode,
+                      @NotNull final ParticleData particleData,
+                      final int dataId) {
+    }
+
+    @Override
+    public void initialize(@NotNull final ParticleEmitterNode emitterNode,
+                           @NotNull final ParticleData particleData,
+                           final int dataId) {
 
         if (!isInitialized()) {
             firstInitializeImpl(particleData);
@@ -44,6 +60,20 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
         }
 
         initializeImpl(particleData);
+    }
+
+    @Override
+    public void createData(@NotNull final ParticleEmitterNode emitterNode,
+                           @NotNull final ParticleData particleData,
+                           final int dataId) {
+
+    }
+
+    @Override
+    public void storeUsedData(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              final int dataId) {
+
     }
 
     /**
@@ -63,9 +93,14 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
-        if (!isEnabled()) return;
-        updateImpl(particleData, tpf);
+    public void update(@NotNull final ParticleEmitterNode emitterNode,
+                       @NotNull final ParticleData particleData,
+                       final int dataId,
+                       final float tpf) {
+
+        if (isEnabled()) {
+            updateImpl(emitterNode, particleData, tpf);
+        }
     }
 
     /**
@@ -74,7 +109,10 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
      * @param particleData the particle data
      * @param tpf          the tpf
      */
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              @Nullable final int dataId,
+                              final float tpf) {
 
     }
 

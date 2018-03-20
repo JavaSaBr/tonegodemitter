@@ -25,8 +25,8 @@ public final class ParticleDataPointMesh extends ParticleDataMesh {
     }
 
     @Override
-    public void initParticleData(@NotNull final ParticleEmitterNode particleEmitterNode, final int numParticles) {
-        super.initParticleData(particleEmitterNode, numParticles);
+    public void initialize(@NotNull final ParticleEmitterNode particleEmitterNode, final int numParticles) {
+        super.initialize(particleEmitterNode, numParticles);
 
         setMode(Mode.Points);
         preparePositionBuffer(numParticles);

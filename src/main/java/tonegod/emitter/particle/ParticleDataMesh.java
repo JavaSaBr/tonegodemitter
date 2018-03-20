@@ -97,7 +97,7 @@ public abstract class ParticleDataMesh extends Mesh {
      * @param emitterNode  The emitter which will use this <code>ParticleDataMesh</code>.
      * @param numParticles The maximum number of particles to simulate
      */
-    public void initParticleData(@NotNull final ParticleEmitterNode emitterNode, final int numParticles) {
+    public void initialize(@NotNull final ParticleEmitterNode emitterNode, final int numParticles) {
         this.emitterNode = emitterNode;
     }
 

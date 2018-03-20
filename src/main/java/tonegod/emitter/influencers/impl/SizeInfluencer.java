@@ -90,7 +90,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        final SizeInfluencerData data = particleData.getObjectData(DATA_ID);
+        final SizeInfluencerData data = particleData.getData(DATA_ID);
         data.interval += tpf;
 
         if (data.index >= sizes.size()) {
@@ -146,10 +146,10 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
+        particleData.initializeData(DATA_ID, DATA_FACTORY);
 
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        final SizeInfluencerData data = particleData.getObjectData(DATA_ID);
+        final SizeInfluencerData data = particleData.getData(DATA_ID);
         data.index = 0;
         data.interval = 0F;
         data.duration = isCycle() ? getFixedDuration() :

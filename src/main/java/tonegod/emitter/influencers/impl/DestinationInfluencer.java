@@ -65,7 +65,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+        final BaseInterpolationData data = particleData.getData(DATA_ID);
         data.interval += tpf;
 
         if (data.index >= destinations.size()) {
@@ -108,9 +108,9 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
+        particleData.initializeData(DATA_ID, DATA_FACTORY);
 
-        final BaseInterpolationData data = particleData.getObjectData(DATA_ID);
+        final BaseInterpolationData data = particleData.getData(DATA_ID);
 
         if (isRandomStartDestination()) {
             data.index = nextRandomInt(getRandom(), 0, destinations.size() - 1);

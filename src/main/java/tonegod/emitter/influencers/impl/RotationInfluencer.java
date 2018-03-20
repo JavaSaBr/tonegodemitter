@@ -140,7 +140,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        final RotationInfluencerData data = particleData.getObjectData(DATA_ID);
+        final RotationInfluencerData data = particleData.getData(DATA_ID);
         final Vector3f rotationSpeed = data.speed;
 
         if (speeds.size() > 1) {
@@ -215,9 +215,9 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
+        particleData.initializeData(DATA_ID, DATA_FACTORY);
 
-        final RotationInfluencerData data = particleData.getObjectData(DATA_ID);
+        final RotationInfluencerData data = particleData.getData(DATA_ID);
         data.index = 0;
         data.interval = 0f;
         data.duration = isCycle() ? getFixedDuration() : particleData.startLife / ((float) speeds.size() - 1);

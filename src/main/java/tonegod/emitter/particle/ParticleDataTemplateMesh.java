@@ -71,8 +71,8 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
     }
 
     @Override
-    public void initParticleData(@NotNull final ParticleEmitterNode emitterNode, final int numParticles) {
-        super.initParticleData(emitterNode, numParticles);
+    public void initialize(@NotNull final ParticleEmitterNode emitterNode, final int numParticles) {
+        super.initialize(emitterNode, numParticles);
 
         setMode(Mode.Triangles);
         setUniqueTexCoords(false);

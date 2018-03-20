@@ -232,7 +232,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     @Override
     protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
-        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
+        final PhysicsInfluencerData data = particleData.getData(DATA_ID);
 
         if (!data.collision) {
             findCollisions(particleData, tpf);
@@ -264,7 +264,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
      */
     private void findCollisions(final @NotNull ParticleData particleData, final float tpf) {
 
-        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
+        final PhysicsInfluencerData data = particleData.getData(DATA_ID);
         final CollisionReaction collisionReaction = getCollisionReaction();
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         final GeometryList geometries = getGeometries();
@@ -326,9 +326,9 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
 
     @Override
     protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeObjectData(DATA_ID, DATA_FACTORY);
+        particleData.initializeData(DATA_ID, DATA_FACTORY);
 
-        final PhysicsInfluencerData data = particleData.getObjectData(DATA_ID);
+        final PhysicsInfluencerData data = particleData.getData(DATA_ID);
         data.collision = false;
         data.interval = 0;
 
