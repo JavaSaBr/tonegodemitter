@@ -39,17 +39,6 @@ public abstract class AbstractParticleInfluencer<D> implements ParticleInfluence
     }
 
     @Override
-    public boolean isUsedDataObject() {
-        return false;
-    }
-
-    @Override
-    public void reset(@NotNull final ParticleEmitterNode emitterNode,
-                      @NotNull final ParticleData particleData,
-                      final int dataId) {
-    }
-
-    @Override
     public void initialize(@NotNull final ParticleEmitterNode emitterNode,
                            @NotNull final ParticleData particleData,
                            final int dataId) {
@@ -58,8 +47,6 @@ public abstract class AbstractParticleInfluencer<D> implements ParticleInfluence
             firstInitializeImpl(particleData);
             setInitialized(true);
         }
-
-        initializeImpl(particleData);
     }
 
     @Override
@@ -67,13 +54,15 @@ public abstract class AbstractParticleInfluencer<D> implements ParticleInfluence
                            @NotNull final ParticleData particleData,
                            final int dataId) {
 
+        if (isUsedDataObject()) {
+            particleData.initializeData(this, dataId, emitterNode.getParticleDataSize());
+        }
     }
 
     @Override
     public void storeUsedData(@NotNull final ParticleEmitterNode emitterNode,
                               @NotNull final ParticleData particleData,
                               final int dataId) {
-
     }
 
     /**
@@ -82,38 +71,6 @@ public abstract class AbstractParticleInfluencer<D> implements ParticleInfluence
      * @param particleData the particle data.
      */
     protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
-    }
-
-    /**
-     * Handle initializing this influencer.
-     *
-     * @param particleData the particle data
-     */
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-    }
-
-    @Override
-    public void update(@NotNull final ParticleEmitterNode emitterNode,
-                       @NotNull final ParticleData particleData,
-                       final int dataId,
-                       final float tpf) {
-
-        if (isEnabled()) {
-            updateImpl(emitterNode, particleData, tpf);
-        }
-    }
-
-    /**
-     * Handle update a state of this influencer.
-     *
-     * @param particleData the particle data
-     * @param tpf          the tpf
-     */
-    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
-                              @NotNull final ParticleData particleData,
-                              @Nullable final int dataId,
-                              final float tpf) {
-
     }
 
     @Override
@@ -127,6 +84,8 @@ public abstract class AbstractParticleInfluencer<D> implements ParticleInfluence
     }
 
     /**
+     * Returns true if this influencer is initialized.
+     *
      * @return true if this influencer is initialized.
      */
     private boolean isInitialized() {
@@ -134,6 +93,8 @@ public abstract class AbstractParticleInfluencer<D> implements ParticleInfluence
     }
 
     /**
+     * Sets the flag of initializing this influencer.
+     *
      * @param initialized the flag of initializing this influencer.
      */
     private void setInitialized(final boolean initialized) {

@@ -9,7 +9,7 @@ import tonegod.emitter.interpolation.Interpolation;
  *
  * @author JavaSaBr
  */
-public interface InterpolatedParticleInfluencer extends ParticleInfluencer {
+public interface InterpolatedParticleInfluencer<D> extends ParticleInfluencer<D> {
 
     /**
      * Get the count of interpolation steps.

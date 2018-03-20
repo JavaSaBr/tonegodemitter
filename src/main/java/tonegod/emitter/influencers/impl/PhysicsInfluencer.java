@@ -29,17 +29,7 @@ import java.util.concurrent.Callable;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class PhysicsInfluencer extends AbstractParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
-
-    @NotNull
-    protected static final Callable<PhysicsInfluencerData> DATA_FACTORY = new Callable<PhysicsInfluencerData>() {
-        @Override
-        public PhysicsInfluencerData call() throws Exception {
-            return new PhysicsInfluencerData();
-        }
-    };
+public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<PhysicsInfluencer.PhysicsInfluencerData> {
 
     protected static class PhysicsInfluencerData {
 
@@ -230,12 +220,13 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-
-        final PhysicsInfluencerData data = particleData.getData(DATA_ID);
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              @NotNull final PhysicsInfluencer.PhysicsInfluencerData data,
+                              final float tpf) {
 
         if (!data.collision) {
-            findCollisions(particleData, tpf);
+            findCollisions(emitterNode, particleData, data, tpf);
         } else {
             data.interval += tpf;
             if (data.interval >= collisionThreshold) {
@@ -244,11 +235,11 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
             }
         }
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(emitterNode, particleData, data, tpf);
     }
 
     /**
-     * Get the collision results.
+     * Gets the collision results.
      *
      * @return the collision results.
      */
@@ -257,16 +248,19 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Find collisions.
+     * Finds collisions.
      *
+     * @param emitterNode  the emitter node.
      * @param particleData the particle data.
+     * @param data         the influence's data.
      * @param tpf          the tpf.
      */
-    private void findCollisions(final @NotNull ParticleData particleData, final float tpf) {
+    private void findCollisions(@NotNull final ParticleEmitterNode emitterNode,
+                                @NotNull final ParticleData particleData,
+                                @NotNull final PhysicsInfluencerData data,
+                                final float tpf) {
 
-        final PhysicsInfluencerData data = particleData.getData(DATA_ID);
         final CollisionReaction collisionReaction = getCollisionReaction();
-        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         final GeometryList geometries = getGeometries();
         final CollisionResults results = getResults();
 
@@ -278,7 +272,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
                     results.clear();
                 }
 
-                updateCollisionShape(particleData, tpf);
+                updateCollisionShape(emitterNode, particleData, tpf);
 
                 geometry.collideWith(geom.getWorldBound(), results);
 
@@ -325,25 +319,24 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeData(DATA_ID, DATA_FACTORY);
-
-        final PhysicsInfluencerData data = particleData.getData(DATA_ID);
+    protected void initializeImpl(@NotNull ParticleData particleData,
+                                  @NotNull PhysicsInfluencer.PhysicsInfluencerData data) {
         data.collision = false;
         data.interval = 0;
-
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**
-     * Update collision shape.
+     * Updates collision shape.
      *
+     * @param emitterNode  the emitter node.
      * @param particleData the particle data.
      * @param tpf          the tpf.
      */
-    private void updateCollisionShape(@NotNull final ParticleData particleData, final float tpf) {
+    private void updateCollisionShape(@NotNull final ParticleEmitterNode emitterNode,
+                                      @NotNull final ParticleData particleData,
+                                      final float tpf) {
 
-        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         final Vector3f translation = tempVec.set(particleData.position)
                 .addLocal(emitterNode.getLocalTranslation());
 
@@ -358,7 +351,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Add a geometry to this influencer.
+     * Adds a geometry to this influencer.
      *
      * @param geometry the geometry.
      */
@@ -374,7 +367,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Remove a last geometry.
+     * Removes a last geometry.
      */
     public void removeLast() {
 
@@ -387,7 +380,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Remove a geometry from this influencer.
+     * Removes a geometry from this influencer.
      *
      * @param geometry the geometry.
      */
@@ -416,7 +409,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Get a geometry list.
+     * Gets a geometry list.
      *
      * @return the list of geometries.
      */
@@ -452,7 +445,7 @@ public class PhysicsInfluencer extends AbstractParticleInfluencer {
     }
 
     /**
-     * Get the collision reaction.
+     * Gets the collision reaction.
      *
      * @return the collision reaction.
      */

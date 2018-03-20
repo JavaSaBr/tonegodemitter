@@ -9,7 +9,9 @@ import com.jme3.math.FastMath;
 import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.Messages;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
+import tonegod.emitter.influencers.impl.AbstractInterpolatedParticleInfluencer.BaseInterpolationData;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 
@@ -20,9 +22,7 @@ import java.io.IOException;
  *
  * @author t0neg0d, JavaSaBr
  */
-public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluencer<BaseInterpolationData> {
 
     /**
      * The list of alphas.
@@ -51,9 +51,16 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    public @NotNull BaseInterpolationData newDataObject() {
+        return new BaseInterpolationData();
+    }
 
-        final BaseInterpolationData data = particleData.getData(DATA_ID);
+    @Override
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              @NotNull final BaseInterpolationData data,
+                              final float tpf) {
+
         data.interval += tpf;
 
         if (data.index >= alphas.size()) {
@@ -82,7 +89,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
 
         particleData.alpha = interpolateLinear(blend, startAlpha, endAlpha);
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(emitterNode, particleData, data, tpf);
     }
 
     @Override
@@ -101,10 +108,9 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeData(DATA_ID, DATA_FACTORY);
+    protected void initializeImpl(@NotNull final ParticleData particleData,
+                                  @NotNull final BaseInterpolationData data) {
 
-        final BaseInterpolationData data = particleData.getData(DATA_ID);
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
 
         if (isRandomStartAlpha()) {
@@ -120,11 +126,11 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
 
         data.interpolation = interpolations.get(data.index);
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**
-     * Return true if enabled using random start alpha.
+     * Returns true if enabled using random start alpha.
      *
      * @return true if enabled using random start alpha.
      */
@@ -133,9 +139,11 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    public void reset(@NotNull final ParticleData particleData) {
+    public void resetImpl(@NotNull final ParticleEmitterNode emitterNode,
+                          @NotNull final ParticleData particleData,
+                          @NotNull final BaseInterpolationData data) {
         particleData.alpha = 0;
-        super.reset(particleData);
+        super.resetImpl(emitterNode, particleData, data);
     }
 
     /**
@@ -169,7 +177,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Get the alpha step by the index.
+     * Gets the alpha step by the index.
      *
      * @param index the index.
      * @return the alpha for the index.
@@ -179,7 +187,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Change the alpha step by the index.
+     * Changes the alpha step by the index.
      *
      * @param alpha the new alpha step.
      * @param index the index.
@@ -189,7 +197,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Remove the last alpha and interpolation.
+     * Removes the last alpha and interpolation.
      */
     public void removeLast() {
 
@@ -205,7 +213,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Remove the alpha step value at the given index.
+     * Removes the alpha step value at the given index.
      *
      * @param index the index.
      */

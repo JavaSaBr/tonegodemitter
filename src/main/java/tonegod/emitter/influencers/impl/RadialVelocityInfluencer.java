@@ -22,9 +22,11 @@ import java.util.Random;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
+public class RadialVelocityInfluencer extends AbstractWithDataParticleInfluencer<RadialVelocityInfluencer.RadialVelocityData> {
 
-    private static final int TANGENT_FORCE_ID = ParticleData.reserveFloatDataId();
+    protected static class RadialVelocityData {
+        private float tangentForce;
+    }
 
     /**
      * The list of radial pull alignments.
@@ -252,9 +254,16 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    public @NotNull RadialVelocityInfluencer.RadialVelocityData newDataObject() {
+        return new RadialVelocityData();
+    }
 
-        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
+    @Override
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              @NotNull final RadialVelocityInfluencer.RadialVelocityData data,
+                              final float tpf) {
+
         final EmitterMesh emitterShape = emitterNode.getEmitterShape();
         final Quaternion localRotation = emitterNode.getLocalRotation();
 
@@ -262,29 +271,30 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
         processCenter(particleData);
 
         store.subtractLocal(particleData.getPosition())
-                .normalizeLocal()
-                .multLocal(particleData.getInitialLength() * radialPull)
-                .multLocal(tpf);
+            .normalizeLocal()
+            .multLocal(particleData.getInitialLength() * radialPull)
+            .multLocal(tpf);
 
         processUpAlignment(emitterNode, emitterShape);
 
         up.set(store).crossLocal(upStore)
-                .normalizeLocal()
-                .set(localRotation.mult(up, tempStore));
+            .normalizeLocal()
+            .set(localRotation.mult(up, tempStore));
 
         left.set(store).crossLocal(up)
-                .normalizeLocal();
+            .normalizeLocal();
 
         tangent.set(store)
-                .crossLocal(left)
-                .normalizeLocal()
-                .multLocal(particleData.getFloatData(TANGENT_FORCE_ID))
-                .multLocal(tpf);
+            .crossLocal(left)
+            .normalizeLocal()
+            .multLocal(data.tangentForce)
+            .multLocal(tpf);
 
         particleData.velocity.subtractLocal(tangent);
         particleData.velocity.addLocal(store.mult(radialPull, tempStore));
 
-        super.updateImpl(particleData, tpf);
+
+        super.updateImpl(emitterNode, particleData, data, tpf);
     }
 
     /**
@@ -366,22 +376,23 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(@NotNull final ParticleData particleData,
+                                  @NotNull final RadialVelocityInfluencer.RadialVelocityData data) {
 
         if (!isRandomDirection()) {
-            particleData.initializeFloatData(TANGENT_FORCE_ID, tangentForce);
+            data.tangentForce = tangentForce;
             return;
         }
 
         final Random random = RandomUtils.getRandom();
 
         if (random.nextBoolean()) {
-            particleData.initializeFloatData(TANGENT_FORCE_ID, tangentForce);
+            data.tangentForce = tangentForce;
         } else {
-            particleData.initializeFloatData(TANGENT_FORCE_ID, -tangentForce);
+            data.tangentForce = -tangentForce;
         }
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**

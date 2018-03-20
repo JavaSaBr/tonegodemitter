@@ -6,6 +6,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.Messages;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
@@ -20,17 +21,7 @@ import java.util.concurrent.Callable;
  *
  * @author t0neg0d, JavaSaBr
  */
-public final class RotationInfluencer extends AbstractInterpolatedParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
-
-    @NotNull
-    protected static final Callable<RotationInfluencerData> DATA_FACTORY = new Callable<RotationInfluencerData>() {
-        @Override
-        public RotationInfluencerData call() throws Exception {
-            return new RotationInfluencerData();
-        }
-    };
+public final class RotationInfluencer extends AbstractInterpolatedParticleInfluencer<RotationInfluencer.RotationInfluencerData> {
 
     protected static class RotationInfluencerData extends BaseInterpolationData {
 
@@ -138,9 +129,16 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    public @NotNull RotationInfluencer.RotationInfluencerData newDataObject() {
+        return new RotationInfluencerData();
+    }
 
-        final RotationInfluencerData data = particleData.getData(DATA_ID);
+    @Override
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              @NotNull final RotationInfluencer.RotationInfluencerData data,
+                              final float tpf) {
+
         final Vector3f rotationSpeed = data.speed;
 
         if (speeds.size() > 1) {
@@ -167,7 +165,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
 
         particleData.angles.addLocal(rotationSpeed.mult(tpf, store));
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(emitterNode, particleData, data, tpf);
     }
 
     /**
@@ -214,10 +212,9 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeData(DATA_ID, DATA_FACTORY);
+    protected void initializeImpl(@NotNull final ParticleData particleData,
+                                  @NotNull final RotationInfluencer.RotationInfluencerData data) {
 
-        final RotationInfluencerData data = particleData.getData(DATA_ID);
         data.index = 0;
         data.interval = 0f;
         data.duration = isCycle() ? getFixedDuration() : particleData.startLife / ((float) speeds.size() - 1);
@@ -246,11 +243,11 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
             particleData.angles.set(0, 0, 0);
         }
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**
-     * Calculate random angles.
+     * Calculates random angles.
      *
      * @param particleData the particle data.
      */
@@ -265,7 +262,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     /**
-     * Calculate a next rotation speed.
+     * Calculates a next rotation speed.
      *
      * @param data  the influencer's data.
      * @param index the index.
@@ -291,9 +288,12 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     @Override
-    public void reset(@NotNull final ParticleData particleData) {
+    protected void resetImpl(@NotNull final ParticleEmitterNode emitterNode,
+                             @NotNull final ParticleData particleData,
+                             @NotNull final RotationInfluencer.RotationInfluencerData data
+    ) {
         particleData.angles.set(0, 0, 0);
-        super.reset(particleData);
+        super.resetImpl(emitterNode, particleData, data);
     }
 
     /**

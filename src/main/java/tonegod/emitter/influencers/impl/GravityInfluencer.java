@@ -19,7 +19,7 @@ import java.io.IOException;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class GravityInfluencer extends AbstractParticleInfluencer {
+public class GravityInfluencer extends AbstractWithoutDataParticleInfluencer {
 
     /**
      * The enum Gravity alignment.
@@ -108,18 +108,14 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              final float tpf) {
 
-        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         if (emitterNode.isStaticParticles()) {
+            super.updateImpl(emitterNode, particleData, tpf);
             return;
         }
-
-        super.update(particleData, tpf);
-    }
-
-    @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
 
         final Vector3f velocity = particleData.getVelocity();
         final Vector3f store = getStore();
@@ -137,18 +133,17 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
             }
             case EMISSION_POINT: {
 
-                final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
                 final EmitterMesh emitterShape = emitterNode.getEmitterShape();
                 emitterShape.setNext(particleData.triangleIndex);
 
                 if (emitterNode.isRandomEmissionPoint()) {
                     store.set(emitterShape.getNextTranslation()
-                            .addLocal(particleData.getRandomOffset()));
+                        .addLocal(particleData.getRandomOffset()));
                 } else {
                     store.set(emitterShape.getNextTranslation())
-                            .subtractLocal(particleData.getPosition())
-                            .multLocal(particleData.getInitialLength() * getMagnitude())
-                            .multLocal(tpf);
+                        .subtractLocal(particleData.getPosition())
+                        .multLocal(particleData.getInitialLength() * getMagnitude())
+                        .multLocal(tpf);
                 }
 
                 velocity.addLocal(store);
@@ -156,20 +151,19 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
             }
             case EMITTER_CENTER: {
 
-                final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
                 final EmitterMesh emitterShape = emitterNode.getEmitterShape();
 
                 store.set(emitterShape.getMesh().getBound().getCenter())
-                        .subtractLocal(particleData.getPosition())
-                        .multLocal(particleData.getInitialLength() * getMagnitude())
-                        .multLocal(tpf);
+                    .subtractLocal(particleData.getPosition())
+                    .multLocal(particleData.getInitialLength() * getMagnitude())
+                    .multLocal(tpf);
 
                 velocity.addLocal(store);
                 break;
             }
         }
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(emitterNode, particleData, tpf);
     }
 
     @Override
@@ -196,25 +190,25 @@ public class GravityInfluencer extends AbstractParticleInfluencer {
     /**
      * Returns the specified GravityAlignment
      *
-     * @return the alignment
+     * @return the alignment.
      */
     public final @NotNull GravityAlignment getAlignment() {
         return alignment;
     }
 
     /**
-     * Gravity multiplier
+     * Gravity multiplier.
      *
-     * @param magnitude the magnitude
+     * @param magnitude the magnitude.
      */
     public final void setMagnitude(final float magnitude) {
         this.magnitude = magnitude;
     }
 
     /**
-     * Returns the current magnitude
+     * Returns the current magnitude.
      *
-     * @return the magnitude
+     * @return the magnitude.
      */
     public final float getMagnitude() {
         return magnitude;

@@ -7,6 +7,7 @@ import com.jme3.export.OutputCapsule;
 import com.jme3.math.Vector3f;
 import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.Messages;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 import tonegod.emitter.util.RandomUtils;
@@ -19,7 +20,7 @@ import java.util.Random;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class ImpulseInfluencer extends AbstractParticleInfluencer {
+public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
 
     /**
      * The temp vector.
@@ -62,7 +63,9 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              final float tpf) {
 
         final Random random = RandomUtils.getRandom();
         if (random.nextFloat() <= 1 - (chance + tpf)) {
@@ -72,8 +75,8 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
         velocityStore.set(particleData.velocity);
 
         temp.set(random.nextFloat() * strength,
-                random.nextFloat() * strength,
-                random.nextFloat() * strength);
+            random.nextFloat() * strength,
+            random.nextFloat() * strength);
 
         if (random.nextBoolean()) temp.x = -temp.x;
         if (random.nextBoolean()) temp.y = -temp.y;
@@ -84,7 +87,8 @@ public class ImpulseInfluencer extends AbstractParticleInfluencer {
 
         particleData.velocity.interpolateLocal(velocityStore, magnitude);
 
-        super.updateImpl(particleData, tpf);
+
+        super.updateImpl(emitterNode, particleData, tpf);
     }
 
     /**

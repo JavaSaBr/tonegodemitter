@@ -41,7 +41,7 @@ public interface ParticleInfluencer<D> extends Savable, Cloneable {
     @NotNull D newDataObject();
 
     /**
-     * Create and put influencer's data to the particle data.
+     * Creates and puts influencer's data to the particle data.
      *
      * @param emitterNode  the particle emitter node.
      * @param particleData The particle data.
@@ -69,7 +69,7 @@ public interface ParticleInfluencer<D> extends Savable, Cloneable {
     void update(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId, float tpf);
 
     /**
-     * Initialize the particle data to work with this influencers.
+     * Initializes the particle data to be used from this influencers.
      *
      * @param emitterNode  the particle emitter node.
      * @param particleData The particle data.

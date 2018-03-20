@@ -5,6 +5,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.Messages;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
@@ -19,17 +20,7 @@ import java.util.concurrent.Callable;
  *
  * @author t0neg0d, JavaSaBr
  */
-public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
-
-    @NotNull
-    protected static final Callable<SizeInfluencerData> DATA_FACTORY = new Callable<SizeInfluencerData>() {
-        @Override
-        public SizeInfluencerData call() throws Exception {
-            return new SizeInfluencerData();
-        }
-    };
+public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer<SizeInfluencer.SizeInfluencerData> {
 
     protected static class SizeInfluencerData extends BaseInterpolationData {
 
@@ -88,9 +79,16 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    public @NotNull SizeInfluencer.SizeInfluencerData newDataObject() {
+        return new SizeInfluencerData();
+    }
 
-        final SizeInfluencerData data = particleData.getData(DATA_ID);
+    @Override
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              @NotNull final SizeInfluencer.SizeInfluencerData data,
+                              final float tpf) {
+
         data.interval += tpf;
 
         if (data.index >= sizes.size()) {
@@ -106,11 +104,11 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
         blend = interpolation.apply(data.interval / data.duration);
         particleData.size.interpolateLocal(data.startSize, data.endSize, blend);
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(emitterNode, particleData, data, tpf);
     }
 
     /**
-     * Update size.
+     * Updates the particle's size.
      *
      * @param data the influencer's data.
      * @param particleData the particle's data.
@@ -145,30 +143,31 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeData(DATA_ID, DATA_FACTORY);
+    protected void initializeImpl(@NotNull final ParticleData particleData,
+                                  @NotNull final SizeInfluencer.SizeInfluencerData data) {
 
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
-        final SizeInfluencerData data = particleData.getData(DATA_ID);
+
         data.index = 0;
         data.interval = 0F;
         data.duration = isCycle() ? getFixedDuration() :
-                particleData.startLife / ((float) interpolations.size() - 1 - data.index);
+            particleData.startLife / ((float) interpolations.size() - 1 - data.index);
 
         calculateNextSizeRange(data, particleData);
 
         data.interpolation = interpolations.get(data.index);
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**
-     * Calculate next size.
+     * Calculates next size.
      *
      * @param data the influencer's data.
      * @param particleData the particle's data.
      */
-    private void calculateNextSizeRange(@NotNull final SizeInfluencerData data, @NotNull final ParticleData particleData) {
+    private void calculateNextSizeRange(@NotNull final SizeInfluencerData data,
+                                        @NotNull final ParticleData particleData) {
 
         final SafeArrayList<Vector3f> sizes = getSizes();
 
@@ -216,13 +215,15 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     @Override
-    public void reset(@NotNull final ParticleData particleData) {
+    protected void resetImpl(@NotNull final ParticleEmitterNode emitterNode,
+                             @NotNull final ParticleData particleData,
+                             @NotNull final SizeInfluencer.SizeInfluencerData data) {
         particleData.size.set(1, 1, 1);
-        super.reset(particleData);
+        super.resetImpl(emitterNode, particleData, data);
     }
 
     /**
-     * Add the new size.
+     * Adds the new size.
      *
      * @param size the size.
      */
@@ -231,7 +232,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Add the new size.
+     * Adds the new size.
      *
      * @param size the size.
      */
@@ -240,7 +241,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Add the new size with the interpolation.
+     * Adds the new size with the interpolation.
      *
      * @param size          the size.
      * @param interpolation the interpolation.
@@ -250,7 +251,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Add the new size with the interpolation.
+     * Adds the new size with the interpolation.
      *
      * @param size          the size.
      * @param interpolation the interpolation.
@@ -261,7 +262,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Get the list of sizes.
+     * Gets the list of sizes.
      *
      * @return the list of sizes.
      */
@@ -270,7 +271,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Get size by the index.
+     * Gets size by the index.
      *
      * @param index the index.
      * @return the size by the index.
@@ -280,7 +281,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Set the size by the index.
+     * Sets the size by the index.
      *
      * @param size  the new size.
      * @param index the index.
@@ -290,7 +291,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Remove a size and interpolation for the index.
+     * Removes a size and interpolation for the index.
      *
      * @param index the index.
      */
@@ -300,7 +301,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Remove all sizes with interpolations.
+     * Removes all sizes with interpolations.
      */
     public void removeAll() {
         clearInterpolations();
@@ -308,7 +309,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Remove a last size and interpolation.
+     * Removes a last size and interpolation.
      */
     public void removeLast() {
 
@@ -333,7 +334,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Return true if the random size is enabled.
+     * Returns true if the random size is enabled.
      *
      * @return true if the random size is enabled.
      */

@@ -20,44 +20,8 @@ import java.util.concurrent.Callable;
  *
  * @author JavaSaBr
  */
-public abstract class AbstractInterpolatedParticleInfluencer extends AbstractParticleInfluencer implements InterpolatedParticleInfluencer {
-
-    @NotNull
-    protected static final Callable<BaseInterpolationData> DATA_FACTORY = new Callable<BaseInterpolationData>() {
-        @Override
-        public BaseInterpolationData call() throws Exception {
-            return new BaseInterpolationData();
-        }
-    };
-
-    protected static class BaseInterpolationData {
-
-        /**
-         * The interpolation.
-         */
-        @NotNull
-        Interpolation interpolation;
-
-        /**
-         * The index.
-         */
-        int index;
-
-        /**
-         * The interval.
-         */
-        float interval;
-
-        /**
-         * The duration.
-         */
-        float duration;
-
-        protected BaseInterpolationData() {
-            this.duration = 1f;
-            this.interpolation = Interpolation.LINEAR;
-        }
-    }
+public abstract class AbstractInterpolatedParticleInfluencer<D> extends AbstractWithDataParticleInfluencer<D>
+    implements InterpolatedParticleInfluencer<D> {
 
     /**
      * The list of interpolations.
@@ -82,6 +46,14 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
 
     public AbstractInterpolatedParticleInfluencer() {
         this.interpolations = new SafeArrayList<>(Interpolation.class);
+    }
+
+    @Override
+    public abstract @NotNull D newDataObject();
+
+    @Override
+    public boolean isUsedDataObject() {
+        return true;
     }
 
     /**

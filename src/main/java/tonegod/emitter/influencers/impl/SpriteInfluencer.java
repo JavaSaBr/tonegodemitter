@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
-import tonegod.emitter.influencers.impl.AbstractInterpolatedParticleInfluencer.BaseInterpolationData;
 import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
@@ -21,9 +20,7 @@ import java.io.IOException;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class SpriteInfluencer extends AbstractParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+public class SpriteInfluencer extends AbstractInterpolatedParticleInfluencer<BaseInterpolationData> {
 
     private transient float targetInterval;
 
@@ -70,39 +67,36 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              @NotNull final BaseInterpolationData data,
+                              final float tpf) {
 
         if (!isAnimate()) {
+            super.updateImpl(emitterNode, particleData, data, tpf);
             return;
         }
 
-        super.update(particleData, tpf);
-    }
-
-    @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-
-        final BaseInterpolationData data = particleData.getData(DATA_ID);
         data.interval += tpf;
 
         targetInterval = isCycle() ? (fixedDuration / 100F) : data.duration;
 
         if (data.interval >= targetInterval) {
-            updateFrame(data, particleData);
+            updateFrame(emitterNode, data, particleData);
         }
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(emitterNode, particleData, data, tpf);
     }
 
     /**
-     * Update a frame for the particle.
+     * Updates a frame for the particle.
      *
      * @param data         influencer's data.
      * @param particleData the particle's data.
      */
-    private void updateFrame(@NotNull final BaseInterpolationData data, @NotNull final ParticleData particleData) {
-
-        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
+    private void updateFrame(@NotNull final ParticleEmitterNode emitterNode,
+                             @NotNull final BaseInterpolationData data,
+                             @NotNull final ParticleData particleData) {
 
         if (frameSequence == null) {
 
@@ -135,8 +129,8 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeData(DATA_ID, DATA_FACTORY);
+    protected void initializeImpl(@NotNull final ParticleData particleData,
+                                  @NotNull final BaseInterpolationData data) {
 
         final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
         final BaseInterpolationData data = particleData.getData(DATA_ID);
@@ -189,7 +183,7 @@ public class SpriteInfluencer extends AbstractParticleInfluencer {
             data.duration = particleData.startLife / (float) frameSequence.length;
         }
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(particleData, data);
     }
 
     /**

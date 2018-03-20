@@ -7,7 +7,9 @@ import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
 import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.Messages;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
+import tonegod.emitter.influencers.impl.AbstractInterpolatedParticleInfluencer.BaseInterpolationData;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 
@@ -18,9 +20,7 @@ import java.io.IOException;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class DestinationInfluencer extends AbstractInterpolatedParticleInfluencer {
-
-    private static final int DATA_ID = ParticleData.reserveObjectDataId();
+public class DestinationInfluencer extends AbstractInterpolatedParticleInfluencer<BaseInterpolationData> {
 
     /**
      * The list of destinations.
@@ -63,9 +63,16 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    public @NotNull BaseInterpolationData newDataObject() {
+        return new BaseInterpolationData();
+    }
 
-        final BaseInterpolationData data = particleData.getData(DATA_ID);
+    @Override
+    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              @NotNull final BaseInterpolationData data,
+                              final float tpf) {
+
         data.interval += tpf;
 
         if (data.index >= destinations.size()) {
@@ -94,6 +101,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
         weight = weights.get(destinationIndex);
 
         particleData.velocity.interpolateLocal(destinationDir, blend * tpf * (weight * 10));
+
+        super.updateImpl(emitterNode, particleData, data, tpf);
     }
 
     @Override
@@ -107,10 +116,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
-        particleData.initializeData(DATA_ID, DATA_FACTORY);
-
-        final BaseInterpolationData data = particleData.getData(DATA_ID);
+    protected void initializeImpl(@NotNull final ParticleData particleData,
+                                  @NotNull final BaseInterpolationData data) {
 
         if (isRandomStartDestination()) {
             data.index = nextRandomInt(getRandom(), 0, destinations.size() - 1);
@@ -122,6 +129,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
         data.interval = 0f;
         data.duration = isCycle() ? getFixedDuration() : particleData.startLife / ((float) destinations.size());
         data.interpolation = interpolations.get(data.index);
+
+        super.initializeImpl(particleData, data);
     }
 
     /**
@@ -165,6 +174,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      */
     public void addDestination(@NotNull final Vector3f destination, final float weight,
                                @NotNull final Interpolation interpolation) {
+
         addInterpolation(interpolation);
         destinations.add(destination.clone());
         weights.add(weight);
@@ -200,7 +210,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Get the destination by the index.
+     * Gets the destination by the index.
      *
      * @param index the index.
      * @return the destination.
@@ -219,7 +229,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Get the weight by the index.
+     * Gets the weight by the index.
      *
      * @param index the index.
      * @return the weight.
@@ -229,7 +239,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Change a destination for the index.
+     * Changes a destination for the index.
      *
      * @param destination the new destination.
      * @param index       the index.
@@ -239,7 +249,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Change a weight for the index.
+     * Changes a weight for the index.
      *
      * @param weight the new weight.
      * @param index  the index.
@@ -249,7 +259,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     /**
-     * Remove last a destination, weight and interpolation.
+     * Removes last a destination, weight and interpolation.
      */
     public void removeLast() {
 
