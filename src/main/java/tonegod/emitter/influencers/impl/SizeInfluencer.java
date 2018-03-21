@@ -143,8 +143,9 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData,
-                                  @NotNull final SizeInfluencer.SizeInfluencerData data) {
+    protected void initializeImpl(@NotNull ParticleEmitterNode emitterNode,
+                                  @NotNull ParticleData particleData,
+                                  @NotNull SizeInfluencer.SizeInfluencerData data) {
 
         final SafeArrayList<Interpolation> interpolations = getInterpolations();
 
@@ -157,7 +158,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
 
         data.interpolation = interpolations.get(data.index);
 
-        super.initializeImpl(particleData, data);
+        super.initializeImpl(emitterNode, particleData, data);
     }
 
     /**
@@ -325,9 +326,9 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     }
 
     /**
-     * Sets random size.
+     * Sets true if need to use random size.
      *
-     * @param randomSize the flag of using random size.
+     * @param randomSize true if need to use random size.
      */
     public void setRandomSize(final boolean randomSize) {
         this.randomSize = randomSize;
@@ -345,7 +346,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     /**
      * Sets random size tolerance.
      *
-     * @param randomSizeTolerance the random size tolerance value.
+     * @param randomSizeTolerance the random size tolerance.
      */
     public void setRandomSizeTolerance(final float randomSizeTolerance) {
         this.randomSizeTolerance = randomSizeTolerance;
@@ -354,7 +355,7 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
     /**
      * Gets random size tolerance.
      *
-     * @return the random size tolerance value.
+     * @return the random size tolerance.
      */
     public float getRandomSizeTolerance() {
         return randomSizeTolerance;

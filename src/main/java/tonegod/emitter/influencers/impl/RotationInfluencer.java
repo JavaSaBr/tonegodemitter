@@ -47,12 +47,14 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
          * The direction each axis' rotation will rotate in
          */
         public boolean rotateDirectionX;
+
         /**
-         * The Rotate direction y.
+         * The rotate direction Y.
          */
         public boolean rotateDirectionY;
+
         /**
-         * The Rotate direction z.
+         * The rotate direction Z.
          */
         public boolean rotateDirectionZ;
 
@@ -174,6 +176,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
      * @param data the influencer's data.
      */
     private void updateRotation(final RotationInfluencerData data) {
+
         data.index++;
 
         if (!isCycle()) {
@@ -212,8 +215,9 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData,
-                                  @NotNull final RotationInfluencer.RotationInfluencerData data) {
+    protected void initializeImpl(@NotNull ParticleEmitterNode emitterNode,
+                                  @NotNull ParticleData particleData,
+                                  @NotNull RotationInfluencer.RotationInfluencerData data) {
 
         data.index = 0;
         data.interval = 0f;
@@ -243,7 +247,8 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
             particleData.angles.set(0, 0, 0);
         }
 
-        super.initializeImpl(particleData, data);
+
+        super.initializeImpl(emitterNode, particleData, data);
     }
 
     /**
@@ -290,14 +295,13 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     @Override
     protected void resetImpl(@NotNull final ParticleEmitterNode emitterNode,
                              @NotNull final ParticleData particleData,
-                             @NotNull final RotationInfluencer.RotationInfluencerData data
-    ) {
+                             @NotNull final RotationInfluencer.RotationInfluencerData data) {
         particleData.angles.set(0, 0, 0);
         super.resetImpl(emitterNode, particleData, data);
     }
 
     /**
-     * Add rotation speed.
+     * Adds rotation speed.
      *
      * @param speed the new rotation speed.
      */
@@ -306,7 +310,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     /**
-     * Add rotation speed.
+     * Adds rotation speed.
      *
      * @param speed         the new rotation speed.
      * @param interpolation the interpolation.
@@ -317,7 +321,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     /**
-     * Remove rotation speed and interpolation for the index.
+     * Removes rotation speed and interpolation for the index.
      *
      * @param index the index.
      */
@@ -327,7 +331,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     /**
-     * Remove all rotation speeds.
+     * Removes all rotation speeds.
      */
     public void removeAll() {
         clearInterpolations();
@@ -354,7 +358,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     /**
-     * Change a rotation speed for the index.
+     * Changes a rotation speed for the index.
      *
      * @param rotationSpeed the new rotation speed.
      * @param index         the index.
@@ -364,7 +368,7 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     /**
-     * Remove last a rotation speed and interpolation.
+     * Removes a last rotation speed and interpolation.
      */
     public void removeLast() {
 
@@ -389,9 +393,9 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     /**
-     * Returns if the influencer currently selects a random rotation direction per axis as the particle is emitted.
+     * Returns true if the influencer currently selects a random rotation direction per axis as the particle is emitted.
      *
-     * @return the boolean
+     * @return true if the influencer currently selects a random rotation direction per axis as the particle is emitted.
      */
     public boolean isRandomDirection() {
         return randomDirection;
@@ -400,77 +404,78 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     /**
      * Allows the influencer to select a random rotation speed from 0 to the provided maximum speeds per axis
      *
-     * @param randomSpeed the random speed
+     * @param randomSpeed true if need to select a random rotation speed.
      */
     public void setRandomSpeed(final boolean randomSpeed) {
         this.randomSpeed = randomSpeed;
     }
 
     /**
-     * Returns if the influencer currently to selects random rotation speeds per axis
+     * Returns true if the influencer currently to selects random rotation speeds per axis.
      *
-     * @return the boolean
+     * @return true if the influencer currently to selects random rotation speeds per axis.
      */
     public boolean isRandomSpeed() {
         return randomSpeed;
     }
 
     /**
-     * Sets random start rotation x.
+     * Sets random start rotation X.
      *
-     * @param randomStartRotationX the flag of using random start rotation for X.
+     * @param randomStartRotationX true if the influencer uses random start rotation for X.
      */
     public void setRandomStartRotationX(final boolean randomStartRotationX) {
         this.randomStartRotationX = randomStartRotationX;
     }
 
     /**
-     * Sets random start rotation y.
+     * Sets random start rotation Y.
      *
-     * @param randomStartRotationY the flag of using random start rotation for Y.
+     * @param randomStartRotationY true if the influencer uses random start rotation for Y.
      */
     public void setRandomStartRotationY(final boolean randomStartRotationY) {
         this.randomStartRotationY = randomStartRotationY;
     }
 
     /**
-     * Sets random start rotation z.
+     * Sets random start rotation Z.
      *
-     * @param randomStartRotationZ the flag of using random start rotation for Z.
+     * @param randomStartRotationZ true if the influencer uses random start rotation for Z.
      */
     public void setRandomStartRotationZ(final boolean randomStartRotationZ) {
         this.randomStartRotationZ = randomStartRotationZ;
     }
 
     /**
-     * Is random start rotation x boolean.
+     * Returns true if this influencer uses random start rotation X.
      *
-     * @return true if this using random start rotation X.
+     * @return true if this influencer uses random start rotation X.
      */
     public boolean isRandomStartRotationX() {
         return randomStartRotationX;
     }
 
     /**
-     * Is random start rotation y boolean.
+     * Returns true if this influencer uses random start rotation Y.
      *
-     * @return true if this using random start rotation Y.
+     * @return true if this influencer uses random start rotation Y.
      */
     public boolean isRandomStartRotationY() {
         return randomStartRotationY;
     }
 
+
     /**
-     * Is random start rotation z boolean.
+     * Returns true if this influencer uses random start rotation Z.
      *
-     * @return true if this using random start rotation Z.
+     * @return true if this influencer uses random start rotation Z.
      */
     public boolean isRandomStartRotationZ() {
         return randomStartRotationZ;
     }
 
     /**
-     * Forces the rotation direction to always remain constant per particle
+     * Forces the rotation direction to always remain constant per particle.
      *
      * @param direction boolean
      */
@@ -479,9 +484,9 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
     }
 
     /**
-     * Returns if the rotation direction will always remain constant per particle
+     * Returns true if the rotation direction will always remain constant per particle.
      *
-     * @return the boolean
+     * @return true if the rotation direction will always remain constant per particle.
      */
     public boolean isDirection() {
         return direction;

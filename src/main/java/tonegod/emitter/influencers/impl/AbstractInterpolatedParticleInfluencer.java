@@ -49,9 +49,6 @@ public abstract class AbstractInterpolatedParticleInfluencer<D> extends Abstract
     }
 
     @Override
-    public abstract @NotNull D newDataObject();
-
-    @Override
     public boolean isUsedDataObject() {
         return true;
     }
@@ -62,6 +59,7 @@ public abstract class AbstractInterpolatedParticleInfluencer<D> extends Abstract
      * @param data the influencer's data.
      */
     protected void updateInterpolation(@NotNull final BaseInterpolationData data, @NotNull final List<?> steps) {
+
         data.index++;
 
         if (data.index >= steps.size()) {

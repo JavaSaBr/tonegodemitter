@@ -17,6 +17,22 @@ public abstract class AbstractWithDataParticleInfluencer<D> extends AbstractPart
     }
 
     @Override
+    public void createData(@NotNull final ParticleEmitterNode emitterNode,
+                           @NotNull final ParticleData particleData,
+                           final int dataId) {
+        super.createData(emitterNode, particleData, dataId);
+        particleData.initializeData(this, dataId, emitterNode.getParticleDataSize());
+    }
+
+    @Override
+    public void storeUsedData(@NotNull final ParticleEmitterNode emitterNode,
+                              @NotNull final ParticleData particleData,
+                              final int dataId) {
+        super.storeUsedData(emitterNode, particleData, dataId);
+        storeUsedData((D) particleData.getData(dataId));
+    }
+
+    @Override
     public void reset(@NotNull final ParticleEmitterNode emitterNode,
                       @NotNull final ParticleData particleData,
                       final int dataId) {
@@ -29,7 +45,7 @@ public abstract class AbstractWithDataParticleInfluencer<D> extends AbstractPart
                            final int dataId) {
 
         super.initialize(emitterNode, particleData, dataId);
-        initializeImpl(particleData, (D) particleData.getData(dataId));
+        initializeImpl(emitterNode, particleData, (D) particleData.getData(dataId));
     }
 
     @Override
@@ -41,6 +57,14 @@ public abstract class AbstractWithDataParticleInfluencer<D> extends AbstractPart
         if (isEnabled()) {
             updateImpl(emitterNode, particleData, (D) particleData.getData(dataId), tpf);
         }
+    }
+
+    /**
+     * Stores used data from some particle's data object.
+     *
+     * @param data the used data object.
+     */
+    protected void storeUsedData(@NotNull final D data) {
     }
 
     /**
@@ -58,10 +82,13 @@ public abstract class AbstractWithDataParticleInfluencer<D> extends AbstractPart
     /**
      * Initializes the particle data to be used from this this influencer.
      *
+     * @param emitterNode  the emitter node.
      * @param particleData the particle data.
      * @param data         the influencer's data.
      */
-    protected void initializeImpl(@NotNull final ParticleData particleData, @NotNull final D data) {
+    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
+                                  @NotNull final ParticleData particleData,
+                                  @NotNull final D data) {
     }
 
     /**

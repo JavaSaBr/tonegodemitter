@@ -319,11 +319,14 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
     }
 
     @Override
-    protected void initializeImpl(@NotNull ParticleData particleData,
-                                  @NotNull PhysicsInfluencer.PhysicsInfluencerData data) {
+    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
+                                  @NotNull final ParticleData particleData,
+                                  @NotNull final PhysicsInfluencer.PhysicsInfluencerData data) {
+
         data.collision = false;
         data.interval = 0;
-        super.initializeImpl(particleData, data);
+
+        super.initializeImpl(emitterNode, particleData, data);
     }
 
     /**
@@ -473,6 +476,8 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
 
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
+        super.write(exporter);
+
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(collisionThreshold, "collisionThreshold", 0.1f);
         capsule.write(restitution, "restitution", 0.5f);
@@ -481,6 +486,8 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
 
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
+        super.read(importer);
+
         final InputCapsule capsule = importer.getCapsule(this);
         collisionThreshold = capsule.readFloat("collisionThreshold", 0.1f);
         restitution = capsule.readFloat("restitution", 0.5f);

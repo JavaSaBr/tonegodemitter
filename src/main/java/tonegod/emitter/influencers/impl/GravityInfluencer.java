@@ -167,7 +167,10 @@ public class GravityInfluencer extends AbstractWithoutDataParticleInfluencer {
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(
+        ParticleEmitterNode emitterNode,
+        @NotNull final ParticleData particleData
+    ) {
 
         store.set(particleData.getVelocity())
                 .negateLocal()
@@ -175,7 +178,7 @@ public class GravityInfluencer extends AbstractWithoutDataParticleInfluencer {
 
         particleData.reversedVelocity.set(store);
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(emitterNode, particleData);
     }
 
     /**
@@ -244,9 +247,9 @@ public class GravityInfluencer extends AbstractWithoutDataParticleInfluencer {
     }
 
     /**
-     * Gets store.
+     * Gets the store vector.
      *
-     * @return the store.
+     * @return the store vector.
      */
     protected final @NotNull Vector3f getStore() {
         return store;
@@ -254,6 +257,8 @@ public class GravityInfluencer extends AbstractWithoutDataParticleInfluencer {
 
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
+        super.write(exporter);
+
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(gravity, "gravity", new Vector3f(0, 1, 0));
         capsule.write(negativeVelocity, "negativeVelocity", false);
@@ -263,6 +268,8 @@ public class GravityInfluencer extends AbstractWithoutDataParticleInfluencer {
 
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
+        super.read(importer);
+
         final InputCapsule capsule = importer.getCapsule(this);
         gravity.set((Vector3f) capsule.readSavable("gravity", new Vector3f(0, 1, 0)));
         negativeVelocity = capsule.readBoolean("negativeVelocity", false);

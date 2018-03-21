@@ -185,7 +185,7 @@ public class ParticleDataImpostorMesh extends RotatedParticleDataMesh {
 
         for (final ParticleData particleData : particles) {
 
-            if (particleData.life == 0 || !particleData.active) {
+            if (particleData.life == 0 || !particleData.isActive()) {
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);
                 positions.put(0).put(0).put(0);

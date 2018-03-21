@@ -53,10 +53,6 @@ public abstract class AbstractParticleInfluencer<D> implements ParticleInfluence
     public void createData(@NotNull final ParticleEmitterNode emitterNode,
                            @NotNull final ParticleData particleData,
                            final int dataId) {
-
-        if (isUsedDataObject()) {
-            particleData.initializeData(this, dataId, emitterNode.getParticleDataSize());
-        }
     }
 
     @Override

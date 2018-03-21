@@ -94,7 +94,7 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
     /**
      * Sets the chance the influencer has of successfully affecting the particle's velocity vector
      *
-     * @param chance float
+     * @param chance the chance.
      */
     public void setChance(final float chance) {
         this.chance = chance;
@@ -103,7 +103,7 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
     /**
      * Returns the chance the influencer has of successfully affecting the particle's velocity vector
      *
-     * @return float chance
+     * @return the chance.
      */
     public float getChance() {
         return chance;
@@ -112,16 +112,16 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
     /**
      * Sets the magnitude at which the impulse will effect the particle's velocity vector
      *
-     * @param magnitude float
+     * @param magnitude the magnitude.
      */
     public void setMagnitude(final float magnitude) {
         this.magnitude = magnitude;
     }
 
     /**
-     * Returns  the magnitude at which the impulse will effect the particle's velocity vector
+     * Returns the magnitude at which the impulse will effect the particle's velocity vector.
      *
-     * @return float magnitude
+     * @return the magnitude.
      */
     public float getMagnitude() {
         return magnitude;
@@ -130,7 +130,7 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
     /**
      * Sets the strength of the full impulse
      *
-     * @param strength float
+     * @param strength the strength.
      */
     public void setStrength(final float strength) {
         this.strength = strength;
@@ -139,7 +139,7 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
     /**
      * Returns the strength of the full impulse
      *
-     * @return float strength
+     * @return the strength.
      */
     public float getStrength() {
         return strength;
@@ -147,6 +147,8 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
 
     @Override
     public void write(@NotNull final JmeExporter exporter) throws IOException {
+        super.write(exporter);
+
         final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(chance, "chance", 0.02f);
         capsule.write(magnitude, "magnitude", 0.2f);
@@ -155,6 +157,8 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
 
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
+        super.read(importer);
+
         final InputCapsule capsule = importer.getCapsule(this);
         chance = capsule.readFloat("chance", 0.02f);
         magnitude = capsule.readFloat("magnitude", 0.2f);

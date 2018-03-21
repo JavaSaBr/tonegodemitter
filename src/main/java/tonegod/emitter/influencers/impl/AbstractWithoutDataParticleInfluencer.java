@@ -29,7 +29,7 @@ public abstract class AbstractWithoutDataParticleInfluencer extends AbstractPart
                            final int dataId) {
 
         super.initialize(emitterNode, particleData, dataId);
-        initializeImpl(particleData);
+        initializeImpl(emitterNode, particleData);
     }
 
     @Override
@@ -56,9 +56,11 @@ public abstract class AbstractWithoutDataParticleInfluencer extends AbstractPart
     /**
      * Initializes the particle data to be used from this this influencer.
      *
+     * @param emitterNode  the emitter node.
      * @param particleData the particle data.
      */
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
+                                  @NotNull final ParticleData particleData) {
     }
 
     /**

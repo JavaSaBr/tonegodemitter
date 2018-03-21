@@ -376,7 +376,8 @@ public class RadialVelocityInfluencer extends AbstractWithDataParticleInfluencer
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData,
+    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
+                                  @NotNull final ParticleData particleData,
                                   @NotNull final RadialVelocityInfluencer.RadialVelocityData data) {
 
         if (!isRandomDirection()) {
@@ -392,7 +393,7 @@ public class RadialVelocityInfluencer extends AbstractWithDataParticleInfluencer
             data.tangentForce = -tangentForce;
         }
 
-        super.initializeImpl(particleData, data);
+        super.initializeImpl(emitterNode, particleData, data);
     }
 
     /**
@@ -508,8 +509,10 @@ public class RadialVelocityInfluencer extends AbstractWithDataParticleInfluencer
     }
 
     @Override
-    public void write(@NotNull final JmeExporter ex) throws IOException {
-        final OutputCapsule capsule = ex.getCapsule(this);
+    public void write(@NotNull final JmeExporter exporter) throws IOException {
+        super.write(exporter);
+
+        final OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(radialPull, "radialPull", 1.0f);
         capsule.write(tangentForce, "tangentForce", 1.0f);
         capsule.write(pullAlignment.ordinal(), "pullAlignment", RadialPullAlignment.EMISSION_POINT.ordinal());
@@ -519,6 +522,8 @@ public class RadialVelocityInfluencer extends AbstractWithDataParticleInfluencer
 
     @Override
     public void read(@NotNull final JmeImporter importer) throws IOException {
+        super.read(importer);
+
         final InputCapsule capsule = importer.getCapsule(this);
         radialPull = capsule.readFloat("radialPull", 1.0f);
         tangentForce = capsule.readFloat("tangentForce", 1.0f);

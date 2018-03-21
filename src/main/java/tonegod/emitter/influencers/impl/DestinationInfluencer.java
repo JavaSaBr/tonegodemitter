@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
-import tonegod.emitter.influencers.impl.AbstractInterpolatedParticleInfluencer.BaseInterpolationData;
 import tonegod.emitter.interpolation.Interpolation;
 import tonegod.emitter.particle.ParticleData;
 
@@ -116,7 +115,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData,
+    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
+                                  @NotNull final ParticleData particleData,
                                   @NotNull final BaseInterpolationData data) {
 
         if (isRandomStartDestination()) {
@@ -130,7 +130,8 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
         data.duration = isCycle() ? getFixedDuration() : particleData.startLife / ((float) destinations.size());
         data.interpolation = interpolations.get(data.index);
 
-        super.initializeImpl(particleData, data);
+
+        super.initializeImpl(emitterNode, particleData, data);
     }
 
     /**

@@ -178,7 +178,7 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
             int offset = templateVerts.capacity() * i;
             int colorOffset = templateColors.capacity() * i;
 
-            if (particleData.life == 0 || !particleData.active) {
+            if (particleData.life == 0 || !particleData.isActive()) {
                 for (int x = 0; x < templateVerts.capacity(); x += 3) {
                     finVerts.put(offset + x, 0);
                     finVerts.put(offset + x + 1, 0);
