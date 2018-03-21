@@ -1327,6 +1327,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     public void addInfluencer(@NotNull final ParticleInfluencer<?> influencer) {
         influencers.add(influencer);
         initializeInfluencerData(influencer, influencers.size() - 1);
+        initializeInfluencer(influencer, influencers.size() - 1);
         requiresUpdate = true;
     }
 
@@ -1378,6 +1379,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             moveInfluencerData(i, i + 1);
         }
 
+        initializeInfluencerData(influencer, temp.size() - 1);
+        initializeInfluencer(influencer, temp.size() - 1);
+
         for (int i = index, length = influencers.size(); i < length; i++) {
             temp.add(influencers.get(i));
         }
@@ -1419,6 +1423,18 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
     }
 
     /**
+     * Initializes influencer for all particles data.
+     *
+     * @param influencer the influencer.
+     * @param index      the influencer's index.
+     */
+    protected void initializeInfluencer(@NotNull final ParticleInfluencer<?> influencer, final int index) {
+        for (final ParticleData particleData : particles) {
+            influencer.initialize(this, particleData, index);
+        }
+    }
+
+    /**
      * Initializes influencer's data for all particles data.
      *
      * @param influencer the influencer.
@@ -1431,7 +1447,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         }
 
         for (final ParticleData particleData : particles) {
-            particleData.setData(index, influencer.newDataObject());
+            particleData.initializeData(influencer, index, getParticleDataSize());
         }
     }
 
@@ -1442,6 +1458,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param newIndex  the new index.
      */
     protected void moveInfluencerData(final int prevIndex, final int newIndex) {
+
+        final int dataSize = getParticleDataSize();
+
         for (final ParticleData particleData : particles) {
 
             if (!particleData.hasData(prevIndex)) {
@@ -1450,7 +1469,9 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             }
 
             final Object data = particleData.getData(prevIndex);
+            particleData.reserveDataSlot(newIndex, dataSize);
             particleData.setData(newIndex, data);
+            particleData.removeData(prevIndex);
         }
     }
 

@@ -49,6 +49,14 @@ public final class ColorInfluencer extends AbstractInterpolatedParticleInfluence
      */
     private boolean randomStartColor;
 
+    public ColorInfluencer(@NotNull final ColorRGBA first, @NotNull final ColorRGBA... additional) {
+        this();
+        addColor(first);
+        for (final ColorRGBA color : additional) {
+            addColor(color);
+        }
+    }
+
     public ColorInfluencer() {
         this.colors = new SafeArrayList<>(ColorRGBA.class);
         this.resetColor = new ColorRGBA(0, 0, 0, 0);

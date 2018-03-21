@@ -171,7 +171,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param dataId          the data id.
      * @param defaultDataSize the default data size.
      */
-    private void reserveDataSlot(final int dataId, final int defaultDataSize) {
+    public void reserveDataSlot(final int dataId, final int defaultDataSize) {
         if (data == EMPTY_OBJECT_ARRAY) {
             data = new Object[Math.max(defaultDataSize, dataId + 1)];
         } else if (dataId >= data.length) {
@@ -227,7 +227,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @return true if data is exist by the data id.
      */
     public boolean hasData(final int dataId) {
-        return data[dataId] != null;
+        return data.length > dataId && data[dataId] != null;
     }
 
     /**

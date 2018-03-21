@@ -66,6 +66,14 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
      */
     private boolean randomSize;
 
+    public SizeInfluencer(final float first, @NotNull final float... sizes) {
+        this();
+        addSize(first);
+        for (float size : sizes) {
+            addSize(size);
+        }
+    }
+
     public SizeInfluencer() {
         this.sizes = new SafeArrayList<>(Vector3f.class);
         this.tempV3a = new Vector3f();

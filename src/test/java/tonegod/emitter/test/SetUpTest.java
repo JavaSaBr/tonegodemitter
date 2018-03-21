@@ -1,6 +1,8 @@
 package tonegod.emitter.test;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.input.FlyByCamera;
+import com.jme3.system.AppSettings;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -21,13 +23,25 @@ public class SetUpTest {
 
         if (application == null) {
 
+            final AppSettings settings = new AppSettings(true);
+            settings.setWidth(1024);
+            settings.setHeight(768);
+
             final SimpleApplication app = new SimpleApplication() {
                 @Override
                 public void simpleInitApp() {
+
+                    final FlyByCamera flyByCamera = getFlyByCamera();
+                    flyByCamera.setMoveSpeed(5);
+                    flyByCamera.setDragToRotate(true);
+
+                    getInputManager().setCursorVisible(true);
+
                     COUNT_DOWN_LATCH.countDown();
                 }
             };
             app.setShowSettings(false);
+            app.setSettings(settings);
 
             final Thread appThread = new Thread(app::start);
             appThread.setDaemon(true);
