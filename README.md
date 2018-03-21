@@ -1,4 +1,4 @@
-# Toneg0d.Emitter 2.6.3 #
+# Toneg0d.Emitter 3.0.0 #
 
 It's a fork of toneg0d.emitter.
 
@@ -8,27 +8,34 @@ It's a fork of toneg0d.emitter.
 
 ```groovy
 repositories {
-    maven { url 'https://jitpack.io' }
+    maven {
+        url  "https://dl.bintray.com/javasabr/maven" 
+    }
 }
 
 dependencies {
-    compile 'com.github.JavaSaBr:tonegodemitter:2.6.3'
+    compile 'toneg0d:emitter:3.0.0-Final'
 }
 ```
 
 #### Maven
 
 ```xml
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
+<repositories>
+    <repository>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+        <id>bintray-javasabr-maven</id>
+        <name>bintray</name>
+        <url>https://dl.bintray.com/javasabr/maven</url>
+    </repository>
+</repositories>
 
-    <dependency>
-        <groupId>com.github.JavaSaBr</groupId>
-        <artifactId>tonegodemitter</artifactId>
-        <version>2.6.3</version>
-    </dependency>
+<dependency>
+    <groupId>toneg0d</groupId>
+    <artifactId>emitter</artifactId>
+    <version>3.0.0-Final</version>
+    <type>pom</type>
+</dependency>
 ```
