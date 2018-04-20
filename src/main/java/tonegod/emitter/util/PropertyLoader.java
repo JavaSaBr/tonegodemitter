@@ -23,23 +23,27 @@ public class PropertyLoader extends ResourceBundle.Control {
     }
 
     @Override
-    public ResourceBundle newBundle(final String baseName, final Locale locale, final String format,
-                                    final ClassLoader loader, final boolean reload)
-            throws IllegalAccessException, InstantiationException, IOException {
+    public ResourceBundle newBundle(
+            String baseName,
+            Locale locale,
+            String format,
+            ClassLoader loader,
+            boolean reload
+    ) throws IOException {
 
         // The below is a copy of the default implementation.
-        final String bundleName = toBundleName(baseName, locale);
-        final String resourceName = toResourceName(bundleName, "properties");
+        String bundleName = toBundleName(baseName, locale);
+        String resourceName = toResourceName(bundleName, "properties");
 
         ResourceBundle bundle = null;
         InputStream stream = null;
 
         if (reload) {
 
-            final URL url = loader.getResource(resourceName);
+            URL url = loader.getResource(resourceName);
 
             if (url != null) {
-                final URLConnection connection = url.openConnection();
+                URLConnection connection = url.openConnection();
                 if (connection != null) {
                     connection.setUseCaches(false);
                     stream = connection.getInputStream();

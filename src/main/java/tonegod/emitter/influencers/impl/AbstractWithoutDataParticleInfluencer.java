@@ -17,27 +17,27 @@ public abstract class AbstractWithoutDataParticleInfluencer extends AbstractPart
     }
 
     @Override
-    public void reset(@NotNull final ParticleEmitterNode emitterNode,
-                      @NotNull final ParticleData particleData,
-                      final int dataId) {
+    public void reset(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId) {
         resetImpl(emitterNode, particleData);
     }
 
     @Override
-    public void initialize(@NotNull final ParticleEmitterNode emitterNode,
-                           @NotNull final ParticleData particleData,
-                           final int dataId) {
-
+    public void initialize(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            int dataId
+    ) {
         super.initialize(emitterNode, particleData, dataId);
         initializeImpl(emitterNode, particleData);
     }
 
     @Override
-    public void update(@NotNull final ParticleEmitterNode emitterNode,
-                       @NotNull final ParticleData particleData,
-                       final int dataId,
-                       final float tpf) {
-
+    public void update(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            int dataId,
+            float tpf
+    ) {
         if (isEnabled()) {
             updateImpl(emitterNode, particleData, tpf);
         }
@@ -49,8 +49,7 @@ public abstract class AbstractWithoutDataParticleInfluencer extends AbstractPart
      * @param emitterNode  the emitter node.
      * @param particleData the particle data.
      */
-    protected void resetImpl(@NotNull final ParticleEmitterNode emitterNode,
-                             @NotNull final ParticleData particleData) {
+    protected void resetImpl(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData) {
     }
 
     /**
@@ -59,8 +58,7 @@ public abstract class AbstractWithoutDataParticleInfluencer extends AbstractPart
      * @param emitterNode  the emitter node.
      * @param particleData the particle data.
      */
-    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
-                                  @NotNull final ParticleData particleData) {
+    protected void initializeImpl(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData) {
     }
 
     /**
@@ -70,8 +68,6 @@ public abstract class AbstractWithoutDataParticleInfluencer extends AbstractPart
      * @param particleData the particle data.
      * @param tpf          the tpf.
      */
-    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
-                              @NotNull final ParticleData particleData,
-                              final float tpf) {
+    protected void updateImpl(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, float tpf) {
     }
 }

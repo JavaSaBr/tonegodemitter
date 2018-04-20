@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ElasticOut extends Elastic {
 
-    public ElasticOut(final float value, final float power, @NotNull final String name) {
+    public ElasticOut(float value, float power, @NotNull String name) {
         super(value, power, name);
     }
 

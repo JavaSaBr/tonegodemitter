@@ -21,7 +21,7 @@ public class Elastic extends AbstractInterpolation {
      */
     protected final float power;
 
-    public Elastic(final float value, final float power, @NotNull final String name) {
+    public Elastic(float value, float power, @NotNull String name) {
         super(name);
         this.value = value;
         this.power = power;

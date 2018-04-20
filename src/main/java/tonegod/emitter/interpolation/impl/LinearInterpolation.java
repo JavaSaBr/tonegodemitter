@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class LinearInterpolation extends AbstractInterpolation {
 
-    public LinearInterpolation(final @NotNull String name) {
+    public LinearInterpolation(@NotNull String name) {
         super(name);
     }
 

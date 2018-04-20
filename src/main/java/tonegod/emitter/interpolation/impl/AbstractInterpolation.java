@@ -20,17 +20,17 @@ public abstract class AbstractInterpolation implements Interpolation {
     @NotNull
     private final String name;
 
-    protected AbstractInterpolation(@NotNull final String name) {
+    protected AbstractInterpolation(@NotNull String name) {
         this.name = name;
     }
 
     @Override
-    public float apply(final float a) {
+    public float apply(float a) {
         return 0;
     }
 
     @Override
-    public float apply(final float start, final float end, final float a) {
+    public float apply(float start, float end, float a) {
         return start + (end - start) * apply(a);
     }
 
@@ -40,10 +40,10 @@ public abstract class AbstractInterpolation implements Interpolation {
     }
 
     @Override
-    public void read(final JmeImporter im) throws IOException {
+    public void read(JmeImporter im) throws IOException {
     }
 
     @Override
-    public void write(final JmeExporter ex) throws IOException {
+    public void write(JmeExporter ex) throws IOException {
     }
 }

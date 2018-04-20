@@ -25,7 +25,7 @@ public final class ParticleDataPointMesh extends ParticleDataMesh {
     }
 
     @Override
-    public void initialize(@NotNull final ParticleEmitterNode particleEmitterNode, final int numParticles) {
+    public void initialize(@NotNull ParticleEmitterNode particleEmitterNode, int numParticles) {
         super.initialize(particleEmitterNode, numParticles);
 
         setMode(Mode.Points);
@@ -62,20 +62,23 @@ public final class ParticleDataPointMesh extends ParticleDataMesh {
     }
 
     @Override
-    public void updateParticleData(@NotNull final ParticleData[] particles, @NotNull final Camera camera,
-                                   @NotNull final Matrix3f inverseRotation) {
+    public void updateParticleData(
+            @NotNull ParticleData[] particles,
+            @NotNull Camera camera,
+            @NotNull Matrix3f inverseRotation
+    ) {
 
-        final VertexBuffer pvb = getBuffer(VertexBuffer.Type.Position);
-        final FloatBuffer positions = (FloatBuffer) pvb.getData();
+        VertexBuffer pvb = getBuffer(VertexBuffer.Type.Position);
+        FloatBuffer positions = (FloatBuffer) pvb.getData();
 
-        final VertexBuffer cvb = getBuffer(VertexBuffer.Type.Color);
-        final ByteBuffer colors = (ByteBuffer) cvb.getData();
+        VertexBuffer cvb = getBuffer(VertexBuffer.Type.Color);
+        ByteBuffer colors = (ByteBuffer) cvb.getData();
 
-        final VertexBuffer svb = getBuffer(VertexBuffer.Type.Size);
-        final FloatBuffer sizes = (FloatBuffer) svb.getData();
+        VertexBuffer svb = getBuffer(VertexBuffer.Type.Size);
+        FloatBuffer sizes = (FloatBuffer) svb.getData();
 
-        final VertexBuffer tvb = getBuffer(VertexBuffer.Type.TexCoord);
-        final FloatBuffer texcoords = (FloatBuffer) tvb.getData();
+        VertexBuffer tvb = getBuffer(VertexBuffer.Type.TexCoord);
+        FloatBuffer texcoords = (FloatBuffer) tvb.getData();
 
         //float sizeScale = emitter.getWorldScale().x;
 
@@ -85,7 +88,7 @@ public final class ParticleDataPointMesh extends ParticleDataMesh {
         sizes.rewind();
         texcoords.rewind();
 
-        for (final ParticleData particleData : particles) {
+        for (ParticleData particleData : particles) {
 
             positions.put(particleData.position.x)
                     .put(particleData.position.y)
@@ -122,6 +125,6 @@ public final class ParticleDataPointMesh extends ParticleDataMesh {
     }
 
     @Override
-    public void extractTemplateFromMesh(@NotNull final Mesh mesh) {
+    public void extractTemplateFromMesh(@NotNull Mesh mesh) {
     }
 }

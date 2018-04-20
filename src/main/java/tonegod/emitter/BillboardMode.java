@@ -56,14 +56,14 @@ public enum BillboardMode {
      * @param index the index
      * @return the billboard mode
      */
-    public static @NotNull BillboardMode valueOf(final int index) {
+    public static @NotNull BillboardMode valueOf(int index) {
         return VALUES[index];
     }
 
     @NotNull
     private final String uiName;
 
-    BillboardMode(@NotNull final String uiName) {
+    BillboardMode(@NotNull String uiName) {
         this.uiName = uiName;
     }
 

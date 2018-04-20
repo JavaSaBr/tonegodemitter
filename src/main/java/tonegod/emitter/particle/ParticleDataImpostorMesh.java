@@ -63,7 +63,7 @@ public class ParticleDataImpostorMesh extends RotatedParticleDataMesh {
     }
 
     @Override
-    public void initialize(@NotNull final ParticleEmitterNode emitterNode, final int numParticles) {
+    public void initialize(@NotNull ParticleEmitterNode emitterNode, int numParticles) {
         super.initialize(emitterNode, numParticles);
 
         setMode(Mode.Triangles);
@@ -153,37 +153,40 @@ public class ParticleDataImpostorMesh extends RotatedParticleDataMesh {
     }
 
     @Override
-    public void setImagesXY(final int imagesX, final int imagesY) {
+    public void setImagesXY(int imagesX, int imagesY) {
         super.setImagesXY(imagesX, imagesY);
         if (imagesX != 1 || imagesY != 1) {
-            final VertexBuffer buffer = getBuffer(VertexBuffer.Type.TexCoord);
+            VertexBuffer buffer = getBuffer(VertexBuffer.Type.TexCoord);
             buffer.setUsage(Usage.Stream);
         }
     }
 
     @Override
-    public void updateParticleData(@NotNull final ParticleData[] particles, @NotNull final Camera camera,
-                                   @NotNull final Matrix3f inverseRotation) {
+    public void updateParticleData(
+            @NotNull ParticleData[] particles,
+            @NotNull Camera camera,
+            @NotNull Matrix3f inverseRotation
+    ) {
 
-        final ParticleEmitterNode emitterNode = getEmitterNode();
-        final Vector3f worldTranslation = emitterNode.getWorldTranslation();
-        final BillboardMode billboardMode = emitterNode.getBillboardMode();
+        ParticleEmitterNode emitterNode = getEmitterNode();
+        Vector3f worldTranslation = emitterNode.getWorldTranslation();
+        BillboardMode billboardMode = emitterNode.getBillboardMode();
 
-        final VertexBuffer pvb = getBuffer(VertexBuffer.Type.Position);
-        final FloatBuffer positions = (FloatBuffer) pvb.getData();
+        VertexBuffer pvb = getBuffer(VertexBuffer.Type.Position);
+        FloatBuffer positions = (FloatBuffer) pvb.getData();
 
-        final VertexBuffer cvb = getBuffer(VertexBuffer.Type.Color);
-        final ByteBuffer colors = (ByteBuffer) cvb.getData();
+        VertexBuffer cvb = getBuffer(VertexBuffer.Type.Color);
+        ByteBuffer colors = (ByteBuffer) cvb.getData();
 
-        final VertexBuffer tvb = getBuffer(VertexBuffer.Type.TexCoord);
-        final FloatBuffer texcoords = (FloatBuffer) tvb.getData();
+        VertexBuffer tvb = getBuffer(VertexBuffer.Type.TexCoord);
+        FloatBuffer texcoords = (FloatBuffer) tvb.getData();
 
         // update data in vertex buffers
         positions.clear();
         colors.clear();
         texcoords.clear();
 
-        for (final ParticleData particleData : particles) {
+        for (ParticleData particleData : particles) {
 
             if (particleData.life == 0 || !particleData.isActive()) {
                 positions.put(0).put(0).put(0);
@@ -205,7 +208,7 @@ public class ParticleDataImpostorMesh extends RotatedParticleDataMesh {
                 particleData.upVec.set(up);
 
                 if (emitterNode.isVelocityStretching()) {
-                    final Vector3f velocity = particleData.getVelocity();
+                    Vector3f velocity = particleData.getVelocity();
                     up.multLocal(velocity.length() * emitterNode.getVelocityStretchFactor());
                 }
 
@@ -228,7 +231,7 @@ public class ParticleDataImpostorMesh extends RotatedParticleDataMesh {
                     tempV2.set(particleData.position);
                 } else {
 
-                    final Vector3f subtract = worldTranslation
+                    Vector3f subtract = worldTranslation
                             .subtract(particleData.initialPosition, tempV1);
 
                     tempV2.set(particleData.position)
@@ -298,13 +301,13 @@ public class ParticleDataImpostorMesh extends RotatedParticleDataMesh {
 
             if (isUniqueTexCoords()) {
 
-                final int imgX = particleData.spriteCol;
-                final int imgY = particleData.spriteRow;
+                int imgX = particleData.spriteCol;
+                int imgY = particleData.spriteRow;
 
-                final float startX = 1f / getSpriteCols() * imgX;
-                final float startY = 1f / getSpriteRows() * imgY;
-                final float endX = startX + 1f / getSpriteCols();
-                final float endY = startY + 1f / getSpriteRows();
+                float startX = 1f / getSpriteCols() * imgX;
+                float startY = 1f / getSpriteRows() * imgY;
+                float endX = startX + 1f / getSpriteCols();
+                float endY = startY + 1f / getSpriteRows();
 
                 texcoords.put(startX).put(endY);
                 texcoords.put(endX).put(endY);
@@ -357,7 +360,7 @@ public class ParticleDataImpostorMesh extends RotatedParticleDataMesh {
     }
 
     @Override
-    public void cloneFields(@NotNull final Cloner cloner, @NotNull final Object original) {
+    public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
         super.cloneFields(cloner, original);
 
         left33 = cloner.clone(left33);

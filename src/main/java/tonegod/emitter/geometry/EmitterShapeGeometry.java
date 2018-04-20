@@ -17,11 +17,11 @@ public class EmitterShapeGeometry extends Geometry {
     public EmitterShapeGeometry() {
     }
 
-    public EmitterShapeGeometry(@NotNull final String name) {
+    public EmitterShapeGeometry(@NotNull String name) {
         super(name);
     }
 
-    public EmitterShapeGeometry(@NotNull final String name, @NotNull final Mesh mesh) {
+    public EmitterShapeGeometry(@NotNull String name, @NotNull Mesh mesh) {
         super(name, mesh);
     }
 }

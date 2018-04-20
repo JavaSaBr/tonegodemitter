@@ -55,10 +55,12 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
-                              @NotNull final ParticleData particleData,
-                              @NotNull final BaseInterpolationData data,
-                              final float tpf) {
+    protected void updateImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull BaseInterpolationData data,
+            float tpf
+    ) {
 
         data.interval += tpf;
 
@@ -70,15 +72,15 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
             updateInterpolation(data, getAlphas());
         }
 
-        final Interpolation interpolation = data.interpolation;
-        final SafeArrayList<Float> alphas = getAlphas();
-        final Float[] alphasArray = alphas.getArray();
-        final int alphaIndex = data.index;
+        Interpolation interpolation = data.interpolation;
+        SafeArrayList<Float> alphas = getAlphas();
+        Float[] alphasArray = alphas.getArray();
+        int alphaIndex = data.index;
 
         blend = interpolation.apply(data.interval / data.duration);
         startAlpha = alphasArray[alphaIndex];
 
-        final float endAlpha;
+        float endAlpha;
 
         if (alphaIndex == alphas.size() - 1) {
             endAlpha = alphasArray[0];
@@ -92,9 +94,9 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
+    protected void firstInitializeImpl(@NotNull ParticleData particleData) {
 
-        final SafeArrayList<Float> alphas = getAlphas();
+        SafeArrayList<Float> alphas = getAlphas();
 
         if (alphas.isEmpty()) {
             addAlpha(1F);
@@ -107,11 +109,13 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
-                                  @NotNull final ParticleData particleData,
-                                  @NotNull final BaseInterpolationData data) {
+    protected void initializeImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull BaseInterpolationData data
+    ) {
 
-        final SafeArrayList<Interpolation> interpolations = getInterpolations();
+        SafeArrayList<Interpolation> interpolations = getInterpolations();
 
         if (isRandomStartAlpha()) {
             data.index = FastMath.nextRandomInt(0, interpolations.size() - 1);
@@ -139,9 +143,11 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    public void resetImpl(@NotNull final ParticleEmitterNode emitterNode,
-                          @NotNull final ParticleData particleData,
-                          @NotNull final BaseInterpolationData data) {
+    public void resetImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull BaseInterpolationData data
+    ) {
         particleData.alpha = 0;
         super.resetImpl(emitterNode, particleData, data);
     }
@@ -152,7 +158,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      *
      * @param alpha the alpha step.
      */
-    public void addAlpha(final float alpha) {
+    public void addAlpha(float alpha) {
         addAlpha(alpha, Interpolation.LINEAR);
     }
 
@@ -162,7 +168,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      * @param alpha         the alpha step.
      * @param interpolation the interpolation.
      */
-    public void addAlpha(final float alpha, @NotNull final Interpolation interpolation) {
+    public void addAlpha(float alpha, @NotNull Interpolation interpolation) {
         addInterpolation(interpolation);
         alphas.add(alpha);
     }
@@ -182,7 +188,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      * @param index the index.
      * @return the alpha for the index.
      */
-    public @NotNull Float getAlpha(final int index) {
+    public @NotNull Float getAlpha(int index) {
         return alphas.get(index);
     }
 
@@ -192,7 +198,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      * @param alpha the new alpha step.
      * @param index the index.
      */
-    public void updateAlpha(@NotNull final Float alpha, final int index) {
+    public void updateAlpha(@NotNull Float alpha, int index) {
         alphas.set(index, alpha);
     }
 
@@ -201,12 +207,12 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      */
     public void removeLast() {
 
-        final SafeArrayList<Float> alphas = getAlphas();
+        SafeArrayList<Float> alphas = getAlphas();
         if (alphas.isEmpty()) {
             return;
         }
 
-        final int index = alphas.size() - 1;
+        int index = alphas.size() - 1;
 
         removeInterpolation(index);
         alphas.remove(index);
@@ -217,7 +223,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
      *
      * @param index the index.
      */
-    public void removeAlpha(final int index) {
+    public void removeAlpha(int index) {
         removeInterpolation(index);
         alphas.remove(index);
     }
@@ -231,30 +237,30 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    public void write(@NotNull final JmeExporter exporter) throws IOException {
+    public void write(@NotNull JmeExporter exporter) throws IOException {
         super.write(exporter);
 
-        final Float[] values = alphas.getArray();
-        final double[] alphasToSave = new double[alphas.size()];
+        Float[] values = alphas.getArray();
+        double[] alphasToSave = new double[alphas.size()];
 
         for (int i = 0; i < values.length; i++) {
             alphasToSave[i] = values[i];
         }
 
-        final OutputCapsule capsule = exporter.getCapsule(this);
+        OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(alphasToSave, "alphas", null);
         capsule.write(randomStartAlpha, "randomStartAlpha", false);
     }
 
     @Override
-    public void read(@NotNull final JmeImporter importer) throws IOException {
+    public void read(@NotNull JmeImporter importer) throws IOException {
         super.read(importer);
 
-        final InputCapsule capsule = importer.getCapsule(this);
-        final double[] readAlphas = capsule.readDoubleArray("alphas", null);
+        InputCapsule capsule = importer.getCapsule(this);
+        double[] readAlphas = capsule.readDoubleArray("alphas", null);
 
         if (readAlphas != null) {
-            for (final double value : readAlphas) {
+            for (double value : readAlphas) {
                 alphas.add((float) value);
             }
         }
@@ -264,7 +270,7 @@ public final class AlphaInfluencer extends AbstractInterpolatedParticleInfluence
 
     @Override
     public @NotNull ParticleInfluencer clone() {
-        final AlphaInfluencer clone = (AlphaInfluencer) super.clone();
+        AlphaInfluencer clone = (AlphaInfluencer) super.clone();
         clone.alphas = new SafeArrayList<>(Float.class);
         clone.alphas.addAll(alphas);
         clone.randomStartAlpha = randomStartAlpha;

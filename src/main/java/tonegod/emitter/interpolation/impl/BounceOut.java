@@ -21,7 +21,7 @@ public class BounceOut extends AbstractInterpolation {
     @NotNull
     protected final float[] heights;
 
-    public BounceOut(@NotNull final float[] widths, @NotNull final float[] heights, @NotNull final String name) {
+    public BounceOut(@NotNull float[] widths, @NotNull float[] heights, @NotNull String name) {
         super(name);
 
         if (widths.length != heights.length) {
@@ -32,7 +32,7 @@ public class BounceOut extends AbstractInterpolation {
         this.heights = heights;
     }
 
-    public BounceOut(final int bounces, @NotNull final String name) {
+    public BounceOut(int bounces, @NotNull String name) {
         super(name);
 
         if (bounces < 2 || bounces > 5) {

@@ -30,7 +30,7 @@ public enum EmissionPoint {
      * @param index the index
      * @return the emission point
      */
-    public static @NotNull EmissionPoint valueOf(final int index) {
+    public static @NotNull EmissionPoint valueOf(int index) {
         return VALUES[index];
     }
 
@@ -40,7 +40,7 @@ public enum EmissionPoint {
     @NotNull
     private final String uiName;
 
-    EmissionPoint(@NotNull final String uiName) {
+    EmissionPoint(@NotNull String uiName) {
         this.uiName = uiName;
     }
 

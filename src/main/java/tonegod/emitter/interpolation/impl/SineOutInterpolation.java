@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SineOutInterpolation extends AbstractInterpolation {
 
-    public SineOutInterpolation(@NotNull final String name) {
+    public SineOutInterpolation(@NotNull String name) {
         super(name);
     }
 

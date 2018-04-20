@@ -15,26 +15,26 @@ import tonegod.emitter.node.ParticleNode;
  */
 public class SoftParticleEmitterNode extends ParticleEmitterNode {
 
-    public SoftParticleEmitterNode(@NotNull final AssetManager assetManager) {
-        super(assetManager);
-    }
-
     public SoftParticleEmitterNode() {
     }
 
+    public SoftParticleEmitterNode(@NotNull AssetManager assetManager) {
+        super(assetManager);
+    }
+
     @Override
-    protected void initParticleNode(@NotNull final ParticleNode particleNode) {
+    protected void initParticleNode(@NotNull ParticleNode particleNode) {
         super.initParticleNode(particleNode);
         particleNode.setQueueBucket(Bucket.Translucent);
     }
 
     @Override
-    protected void initParticleMaterial(@NotNull final Material material) {
+    protected void initParticleMaterial(@NotNull Material material) {
         super.initParticleMaterial(material);
 
         material.setBoolean(PROP_SOFT_PARTICLES, true);
 
-        final RenderState renderState = material.getAdditionalRenderState();
+        RenderState renderState = material.getAdditionalRenderState();
         renderState.setDepthTest(true);
     }
 }

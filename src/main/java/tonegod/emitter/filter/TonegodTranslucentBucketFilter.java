@@ -16,10 +16,8 @@ import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import tonegod.emitter.ParticleEmitterNode;
 
 /**
@@ -40,14 +38,19 @@ public class TonegodTranslucentBucketFilter extends Filter {
         super("TonegodTranslucentBucketFilter");
     }
 
-    public TonegodTranslucentBucketFilter(final boolean enabledSoftParticles) {
+    public TonegodTranslucentBucketFilter(boolean enabledSoftParticles) {
         this();
         this.enabledSoftParticles = enabledSoftParticles;
     }
 
     @Override
-    protected void initFilter(@NotNull final AssetManager manager, @NotNull final RenderManager renderManager,
-                              @NotNull final ViewPort viewPort, int width, int height) {
+    protected void initFilter(
+            @NotNull AssetManager manager,
+            @NotNull RenderManager renderManager,
+            @NotNull ViewPort viewPort,
+            int width,
+            int height
+    ) {
 
         this.renderManager = renderManager;
         this.viewPort = viewPort;
@@ -55,8 +58,8 @@ public class TonegodTranslucentBucketFilter extends Filter {
         material = new Material(manager, "Common/MatDefs/Post/Overlay.j3md");
         material.setColor("Color", ColorRGBA.White);
 
-        final Texture2D texture = processor.getFilterTexture();
-        final Image image = texture.getImage();
+        Texture2D texture = processor.getFilterTexture();
+        Image image = texture.getImage();
 
         material.setTexture("Texture", texture);
 
@@ -73,15 +76,15 @@ public class TonegodTranslucentBucketFilter extends Filter {
         }
     }
 
-    private void initSoftParticles(@NotNull final ViewPort viewPort, final boolean enabledSP) {
+    private void initSoftParticles(@NotNull ViewPort viewPort, boolean enabledSP) {
         if (depthTexture == null) return;
-        for (final Spatial scene : viewPort.getScenes()) {
+        for (Spatial scene : viewPort.getScenes()) {
             makeSoftParticleEmitter(scene, enabledSP && enabled);
         }
     }
 
     @Override
-    protected void setDepthTexture(@Nullable final Texture depthTexture) {
+    protected void setDepthTexture(@Nullable Texture depthTexture) {
         this.depthTexture = depthTexture;
         if (enabledSoftParticles && depthTexture != null) {
             initSoftParticles(viewPort, true);
@@ -99,12 +102,16 @@ public class TonegodTranslucentBucketFilter extends Filter {
     }
 
     @Override
-    protected void postFrame(@NotNull final RenderManager renderManager, @NotNull final ViewPort viewPort,
-                             @NotNull final FrameBuffer prevFilterBuffer, @NotNull final FrameBuffer sceneBuffer) {
+    protected void postFrame(
+            @NotNull RenderManager renderManager,
+            @NotNull ViewPort viewPort,
+            @NotNull FrameBuffer prevFilterBuffer,
+            @NotNull FrameBuffer sceneBuffer
+    ) {
 
         renderManager.setCamera(viewPort.getCamera(), false);
 
-        final Renderer renderer = renderManager.getRenderer();
+        Renderer renderer = renderManager.getRenderer();
 
         if (prevFilterBuffer != sceneBuffer) {
             renderer.copyFrameBuffer(prevFilterBuffer, sceneBuffer, false);
@@ -112,12 +119,12 @@ public class TonegodTranslucentBucketFilter extends Filter {
 
         renderer.setFrameBuffer(sceneBuffer);
 
-        final RenderQueue queue = viewPort.getQueue();
-        queue.renderQueue(RenderQueue.Bucket.Translucent, renderManager, viewPort.getCamera());
+        viewPort.getQueue()
+                .renderQueue(RenderQueue.Bucket.Translucent, renderManager, viewPort.getCamera());
     }
 
     @Override
-    protected void cleanUpFilter(@NotNull final Renderer renderer) {
+    protected void cleanUpFilter(@NotNull Renderer renderer) {
 
         if (renderManager != null) {
             renderManager.setHandleTranslucentBucket(true);
@@ -134,7 +141,7 @@ public class TonegodTranslucentBucketFilter extends Filter {
     }
 
     @Override
-    public void setEnabled(final boolean enabled) {
+    public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
 
         if (renderManager != null) {
@@ -160,21 +167,21 @@ public class TonegodTranslucentBucketFilter extends Filter {
      *
      * @param spatial the spatial
      */
-    public void refresh(@NotNull final Spatial spatial) {
+    public void refresh(@NotNull Spatial spatial) {
         if (viewPort != null && depthTexture != null) {
             makeSoftParticleEmitter(spatial, enabledSoftParticles);
         }
     }
 
-    private void makeSoftParticleEmitter(@NotNull final Spatial scene, final boolean enabled) {
+    private void makeSoftParticleEmitter(@NotNull Spatial scene, boolean enabled) {
 
         if (scene instanceof ParticleEmitterNode) {
 
-            final ParticleEmitterNode emitter = (ParticleEmitterNode) scene;
-            final Material material = emitter.getMaterial();
-            final MaterialDef materialDef = material.getMaterialDef();
-            final MatParam numSamplesDepth = materialDef.getMaterialParam("NumSamplesDepth");
-            final MatParam sceneDepthTexture = materialDef.getMaterialParam("SceneDepthTexture");
+            ParticleEmitterNode emitter = (ParticleEmitterNode) scene;
+            Material material = emitter.getMaterial();
+            MaterialDef materialDef = material.getMaterialDef();
+            MatParam numSamplesDepth = materialDef.getMaterialParam("NumSamplesDepth");
+            MatParam sceneDepthTexture = materialDef.getMaterialParam("SceneDepthTexture");
 
             if (processor.getNumSamples() > 1 && numSamplesDepth != null) {
                 material.setInt("NumSamplesDepth", processor.getNumSamples());
@@ -185,7 +192,7 @@ public class TonegodTranslucentBucketFilter extends Filter {
             }
 
         } else if (scene instanceof Node) {
-            final Node node = (Node) scene;
+            Node node = (Node) scene;
             for (Spatial child : node.getChildren()) {
                 makeSoftParticleEmitter(child, enabled);
             }

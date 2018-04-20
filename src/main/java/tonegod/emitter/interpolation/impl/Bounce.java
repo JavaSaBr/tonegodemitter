@@ -9,11 +9,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class Bounce extends BounceOut {
 
-    public Bounce(@NotNull final float[] widths, @NotNull final float[] heights, @NotNull final String name) {
+    public Bounce(@NotNull float[] widths, @NotNull float[] heights, @NotNull String name) {
         super(widths, heights, name);
     }
 
-    public Bounce(final int bounces, @NotNull final String name) {
+    public Bounce(int bounces, @NotNull String name) {
         super(bounces, name);
     }
 

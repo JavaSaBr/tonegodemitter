@@ -22,7 +22,6 @@ import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
 
 /**
  * The implementation of the {@link ParticleInfluencer} to give physics reactions of particles.
@@ -79,7 +78,7 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
         @NotNull
         private final String name;
 
-        CollisionReaction(@NotNull final String name) {
+        CollisionReaction(@NotNull String name) {
             this.name = name;
         }
 
@@ -220,10 +219,12 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
-                              @NotNull final ParticleData particleData,
-                              @NotNull final PhysicsInfluencer.PhysicsInfluencerData data,
-                              final float tpf) {
+    protected void updateImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull PhysicsInfluencer.PhysicsInfluencerData data,
+            float tpf
+    ) {
 
         if (!data.collision) {
             findCollisions(emitterNode, particleData, data, tpf);
@@ -255,17 +256,19 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
      * @param data         the influence's data.
      * @param tpf          the tpf.
      */
-    private void findCollisions(@NotNull final ParticleEmitterNode emitterNode,
-                                @NotNull final ParticleData particleData,
-                                @NotNull final PhysicsInfluencerData data,
-                                final float tpf) {
+    private void findCollisions(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull PhysicsInfluencerData data,
+            float tpf
+    ) {
 
-        final CollisionReaction collisionReaction = getCollisionReaction();
-        final GeometryList geometries = getGeometries();
-        final CollisionResults results = getResults();
+        CollisionReaction collisionReaction = getCollisionReaction();
+        GeometryList geometries = getGeometries();
+        CollisionResults results = getResults();
 
         for (int i = 0; i < geometries.size(); i++) {
-            final Geometry geometry = geometries.get(i);
+            Geometry geometry = geometries.get(i);
             try {
 
                 if (results.size() != 0) {
@@ -280,7 +283,7 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
                     continue;
                 }
 
-                final Vector3f velocity = particleData.velocity;
+                Vector3f velocity = particleData.velocity;
 
                 result = results.getClosestCollision();
 
@@ -312,16 +315,18 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
                     }
                 }
 
-            } catch (final Exception ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
-                                  @NotNull final ParticleData particleData,
-                                  @NotNull final PhysicsInfluencer.PhysicsInfluencerData data) {
+    protected void initializeImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull PhysicsInfluencer.PhysicsInfluencerData data
+    ) {
 
         data.collision = false;
         data.interval = 0;
@@ -336,14 +341,17 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
      * @param particleData the particle data.
      * @param tpf          the tpf.
      */
-    private void updateCollisionShape(@NotNull final ParticleEmitterNode emitterNode,
-                                      @NotNull final ParticleData particleData,
-                                      final float tpf) {
+    private void updateCollisionShape(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            float tpf
+    ) {
 
-        final Vector3f translation = tempVec.set(particleData.position)
+        Vector3f translation = tempVec.set(particleData.position)
                 .addLocal(emitterNode.getLocalTranslation());
 
-        final Vector3f angles = particleData.angles;
+        Vector3f angles = particleData.angles;
+
         quaternion.fromAngles(angles.x, angles.y, angles.z);
         geom.setLocalTranslation(translation);
         geom.setLocalRotation(quaternion);
@@ -358,7 +366,7 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
      *
      * @param geometry the geometry.
      */
-    public void addCollidable(@NotNull final Geometry geometry) {
+    public void addCollidable(@NotNull Geometry geometry) {
 
         for (int i = 0; i < geometries.size(); i++) {
             if (geometries.get(i) == geometry) {
@@ -387,7 +395,7 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
      *
      * @param geometry the geometry.
      */
-    public void removeCollidable(@NotNull final Geometry geometry) {
+    public void removeCollidable(@NotNull Geometry geometry) {
         boolean wasEnabled = isEnabled();
         setEnabled(false);
         try {
@@ -425,7 +433,7 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
      *
      * @param restitution The bounciness of the particle
      */
-    public void setRestitution(final float restitution) {
+    public void setRestitution(float restitution) {
         this.restitution = restitution;
     }
 
@@ -443,7 +451,7 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
      *
      * @param collisionReaction the collision reaction.
      */
-    public void setCollisionReaction(@NotNull final CollisionReaction collisionReaction) {
+    public void setCollisionReaction(@NotNull CollisionReaction collisionReaction) {
         this.collisionReaction = collisionReaction;
     }
 
@@ -470,25 +478,25 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
      *
      * @param collisionThreshold the collision threshold value.
      */
-    public void setCollisionThreshold(final float collisionThreshold) {
+    public void setCollisionThreshold(float collisionThreshold) {
         this.collisionThreshold = collisionThreshold;
     }
 
     @Override
-    public void write(@NotNull final JmeExporter exporter) throws IOException {
+    public void write(@NotNull JmeExporter exporter) throws IOException {
         super.write(exporter);
 
-        final OutputCapsule capsule = exporter.getCapsule(this);
+        OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(collisionThreshold, "collisionThreshold", 0.1f);
         capsule.write(restitution, "restitution", 0.5f);
         capsule.write(collisionReaction.ordinal(), "collisionReaction", CollisionReaction.BOUNCE.ordinal());
     }
 
     @Override
-    public void read(@NotNull final JmeImporter importer) throws IOException {
+    public void read(@NotNull JmeImporter importer) throws IOException {
         super.read(importer);
 
-        final InputCapsule capsule = importer.getCapsule(this);
+        InputCapsule capsule = importer.getCapsule(this);
         collisionThreshold = capsule.readFloat("collisionThreshold", 0.1f);
         restitution = capsule.readFloat("restitution", 0.5f);
         collisionReaction = CollisionReaction.valueOf(capsule.readInt("collisionReaction", CollisionReaction.BOUNCE.ordinal()));
@@ -502,7 +510,7 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
      */
     @Override
     public @NotNull ParticleInfluencer clone() {
-        final PhysicsInfluencer clone = (PhysicsInfluencer) super.clone();
+        PhysicsInfluencer clone = (PhysicsInfluencer) super.clone();
         clone.setCollisionReaction(collisionReaction);
         clone.setRestitution(restitution);
         clone.setCollisionThreshold(collisionThreshold);

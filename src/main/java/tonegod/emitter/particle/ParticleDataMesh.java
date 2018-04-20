@@ -49,15 +49,15 @@ public abstract class ParticleDataMesh extends Mesh {
      *
      * @param size the size
      */
-    protected void preparePositionBuffer(final int size) {
+    protected void preparePositionBuffer(int size) {
 
-        final FloatBuffer buffer = BufferUtils.createVector3Buffer(size);
-        final VertexBuffer vertexBuffer = getBuffer(VertexBuffer.Type.Position);
+        FloatBuffer buffer = BufferUtils.createVector3Buffer(size);
+        VertexBuffer vertexBuffer = getBuffer(VertexBuffer.Type.Position);
 
         if (vertexBuffer != null) {
             vertexBuffer.updateData(buffer);
         } else {
-            final VertexBuffer pvb = new VertexBuffer(VertexBuffer.Type.Position);
+            VertexBuffer pvb = new VertexBuffer(VertexBuffer.Type.Position);
             pvb.setupData(VertexBuffer.Usage.Stream, 3, VertexBuffer.Format.Float, buffer);
             setBuffer(pvb);
         }
@@ -68,15 +68,15 @@ public abstract class ParticleDataMesh extends Mesh {
      *
      * @param size the size
      */
-    protected void prepareColorBuffer(final int size) {
+    protected void prepareColorBuffer(int size) {
 
-        final ByteBuffer buffer = BufferUtils.createByteBuffer(size);
-        final VertexBuffer vertexBuffer = getBuffer(VertexBuffer.Type.Color);
+        ByteBuffer buffer = BufferUtils.createByteBuffer(size);
+        VertexBuffer vertexBuffer = getBuffer(VertexBuffer.Type.Color);
 
         if (vertexBuffer != null) {
             vertexBuffer.updateData(buffer);
         } else {
-            final VertexBuffer cvb = new VertexBuffer(VertexBuffer.Type.Color);
+            VertexBuffer cvb = new VertexBuffer(VertexBuffer.Type.Color);
             cvb.setupData(VertexBuffer.Usage.Stream, 4, VertexBuffer.Format.UnsignedByte, buffer);
             cvb.setNormalized(true);
             setBuffer(cvb);
@@ -88,7 +88,7 @@ public abstract class ParticleDataMesh extends Mesh {
      *
      * @param mesh The asset model to extract buffers from
      */
-    public void extractTemplateFromMesh(@NotNull final Mesh mesh) {
+    public void extractTemplateFromMesh(@NotNull Mesh mesh) {
     }
 
     /**
@@ -97,7 +97,7 @@ public abstract class ParticleDataMesh extends Mesh {
      * @param emitterNode  The emitter which will use this <code>ParticleDataMesh</code>.
      * @param numParticles The maximum number of particles to simulate
      */
-    public void initialize(@NotNull final ParticleEmitterNode emitterNode, final int numParticles) {
+    public void initialize(@NotNull ParticleEmitterNode emitterNode, int numParticles) {
         this.emitterNode = emitterNode;
     }
 
@@ -107,7 +107,7 @@ public abstract class ParticleDataMesh extends Mesh {
      * @param imagesX Images on the X coordinate
      * @param imagesY Images on the Y coordinate
      */
-    public void setImagesXY(final int imagesX, final int imagesY) {
+    public void setImagesXY(int imagesX, int imagesY) {
         this.imagesX = imagesX;
         this.imagesY = imagesY;
         if (imagesX != 1 || imagesY != 1) {
@@ -122,8 +122,11 @@ public abstract class ParticleDataMesh extends Mesh {
      * @param camera          the camera
      * @param inverseRotation the inverse rotation
      */
-    public abstract void updateParticleData(@NotNull final ParticleData[] particles, @NotNull final Camera camera,
-                                            @NotNull final Matrix3f inverseRotation);
+    public abstract void updateParticleData(
+            @NotNull ParticleData[] particles,
+            @NotNull Camera camera,
+            @NotNull Matrix3f inverseRotation
+    );
 
 
     /**
@@ -141,7 +144,7 @@ public abstract class ParticleDataMesh extends Mesh {
      * @param vector3f the vector.
      * @return true if the vector is not unit Y.
      */
-    protected boolean isNotUnitY(@NotNull final Vector3f vector3f) {
+    protected boolean isNotUnitY(@NotNull Vector3f vector3f) {
         return vector3f.x != Vector3f.UNIT_Y.x && vector3f.y != Vector3f.UNIT_Y.y && vector3f.z != Vector3f.UNIT_Y.z;
     }
 
@@ -150,7 +153,7 @@ public abstract class ParticleDataMesh extends Mesh {
      *
      * @param uniqueTexCoords the flag of using uniq texture coords.
      */
-    protected void setUniqueTexCoords(final boolean uniqueTexCoords) {
+    protected void setUniqueTexCoords(boolean uniqueTexCoords) {
         this.uniqueTexCoords = uniqueTexCoords;
     }
 

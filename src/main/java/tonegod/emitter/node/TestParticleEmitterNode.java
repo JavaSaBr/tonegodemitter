@@ -16,7 +16,7 @@ public class TestParticleEmitterNode extends Node {
     public TestParticleEmitterNode() {
     }
 
-    public TestParticleEmitterNode(@NotNull final String name) {
+    public TestParticleEmitterNode(@NotNull String name) {
         super(name);
     }
 }

@@ -63,11 +63,13 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
-                              @NotNull final ParticleData particleData,
-                              final float tpf) {
+    protected void updateImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            float tpf
+    ) {
 
-        final Random random = RandomUtils.getRandom();
+        Random random = RandomUtils.getRandom();
         if (random.nextFloat() <= 1 - (chance + tpf)) {
             return;
         }
@@ -87,7 +89,6 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
 
         particleData.velocity.interpolateLocal(velocityStore, magnitude);
 
-
         super.updateImpl(emitterNode, particleData, tpf);
     }
 
@@ -96,7 +97,7 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
      *
      * @param chance the chance.
      */
-    public void setChance(final float chance) {
+    public void setChance(float chance) {
         this.chance = chance;
     }
 
@@ -114,7 +115,7 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
      *
      * @param magnitude the magnitude.
      */
-    public void setMagnitude(final float magnitude) {
+    public void setMagnitude(float magnitude) {
         this.magnitude = magnitude;
     }
 
@@ -132,7 +133,7 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
      *
      * @param strength the strength.
      */
-    public void setStrength(final float strength) {
+    public void setStrength(float strength) {
         this.strength = strength;
     }
 
@@ -146,20 +147,20 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
     }
 
     @Override
-    public void write(@NotNull final JmeExporter exporter) throws IOException {
+    public void write(@NotNull JmeExporter exporter) throws IOException {
         super.write(exporter);
 
-        final OutputCapsule capsule = exporter.getCapsule(this);
+        OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(chance, "chance", 0.02f);
         capsule.write(magnitude, "magnitude", 0.2f);
         capsule.write(strength, "strength", 3f);
     }
 
     @Override
-    public void read(@NotNull final JmeImporter importer) throws IOException {
+    public void read(@NotNull JmeImporter importer) throws IOException {
         super.read(importer);
 
-        final InputCapsule capsule = importer.getCapsule(this);
+        InputCapsule capsule = importer.getCapsule(this);
         chance = capsule.readFloat("chance", 0.02f);
         magnitude = capsule.readFloat("magnitude", 0.2f);
         strength = capsule.readFloat("strength", 3f);
@@ -167,7 +168,7 @@ public class ImpulseInfluencer extends AbstractWithoutDataParticleInfluencer {
 
     @Override
     public @NotNull ParticleInfluencer clone() {
-        final ImpulseInfluencer clone = (ImpulseInfluencer) super.clone();
+        ImpulseInfluencer clone = (ImpulseInfluencer) super.clone();
         clone.setChance(chance);
         clone.setMagnitude(magnitude);
         clone.setStrength(strength);

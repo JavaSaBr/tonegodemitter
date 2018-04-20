@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PowOut extends Pow {
 
-    public PowOut(final int power, @NotNull final String name) {
+    public PowOut(int power, @NotNull String name) {
         super(power, name);
     }
 

@@ -17,11 +17,11 @@ public class ParticleGeometry extends Geometry {
     public ParticleGeometry() {
     }
 
-    public ParticleGeometry(@NotNull final String name) {
+    public ParticleGeometry(@NotNull String name) {
         super(name);
     }
 
-    public ParticleGeometry(@NotNull final String name, @NotNull final Mesh mesh) {
+    public ParticleGeometry(@NotNull String name, @NotNull Mesh mesh) {
         super(name, mesh);
     }
 }

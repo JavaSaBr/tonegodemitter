@@ -67,10 +67,12 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
-                              @NotNull final ParticleData particleData,
-                              @NotNull final BaseInterpolationData data,
-                              final float tpf) {
+    protected void updateImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull BaseInterpolationData data,
+            float tpf
+    ) {
 
         data.interval += tpf;
 
@@ -82,13 +84,13 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
             updateInterpolation(data, getDestinations());
         }
 
-        final Interpolation interpolation = data.interpolation;
-        final Vector3f position = particleData.getPosition();
+        Interpolation interpolation = data.interpolation;
+        Vector3f position = particleData.getPosition();
 
-        final int destinationIndex = data.index;
-        final Vector3f destination = destinations.get(destinationIndex);
+        int destinationIndex = data.index;
+        Vector3f destination = destinations.get(destinationIndex);
 
-        final float dist = position.distance(destination);
+        float dist = position.distance(destination);
 
         blend = interpolation.apply(data.interval / data.duration);
 
@@ -105,7 +107,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
+    protected void firstInitializeImpl(@NotNull ParticleData particleData) {
 
         if (destinations.isEmpty()) {
             addDestination(new Vector3f(0, 0, 0), 0.5f);
@@ -115,9 +117,11 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
-                                  @NotNull final ParticleData particleData,
-                                  @NotNull final BaseInterpolationData data) {
+    protected void initializeImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull BaseInterpolationData data
+    ) {
 
         if (isRandomStartDestination()) {
             data.index = nextRandomInt(getRandom(), 0, destinations.size() - 1);
@@ -125,11 +129,10 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
             data.index = 0;
         }
 
-        final SafeArrayList<Interpolation> interpolations = getInterpolations();
+        SafeArrayList<Interpolation> interpolations = getInterpolations();
         data.interval = 0f;
         data.duration = isCycle() ? getFixedDuration() : particleData.startLife / ((float) destinations.size());
         data.interpolation = interpolations.get(data.index);
-
 
         super.initializeImpl(emitterNode, particleData, data);
     }
@@ -140,7 +143,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      *
      * @param randomStartDestination the random start destination
      */
-    public void setRandomStartDestination(final boolean randomStartDestination) {
+    public void setRandomStartDestination(boolean randomStartDestination) {
         this.randomStartDestination = randomStartDestination;
     }
 
@@ -161,7 +164,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @param destination The destination the particle will move towards
      * @param weight      How strong the pull towards the destination should be
      */
-    public void addDestination(@NotNull final Vector3f destination, final float weight) {
+    public void addDestination(@NotNull Vector3f destination, float weight) {
         addDestination(destination, weight, Interpolation.LINEAR);
     }
 
@@ -173,9 +176,11 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @param weight        How strong the pull towards the destination should be
      * @param interpolation The interpolation method used to blend from the this step value to the next
      */
-    public void addDestination(@NotNull final Vector3f destination, final float weight,
-                               @NotNull final Interpolation interpolation) {
-
+    public void addDestination(
+            @NotNull Vector3f destination,
+            float weight,
+            @NotNull Interpolation interpolation
+    ) {
         addInterpolation(interpolation);
         destinations.add(destination.clone());
         weights.add(weight);
@@ -186,7 +191,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      *
      * @param index the index
      */
-    public void removeDestination(final int index) {
+    public void removeDestination(int index) {
         removeInterpolation(index);
         destinations.remove(index);
         weights.remove(index);
@@ -216,7 +221,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @param index the index.
      * @return the destination.
      */
-    public @NotNull Vector3f getDestination(final int index) {
+    public @NotNull Vector3f getDestination(int index) {
         return destinations.get(index);
     }
 
@@ -235,7 +240,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @param index the index.
      * @return the weight.
      */
-    public @NotNull Float getWeight(final int index) {
+    public @NotNull Float getWeight(int index) {
         return weights.get(index);
     }
 
@@ -245,7 +250,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @param destination the new destination.
      * @param index       the index.
      */
-    public void updateDestination(final @NotNull Vector3f destination, final int index) {
+    public void updateDestination(@NotNull Vector3f destination, int index) {
         destinations.set(index, destination);
     }
 
@@ -255,7 +260,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      * @param weight the new weight.
      * @param index  the index.
      */
-    public void updateWeight(final @NotNull Float weight, final int index) {
+    public void updateWeight(@NotNull Float weight, int index) {
         weights.set(index, weight);
     }
 
@@ -264,12 +269,12 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
      */
     public void removeLast() {
 
-        final SafeArrayList<Float> weights = getWeights();
+        SafeArrayList<Float> weights = getWeights();
         if (weights.isEmpty()) {
             return;
         }
 
-        final int index = weights.size() - 1;
+        int index = weights.size() - 1;
 
         removeInterpolation(index);
         destinations.remove(index);
@@ -277,39 +282,39 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
     }
 
     @Override
-    public void write(@NotNull final JmeExporter exporter) throws IOException {
+    public void write(@NotNull JmeExporter exporter) throws IOException {
         super.write(exporter);
 
-        final Float[] values = weights.getArray();
-        final double[] weightsToSave = new double[weights.size()];
+        Float[] values = weights.getArray();
+        double[] weightsToSave = new double[weights.size()];
 
         for (int i = 0; i < values.length; i++) {
             weightsToSave[i] = values[i];
         }
 
-        final OutputCapsule capsule = exporter.getCapsule(this);
+        OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(destinations.toArray(new Vector3f[destinations.size()]), "destinations", null);
         capsule.write(weightsToSave, "weights", null);
         capsule.write(randomStartDestination, "randomStartDestination", false);
     }
 
     @Override
-    public void read(@NotNull final JmeImporter importer) throws IOException {
+    public void read(@NotNull JmeImporter importer) throws IOException {
         super.read(importer);
 
-        final InputCapsule capsule = importer.getCapsule(this);
+        InputCapsule capsule = importer.getCapsule(this);
 
-        final Savable[] readDestinations = capsule.readSavableArray("destinations", null);
-        final double[] readWeights = capsule.readDoubleArray("weights", null);
+        Savable[] readDestinations = capsule.readSavableArray("destinations", null);
+        double[] readWeights = capsule.readDoubleArray("weights", null);
 
         if (readDestinations != null) {
-            for (final Savable destination : readDestinations) {
+            for (Savable destination : readDestinations) {
                 destinations.add((Vector3f) destination);
             }
         }
 
         if (readWeights != null) {
-            for (final double value : readWeights) {
+            for (double value : readWeights) {
                 weights.add((float) value);
             }
         }
@@ -319,7 +324,7 @@ public class DestinationInfluencer extends AbstractInterpolatedParticleInfluence
 
     @Override
     public @NotNull ParticleInfluencer clone() {
-        final DestinationInfluencer clone = (DestinationInfluencer) super.clone();
+        DestinationInfluencer clone = (DestinationInfluencer) super.clone();
         clone.destinations = new SafeArrayList<>(Vector3f.class);
         clone.destinations.addAll(destinations);
         clone.weights = new SafeArrayList<>(Float.class);

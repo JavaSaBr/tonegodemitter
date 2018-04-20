@@ -32,7 +32,7 @@ ext.jmeVersion = "3.2.0-stable"
 ext.junitPlatformVersion = "1.0.0"
 ext.junitJupiterVersion = "5.0.0"
 ext.log4jVersion = '2.6.2'
-ext.bintrayVersion = version + '-1'
+ext.bintrayVersion = version
 
 junitPlatform {
     filters {
@@ -114,5 +114,5 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.6'
+    gradleVersion = '4.7'
 }

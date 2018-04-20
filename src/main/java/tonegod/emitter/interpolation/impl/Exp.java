@@ -26,7 +26,7 @@ public class Exp extends AbstractInterpolation {
      */
     protected final float scale;
 
-    public Exp(final float value, final float power, @NotNull final String name) {
+    public Exp(float value, float power, @NotNull String name) {
         super(name);
         this.value = value;
         this.power = power;

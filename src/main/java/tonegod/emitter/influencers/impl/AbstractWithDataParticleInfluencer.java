@@ -17,43 +17,39 @@ public abstract class AbstractWithDataParticleInfluencer<D> extends AbstractPart
     }
 
     @Override
-    public void createData(@NotNull final ParticleEmitterNode emitterNode,
-                           @NotNull final ParticleData particleData,
-                           final int dataId) {
+    public void createData(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId) {
         super.createData(emitterNode, particleData, dataId);
         particleData.initializeData(this, dataId, emitterNode.getParticleDataSize());
     }
 
     @Override
-    public void storeUsedData(@NotNull final ParticleEmitterNode emitterNode,
-                              @NotNull final ParticleData particleData,
-                              final int dataId) {
+    public void storeUsedData(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            int dataId
+    ) {
         super.storeUsedData(emitterNode, particleData, dataId);
         storeUsedData((D) particleData.getData(dataId));
     }
 
     @Override
-    public void reset(@NotNull final ParticleEmitterNode emitterNode,
-                      @NotNull final ParticleData particleData,
-                      final int dataId) {
+    public void reset(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId) {
         resetImpl(emitterNode, particleData, (D) particleData.getData(dataId));
     }
 
     @Override
-    public void initialize(@NotNull final ParticleEmitterNode emitterNode,
-                           @NotNull final ParticleData particleData,
-                           final int dataId) {
-
+    public void initialize(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId) {
         super.initialize(emitterNode, particleData, dataId);
         initializeImpl(emitterNode, particleData, (D) particleData.getData(dataId));
     }
 
     @Override
-    public void update(@NotNull final ParticleEmitterNode emitterNode,
-                       @NotNull final ParticleData particleData,
-                       final int dataId,
-                       final float tpf) {
-
+    public void update(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            int dataId,
+            float tpf
+    ) {
         if (isEnabled()) {
             updateImpl(emitterNode, particleData, (D) particleData.getData(dataId), tpf);
         }
@@ -64,7 +60,7 @@ public abstract class AbstractWithDataParticleInfluencer<D> extends AbstractPart
      *
      * @param data the used data object.
      */
-    protected void storeUsedData(@NotNull final D data) {
+    protected void storeUsedData(@NotNull D data) {
     }
 
     /**
@@ -74,9 +70,11 @@ public abstract class AbstractWithDataParticleInfluencer<D> extends AbstractPart
      * @param particleData the particle data.
      * @param data         the influencer's data.
      */
-    protected void resetImpl(@NotNull final ParticleEmitterNode emitterNode,
-                             @NotNull final ParticleData particleData,
-                             @NotNull final D data) {
+    protected void resetImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull D data
+    ) {
     }
 
     /**
@@ -86,9 +84,11 @@ public abstract class AbstractWithDataParticleInfluencer<D> extends AbstractPart
      * @param particleData the particle data.
      * @param data         the influencer's data.
      */
-    protected void initializeImpl(@NotNull final ParticleEmitterNode emitterNode,
-                                  @NotNull final ParticleData particleData,
-                                  @NotNull final D data) {
+    protected void initializeImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull D data
+    ) {
     }
 
     /**
@@ -99,9 +99,11 @@ public abstract class AbstractWithDataParticleInfluencer<D> extends AbstractPart
      * @param data         the influencer's data.
      * @param tpf          the tpf.
      */
-    protected void updateImpl(@NotNull final ParticleEmitterNode emitterNode,
-                              @NotNull final ParticleData particleData,
-                              @NotNull final D data,
-                              final float tpf) {
+    protected void updateImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull D data,
+            float tpf
+    ) {
     }
 }

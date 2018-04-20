@@ -5,9 +5,7 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.util.clone.Cloner;
-
 import org.jetbrains.annotations.NotNull;
-
 import tonegod.emitter.BillboardMode;
 import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.ParticleEmitterNode;
@@ -85,13 +83,16 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
      * @param billboardMode the billboard mode.
      * @param camera        the camera.
      */
-    protected void updateRotation(@NotNull final ParticleData particleData, @NotNull final BillboardMode billboardMode,
-                                  @NotNull final Camera camera) {
+    protected void updateRotation(
+            @NotNull ParticleData particleData,
+            @NotNull BillboardMode billboardMode,
+            @NotNull Camera camera
+    ) {
 
         switch (billboardMode) {
             case VELOCITY: {
 
-                final Vector3f velocity = particleData.getVelocity();
+                Vector3f velocity = particleData.getVelocity();
 
                 if (isNotUnitY(velocity)) {
                     up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
@@ -105,7 +106,7 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
             }
             case VELOCITY_Z_UP: {
 
-                final Vector3f velocity = particleData.getVelocity();
+                Vector3f velocity = particleData.getVelocity();
 
                 if (isNotUnitY(velocity)) {
                     up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
@@ -124,7 +125,7 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
             }
             case VELOCITY_Z_UP_Y_LEFT: {
 
-                final Vector3f velocity = particleData.getVelocity();
+                Vector3f velocity = particleData.getVelocity();
 
                 up.set(velocity).crossLocal(Vector3f.UNIT_Y).normalizeLocal();
                 left.set(velocity).crossLocal(up).normalizeLocal();
@@ -140,8 +141,8 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
             }
             case NORMAL: {
 
-                final ParticleEmitterNode emitterNode = getEmitterNode();
-                final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+                ParticleEmitterNode emitterNode = getEmitterNode();
+                EmitterMesh emitterShape = emitterNode.getEmitterShape();
                 emitterShape.setNext(particleData.triangleIndex);
 
                 tempV1.set(emitterShape.getNormal());
@@ -157,8 +158,8 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
             }
             case NORMAL_Y_UP: {
 
-                final ParticleEmitterNode emitterNode = getEmitterNode();
-                final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+                ParticleEmitterNode emitterNode = getEmitterNode();
+                EmitterMesh emitterShape = emitterNode.getEmitterShape();
                 emitterShape.setNext(particleData.triangleIndex);
 
                 tempV1.set(particleData.getVelocity());
@@ -200,7 +201,7 @@ public abstract class RotatedParticleDataMesh extends ParticleDataMesh {
     }
 
     @Override
-    public void cloneFields(@NotNull final Cloner cloner, @NotNull final Object original) {
+    public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
         super.cloneFields(cloner, original);
 
         left = cloner.clone(left);

@@ -149,7 +149,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      */
     private boolean active;
 
-    public ParticleData(@NotNull final ParticleEmitterNode emitterNode) {
+    public ParticleData(@NotNull ParticleEmitterNode emitterNode) {
         this.data = EMPTY_OBJECT_ARRAY;
         this.color = new ColorRGBA(1, 1, 1, 1);
         this.size = new Vector3f(1f, 1f, 1f);
@@ -171,7 +171,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param dataId          the data id.
      * @param defaultDataSize the default data size.
      */
-    public void reserveDataSlot(final int dataId, final int defaultDataSize) {
+    public void reserveDataSlot(int dataId, int defaultDataSize) {
         if (data == EMPTY_OBJECT_ARRAY) {
             data = new Object[Math.max(defaultDataSize, dataId + 1)];
         } else if (dataId >= data.length) {
@@ -185,15 +185,19 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param influencer      the influencer.
      * @param dataId          the data id.
      * @param defaultDataSize the default data size.
+     * @param <T>             the data object's type.
+     * @return the created data object.
      */
-    public <T> T initializeData(@NotNull final ParticleInfluencer<T> influencer,
-                                final int dataId,
-                                final int defaultDataSize) {
+    public <T> T initializeData(
+            @NotNull ParticleInfluencer<T> influencer,
+            int dataId,
+            int defaultDataSize
+    ) {
 
         reserveDataSlot(dataId, defaultDataSize);
 
         if (!hasData(dataId)) {
-            final T dataObject = influencer.newDataObject();
+            T dataObject = influencer.newDataObject();
             setData(dataId, dataObject);
             return dataObject;
         }
@@ -207,7 +211,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param dataId the data id.
      * @param data   the data.
      */
-    public void setData(final int dataId, @NotNull final Object data) {
+    public void setData(int dataId, @NotNull Object data) {
         this.data[dataId] = data;
     }
 
@@ -216,7 +220,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      *
      * @param dataId the data id.
      */
-    public void removeData(final int dataId) {
+    public void removeData(int dataId) {
         this.data[dataId] = null;
     }
 
@@ -226,7 +230,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param dataId the data id.
      * @return true if data is exist by the data id.
      */
-    public boolean hasData(final int dataId) {
+    public boolean hasData(int dataId) {
         return data.length > dataId && data[dataId] != null;
     }
 
@@ -237,7 +241,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param <T>    the data's type.
      * @return the exist data or null.
      */
-    public @NotNull <T> T getData(final int dataId) {
+    public @NotNull <T> T getData(int dataId) {
         return (T) data[dataId];
     }
 
@@ -252,7 +256,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param emitterNode the emitter node.
      * @param tpf         the time per frame.
      */
-    public void update(@NotNull final ParticleEmitterNode emitterNode, final float tpf) {
+    public void update(@NotNull ParticleEmitterNode emitterNode, float tpf) {
 
         if (!emitterNode.isStaticParticles()) {
             life -= tpf;
@@ -262,7 +266,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
                 return;
             }
 
-            final Interpolation interpolation = emitterNode.getInterpolation();
+            Interpolation interpolation = emitterNode.getInterpolation();
 
             blend = 1.0f * (startLife - life) / startLife;
             interpBlend = interpolation.apply(blend);
@@ -276,7 +280,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         // TODO: Test this!
         if (emitterNode.isStaticParticles()) {
 
-            final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+            EmitterMesh emitterShape = emitterNode.getEmitterShape();
             emitterShape.setNext(triangleIndex);
 
             if (emitterNode.isRandomEmissionPoint()) {
@@ -298,15 +302,17 @@ public final class ParticleData implements Cloneable, JmeCloneable {
 
     /**
      * Called once per particle use when the particle is emitted.
+     *
+     * @param emitterNode the emitter node.
      */
-    public void initialize(@NotNull final ParticleEmitterNode emitterNode) {
+    public void initialize(@NotNull ParticleEmitterNode emitterNode) {
 
         emitterNode.notifyParticleActivated();
 
         setActive(true);
 
-        final float lifeMin = emitterNode.getLifeMin();
-        final float lifeMax = emitterNode.getLifeMax();
+        float lifeMin = emitterNode.getLifeMin();
+        float lifeMax = emitterNode.getLifeMax();
 
         blend = 0;
         size.set(1, 1, 1);
@@ -319,8 +325,8 @@ public final class ParticleData implements Cloneable, JmeCloneable {
 
         life = startLife;
 
-        final float forceMin = emitterNode.getForceMin();
-        final float forceMax = emitterNode.getForceMax();
+        float forceMin = emitterNode.getForceMin();
+        float forceMax = emitterNode.getForceMax();
 
         if (forceMin != forceMax) {
             force = (forceMax - forceMin) * FastMath.nextRandomFloat() + forceMin;
@@ -328,7 +334,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
             force = forceMax;
         }
 
-        final EmitterMesh emitterShape = emitterNode.getEmitterShape();
+        EmitterMesh emitterShape = emitterNode.getEmitterShape();
         emitterShape.setNext();
 
         triangleIndex = emitterShape.getTriangleIndex();
@@ -336,11 +342,11 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         if (!emitterNode.isRandomEmissionPoint()) {
             position.set(emitterShape.getNextTranslation());
         } else {
-            randomOffset.set(emitterShape.getRandomTranslation());
+            randomOffset.set(emitterShape.calcRandomTranslation());
             position.set(emitterShape.getNextTranslation().add(randomOffset));
         }
 
-        velocity.set(emitterShape.getNextDirection())
+        velocity.set(emitterShape.calcNextDirection())
                 .normalizeLocal()
                 .multLocal(force);
 
@@ -351,13 +357,13 @@ public final class ParticleData implements Cloneable, JmeCloneable {
 
         switch (emitterNode.getEmissionPoint()) {
             case EDGE_BOTTOM: {
-                tempV3.set(emitterShape.getNextDirection()).normalizeLocal();
+                tempV3.set(emitterShape.calcNextDirection()).normalizeLocal();
                 tempV3.multLocal(size.getY());
                 position.addLocal(tempV3);
                 break;
             }
             case EDGE_TOP: {
-                tempV3.set(emitterShape.getNextDirection()).normalizeLocal();
+                tempV3.set(emitterShape.calcNextDirection()).normalizeLocal();
                 tempV3.multLocal(size.getY());
                 position.subtractLocal(tempV3);
                 break;
@@ -421,8 +427,10 @@ public final class ParticleData implements Cloneable, JmeCloneable {
 
     /**
      * Called once per particle use when the particle finishes it's life cycle
+     *
+     * @param emitterNode the emitter node.
      */
-    public void reset(@NotNull final ParticleEmitterNode emitterNode) {
+    public void reset(@NotNull ParticleEmitterNode emitterNode) {
         setActive(false);
         emitterNode.notifyParticleDeactivated();
         emitterNode.resetInfluencers(this);
@@ -439,7 +447,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     }
 
     @Override
-    public void cloneFields(final Cloner cloner, final Object original) {
+    public void cloneFields(Cloner cloner, Object original) {
     }
 
     /**
@@ -456,7 +464,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      *
      * @param active  true if this particle is active.
      */
-    private void setActive(final boolean active) {
+    private void setActive(boolean active) {
         this.active = active;
     }
 }

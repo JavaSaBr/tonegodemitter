@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SwingIn extends Swing {
 
-    public SwingIn(float scale, @NotNull final String name) {
+    public SwingIn(float scale, @NotNull String name) {
         super(scale, name);
     }
 
