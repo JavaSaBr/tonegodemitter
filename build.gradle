@@ -23,8 +23,8 @@ sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 compileTestJava {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 1.10
+    targetCompatibility = 1.10
     options.compilerArgs += '-parameters'
 }
 
@@ -41,13 +41,13 @@ junitPlatform {
         tags {
         }
     }
-    logManager 'org.apache.logging.log4j.jul.LogManager'
+    logManager "org.apache.logging.log4j.jul.LogManager"
 }
 
 repositories {
     mavenCentral()
     jcenter()
-    maven { url 'https://jitpack.io' }
+    maven { url "https://jitpack.io" }
 }
 
 publishing {
@@ -88,7 +88,6 @@ dependencies {
     compile group: 'org.jetbrains', name: 'annotations', version: '15.0'
     compile "org.jmonkeyengine:jme3-core:$jmeVersion"
 
-    testCompile 'com.github.JavaSaBr:RLib:6.7.4'
     testCompile "org.junit.platform:junit-platform-commons:$junitPlatformVersion"
     testRuntime "org.junit.platform:junit-platform-engine:$junitPlatformVersion"
     testRuntime "org.jmonkeyengine:jme3-lwjgl:$jmeVersion"

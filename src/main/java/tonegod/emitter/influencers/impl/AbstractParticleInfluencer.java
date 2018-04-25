@@ -34,7 +34,7 @@ public abstract class AbstractParticleInfluencer<D> implements ParticleInfluence
 
     @Override
     public @NotNull D newDataObject() {
-        throw new IllegalStateException("This influencer doesn't use its own data object.");
+        throw new IllegalStateException("This influencer " + this + " doesn't use its own data object.");
     }
 
     @Override

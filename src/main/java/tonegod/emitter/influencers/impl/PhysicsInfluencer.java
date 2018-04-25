@@ -214,6 +214,11 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
     }
 
     @Override
+    public @NotNull PhysicsInfluencerData newDataObject() {
+        return new PhysicsInfluencerData();
+    }
+
+    @Override
     public @NotNull String getName() {
         return Messages.PARTICLE_INFLUENCER_PHYSICS;
     }

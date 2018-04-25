@@ -18,16 +18,23 @@ public class SetUpTest {
     private static final CountDownLatch COUNT_DOWN_LATCH = new CountDownLatch(1);
 
     private static SimpleApplication application = null;
+    private static Throwable throwable;
 
-    protected static synchronized @NotNull SimpleApplication getApplication() {
+    public static void checkErrors() {
+        if (throwable != null) {
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    public static synchronized @NotNull SimpleApplication getApplication() {
 
         if (application == null) {
 
-            final AppSettings settings = new AppSettings(true);
+            var settings = new AppSettings(true);
             settings.setWidth(1024);
             settings.setHeight(768);
 
-            final SimpleApplication app = new SimpleApplication() {
+            var app = new SimpleApplication() {
                 @Override
                 public void simpleInitApp() {
 
@@ -39,17 +46,27 @@ public class SetUpTest {
 
                     COUNT_DOWN_LATCH.countDown();
                 }
+
+                @Override
+                public void update() {
+                    try {
+                        super.update();
+                    } catch (Throwable e) {
+                        throwable = e;
+                    }
+                }
             };
+
             app.setShowSettings(false);
             app.setSettings(settings);
 
-            final Thread appThread = new Thread(app::start);
+            var appThread = new Thread(app::start);
             appThread.setDaemon(true);
             appThread.start();
 
             try {
                 COUNT_DOWN_LATCH.await();
-            } catch (final InterruptedException e) {
+            } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
 

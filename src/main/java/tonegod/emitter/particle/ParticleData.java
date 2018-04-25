@@ -221,7 +221,9 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param dataId the data id.
      */
     public void removeData(int dataId) {
-        this.data[dataId] = null;
+        if (data.length > dataId) {
+            data[dataId] = null;
+        }
     }
 
     /**

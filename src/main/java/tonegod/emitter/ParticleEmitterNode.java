@@ -704,14 +704,13 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      */
     protected void initParticleMaterial(@NotNull Material material) {
 
-        final AssetManager assetManager = getAssetManager();
-        final Texture texture = assetManager.loadTexture("textures/default.png");
+        Texture texture = getAssetManager().loadTexture("textures/default.png");
         texture.setMinFilter(MinFilter.BilinearNearestMipMap);
         texture.setMagFilter(MagFilter.Bilinear);
 
         material.setTexture(PROP_TEXTURE, texture);
 
-        final RenderState renderState = material.getAdditionalRenderState();
+        RenderState renderState = material.getAdditionalRenderState();
         renderState.setFaceCullMode(FaceCullMode.Off);
         renderState.setBlendMode(BlendMode.AlphaAdditive);
         renderState.setDepthTest(false);
@@ -742,10 +741,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param type     the type of the particles data mesh.
      * @param template the particleMeshTemplate of the mesh of the particles, can be null.
      */
-    public <T extends ParticleDataMesh> void changeParticleMeshType(
-            @NotNull Class<T> type,
-            @Nullable Mesh template
-    ) {
+    public <T extends ParticleDataMesh> void changeParticleMeshType(@NotNull Class<T> type, @Nullable Mesh template) {
         try {
             changeParticleMesh(type.newInstance(), template);
         } catch (final InstantiationException | IllegalAccessException e) {
@@ -1435,7 +1431,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param index      the influencer's index.
      */
     protected void initializeInfluencer(@NotNull ParticleInfluencer<?> influencer, int index) {
-        for (final ParticleData particleData : particles) {
+        for (ParticleData particleData : particles) {
             influencer.initialize(this, particleData, index);
         }
     }
@@ -1452,7 +1448,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
             return;
         }
 
-        for (final ParticleData particleData : particles) {
+        for (ParticleData particleData : particles) {
             particleData.initializeData(influencer, index, getParticleDataSize());
         }
     }
@@ -1474,7 +1470,7 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
                 continue;
             }
 
-            final Object data = particleData.getData(prevIndex);
+            Object data = particleData.getData(prevIndex);
             particleData.reserveDataSlot(newIndex, dataSize);
             particleData.setData(newIndex, data);
             particleData.removeData(prevIndex);
