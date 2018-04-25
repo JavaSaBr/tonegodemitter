@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    compile 'toneg0d:emitter:3.0.0-Final'
+    compile 'toneg0d:emitter:3.0.0'
 }
 ```
 
@@ -35,7 +35,7 @@ dependencies {
 <dependency>
     <groupId>toneg0d</groupId>
     <artifactId>emitter</artifactId>
-    <version>3.0.0-Final</version>
+    <version>3.0.0</version>
     <type>pom</type>
 </dependency>
 ```
