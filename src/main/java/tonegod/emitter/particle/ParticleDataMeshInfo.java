@@ -24,13 +24,13 @@ public class ParticleDataMeshInfo {
     @Nullable
     private final Mesh template;
 
-    public ParticleDataMeshInfo(@NotNull final Class<? extends ParticleDataMesh> meshType, @Nullable final Mesh template) {
+    public ParticleDataMeshInfo(@NotNull Class<? extends ParticleDataMesh> meshType, @Nullable Mesh template) {
         this.meshType = meshType;
         this.template = template;
     }
 
     /**
-     * Gets mesh type.
+     * Gets a mesh type.
      *
      * @return the mesh type.
      */
@@ -39,7 +39,7 @@ public class ParticleDataMeshInfo {
     }
 
     /**
-     * Gets template.
+     * Gets the template.
      *
      * @return the template.
      */

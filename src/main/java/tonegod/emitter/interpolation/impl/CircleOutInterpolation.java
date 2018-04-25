@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CircleOutInterpolation extends AbstractInterpolation {
 
-    public CircleOutInterpolation(@NotNull final String name) {
+    public CircleOutInterpolation(@NotNull String name) {
         super(name);
     }
 

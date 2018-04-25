@@ -52,7 +52,7 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
     }
 
     @Override
-    public void extractTemplateFromMesh(@NotNull final Mesh mesh) {
+    public void extractTemplateFromMesh(@NotNull Mesh mesh) {
         template = mesh;
         templateVerts = MeshUtils.getPositionBuffer(mesh);
         templateCoords = MeshUtils.getTexCoordBuffer(mesh);
@@ -71,8 +71,8 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
     }
 
     @Override
-    public void initParticleData(@NotNull final ParticleEmitterNode emitterNode, final int numParticles) {
-        super.initParticleData(emitterNode, numParticles);
+    public void initialize(@NotNull ParticleEmitterNode emitterNode, int numParticles) {
+        super.initialize(emitterNode, numParticles);
 
         setMode(Mode.Triangles);
         setUniqueTexCoords(false);
@@ -80,7 +80,7 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
         this.finVerts = BufferUtils.createFloatBuffer(templateVerts.capacity() * numParticles);
         try {
             this.finCoords = BufferUtils.createFloatBuffer(templateCoords.capacity() * numParticles);
-        } catch (final Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -141,7 +141,7 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
 
         try {
             setBuffer(VertexBuffer.Type.TexCoord, 2, finCoords);
-        } catch (final Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -155,30 +155,33 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
     }
 
     @Override
-    public void setImagesXY(final int imagesX, final int imagesY) {
+    public void setImagesXY(int imagesX, int imagesY) {
         super.setImagesXY(imagesX, imagesY);
         if (imagesX != 1 || imagesY != 1) {
-            final VertexBuffer buffer = getBuffer(VertexBuffer.Type.TexCoord);
+            VertexBuffer buffer = getBuffer(VertexBuffer.Type.TexCoord);
             buffer.setUsage(Usage.Stream);
         }
     }
 
     @Override
-    public void updateParticleData(@NotNull final ParticleData[] particles, @NotNull final Camera camera,
-                                   @NotNull final Matrix3f inverseRotation) {
+    public void updateParticleData(
+            @NotNull ParticleData[] particles,
+            @NotNull Camera camera,
+            @NotNull Matrix3f inverseRotation
+    ) {
 
-        final ParticleEmitterNode emitterNode = getEmitterNode();
-        final BillboardMode billboardMode = emitterNode.getBillboardMode();
-        final Vector3f worldTranslation = emitterNode.getWorldTranslation();
+        ParticleEmitterNode emitterNode = getEmitterNode();
+        BillboardMode billboardMode = emitterNode.getBillboardMode();
+        Vector3f worldTranslation = emitterNode.getWorldTranslation();
 
         for (int i = 0; i < particles.length; i++) {
 
-            final ParticleData particleData = particles[i];
+            ParticleData particleData = particles[i];
 
             int offset = templateVerts.capacity() * i;
             int colorOffset = templateColors.capacity() * i;
 
-            if (particleData.life == 0 || !particleData.active) {
+            if (particleData.life == 0 || !particleData.isActive()) {
                 for (int x = 0; x < templateVerts.capacity(); x += 3) {
                     finVerts.put(offset + x, 0);
                     finVerts.put(offset + x + 1, 0);
@@ -246,7 +249,7 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
     }
 
     @Override
-    public void cloneFields(@NotNull final Cloner cloner, @NotNull final Object original) {
+    public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
         super.cloneFields(cloner, original);
 
         mat3 = cloner.clone(mat3);
@@ -256,18 +259,18 @@ public final class ParticleDataTemplateMesh extends RotatedParticleDataMesh {
     }
 
     @Override
-    public void read(@NotNull final JmeImporter importer) throws IOException {
+    public void read(@NotNull JmeImporter importer) throws IOException {
         super.read(importer);
 
-        final InputCapsule capsule = importer.getCapsule(this);
+        InputCapsule capsule = importer.getCapsule(this);
         extractTemplateFromMesh((Mesh) capsule.readSavable("template", null));
     }
 
     @Override
-    public void write(@NotNull final JmeExporter exporter) throws IOException {
+    public void write(@NotNull JmeExporter exporter) throws IOException {
         super.write(exporter);
 
-        final OutputCapsule capsule = exporter.getCapsule(this);
+        OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(template, "template", null);
     }
 }

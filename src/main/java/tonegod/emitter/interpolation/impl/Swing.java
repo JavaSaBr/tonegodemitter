@@ -14,7 +14,7 @@ public class Swing extends AbstractInterpolation {
      */
     protected final float scale;
 
-    public Swing(final float scale, @NotNull final String name) {
+    public Swing(float scale, @NotNull String name) {
         super(name);
         this.scale = scale * 2;
     }

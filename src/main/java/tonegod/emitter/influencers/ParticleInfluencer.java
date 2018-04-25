@@ -1,9 +1,8 @@
 package tonegod.emitter.influencers;
 
 import com.jme3.export.Savable;
-
 import org.jetbrains.annotations.NotNull;
-
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.particle.ParticleData;
 
 /**
@@ -11,43 +10,81 @@ import tonegod.emitter.particle.ParticleData;
  *
  * @author t0neg0d, JavaSaBr
  */
-public interface ParticleInfluencer extends Savable, Cloneable {
+public interface ParticleInfluencer<D> extends Savable, Cloneable {
 
     /**
-     * Gets name.
+     * Gets the influencer's name.
      *
-     * @return the name of this influencer.
+     * @return the influencer's name.
      */
     @NotNull String getName();
 
     /**
-     * This method clones the influencer instance.
+     * Clones the influencer instance.
      *
-     * @return cloned instance
+     * @return cloned instance.
      */
     @NotNull ParticleInfluencer clone();
 
     /**
-     * Update loop for the particle influencer
+     * Returns true if this influencer uses its own data object.
      *
-     * @param particleData The particle to update
-     * @param tpf          The time since last frame
+     * @return true if this influencer uses its own data object.
      */
-    void update(@NotNull ParticleData particleData, float tpf);
+    boolean isUsedDataObject();
 
     /**
-     * Called when a particle is emitted.
+     * Creates a new data object of this influencer.
      *
-     * @param particleData The particle being emitted
+     * @return the new data object of this influencer.
      */
-    void initialize(@NotNull ParticleData particleData);
+    @NotNull D newDataObject();
+
+    /**
+     * Creates and puts influencer's data to the particle data.
+     *
+     * @param emitterNode  the particle emitter node.
+     * @param particleData The particle data.
+     * @param dataId       the influencer's data id.
+     */
+    void createData(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId);
+
+    /**
+     * Stores if need unused data object.
+     *
+     * @param emitterNode  the particle emitter node.
+     * @param particleData The particle data.
+     * @param dataId       the influencer's data id.
+     */
+    void storeUsedData(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId);
+
+    /**
+     * Updates state of the particle data from this influencers.
+     *
+     * @param emitterNode  the particle emitter node.
+     * @param particleData The particle data.
+     * @param dataId       the influencer's data id.
+     * @param tpf          the time since last frame.
+     */
+    void update(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId, float tpf);
+
+    /**
+     * Initializes the particle data to be used from this influencers.
+     *
+     * @param emitterNode  the particle emitter node.
+     * @param particleData The particle data.
+     * @param dataId       the influencer's data id.
+     */
+    void initialize(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId);
 
     /**
      * Called once the life span of the particle has been reached.
      *
-     * @param particleData The particle that was removed
+     * @param emitterNode  the particle emitter node.
+     * @param particleData The particle that was removed.
+     * @param dataId       the influencer's data id.
      */
-    void reset(@NotNull ParticleData particleData);
+    void reset(@NotNull ParticleEmitterNode emitterNode, @NotNull ParticleData particleData, int dataId);
 
     /**
      * Enables/disables the influencer without removing it from the chain. It is worth noting that

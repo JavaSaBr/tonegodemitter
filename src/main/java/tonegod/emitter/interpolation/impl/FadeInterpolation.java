@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FadeInterpolation extends AbstractInterpolation {
 
-    public FadeInterpolation(final @NotNull String name) {
+    public FadeInterpolation(@NotNull String name) {
         super(name);
     }
 

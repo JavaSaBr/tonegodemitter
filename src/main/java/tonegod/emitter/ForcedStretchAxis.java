@@ -30,7 +30,7 @@ public enum ForcedStretchAxis {
      * @param index the index
      * @return the forced stretch axis
      */
-    public static @NotNull ForcedStretchAxis valueOf(final int index) {
+    public static @NotNull ForcedStretchAxis valueOf(int index) {
         return VALUES[index];
     }
 
@@ -40,7 +40,7 @@ public enum ForcedStretchAxis {
     @NotNull
     private final String uiName;
 
-    ForcedStretchAxis(@NotNull final String uiName) {
+    ForcedStretchAxis(@NotNull String uiName) {
         this.uiName = uiName;
     }
 

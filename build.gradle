@@ -1,9 +1,11 @@
 buildscript {
     repositories {
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
     }
 }
 
@@ -11,23 +13,26 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'idea'
 apply plugin: 'org.junit.platform.gradle.plugin'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
 
-group = 'toneg0d.emitter'
-version = '2.6.3'
+group = 'toneg0d'
+version = '3.0.0'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 compileTestJava {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 1.10
+    targetCompatibility = 1.10
     options.compilerArgs += '-parameters'
 }
 
-ext.jmeVersion = "3.1.0-stable"
+ext.jmeVersion = "3.2.0-stable"
 ext.junitPlatformVersion = "1.0.0"
 ext.junitJupiterVersion = "5.0.0"
 ext.log4jVersion = '2.6.2'
+ext.bintrayVersion = version
 
 junitPlatform {
     filters {
@@ -36,20 +41,53 @@ junitPlatform {
         tags {
         }
     }
-    logManager 'org.apache.logging.log4j.jul.LogManager'
+    logManager "org.apache.logging.log4j.jul.LogManager"
 }
 
 repositories {
     mavenCentral()
     jcenter()
-    maven { url 'https://jitpack.io' }
+    maven { url "https://jitpack.io" }
+}
+
+publishing {
+    publications {
+        EmitterArtifact(MavenPublication) {
+            from components.java
+            groupId group
+            artifactId 'emitter'
+            version bintrayVersion
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}
+
+bintray {
+    user = System.getProperty('bintrayUser')
+    key = System.getProperty('bintrayKey')
+    publications = ['EmitterArtifact']
+    pkg {
+        repo = 'maven'
+        name = 'tonegod.emitter'
+        licenses = ['Apache-2.0']
+        websiteUrl = 'https://github.com/JavaSaBr/tonegodemitter'
+        vcsUrl = 'https://github.com/JavaSaBr/tonegodemitter.git'
+        issueTrackerUrl = 'https://github.com/JavaSaBr/tonegodemitter/issues'
+        githubRepo = 'JavaSaBr/tonegodemitter'
+        githubReleaseNotesFile = 'README.md'
+        version {
+            name = bintrayVersion
+            desc = bintrayVersion
+            released  = new Date()
+        }
+    }
 }
 
 dependencies {
     compile group: 'org.jetbrains', name: 'annotations', version: '15.0'
     compile "org.jmonkeyengine:jme3-core:$jmeVersion"
 
-    testCompile 'com.github.JavaSaBr:RLib:6.7.4'
     testCompile "org.junit.platform:junit-platform-commons:$junitPlatformVersion"
     testRuntime "org.junit.platform:junit-platform-engine:$junitPlatformVersion"
     testRuntime "org.jmonkeyengine:jme3-lwjgl:$jmeVersion"
@@ -75,20 +113,5 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.4'
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
-defaultTasks 'clean', 'install'
-
-// To specify a license in the pom:
-install {
-    repositories.mavenInstaller {
-        pom.version = version
-        pom.artifactId = 'toneg0d.emitter'
-    }
+    gradleVersion = '4.7'
 }

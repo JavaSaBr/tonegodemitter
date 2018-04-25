@@ -16,7 +16,7 @@ public class ParticleNode extends Node {
     public ParticleNode() {
     }
 
-    public ParticleNode(@NotNull final String name) {
+    public ParticleNode(@NotNull String name) {
         super(name);
     }
 }

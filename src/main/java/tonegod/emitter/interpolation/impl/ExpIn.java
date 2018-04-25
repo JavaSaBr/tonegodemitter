@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ExpIn extends Exp {
 
-    public ExpIn(final float value, final float power, @NotNull final String name) {
+    public ExpIn(float value, float power, @NotNull String name) {
         super(value, power, name);
     }
 

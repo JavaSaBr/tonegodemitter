@@ -21,52 +21,52 @@ import java.nio.FloatBuffer;
 public final class MeshUtils {
 
     /**
-     * Gets position buffer.
+     * Gets a position buffer.
      *
-     * @param mesh the mesh
-     * @return the position buffer
+     * @param mesh the mesh.
+     * @return the position buffer.
      */
-    public static @Nullable FloatBuffer getPositionBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable FloatBuffer getPositionBuffer(@NotNull Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.Position);
     }
 
     /**
-     * Gets index buffer.
+     * Gets a index buffer.
      *
-     * @param mesh the mesh
-     * @return the index buffer
+     * @param mesh the mesh.
+     * @return the index buffer.
      */
-    public static @Nullable IndexBuffer getIndexBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable IndexBuffer getIndexBuffer(@NotNull Mesh mesh) {
         return mesh.getIndexBuffer();
     }
 
     /**
-     * Gets tex coord buffer.
+     * Gets a tex coord buffer.
      *
-     * @param mesh the mesh
-     * @return the tex coord buffer
+     * @param mesh the mesh.
+     * @return the tex coord buffer.
      */
-    public static @Nullable FloatBuffer getTexCoordBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable FloatBuffer getTexCoordBuffer(@NotNull Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.TexCoord);
     }
 
     /**
-     * Gets normals buffer.
+     * Gets a normals buffer.
      *
-     * @param mesh the mesh
-     * @return the normals buffer
+     * @param mesh the mesh.
+     * @return the normals buffer.
      */
-    public static @Nullable FloatBuffer getNormalsBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable FloatBuffer getNormalsBuffer(@NotNull Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.Normal);
     }
 
     /**
-     * Gets color buffer.
+     * Gets a color buffer.
      *
-     * @param mesh the mesh
-     * @return the color buffer
+     * @param mesh the mesh.
+     * @return the color buffer.
      */
-    public static @Nullable FloatBuffer getColorBuffer(@NotNull final Mesh mesh) {
+    public static @Nullable FloatBuffer getColorBuffer(@NotNull Mesh mesh) {
         return mesh.getFloatBuffer(VertexBuffer.Type.Color);
     }
 }

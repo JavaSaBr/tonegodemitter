@@ -14,7 +14,7 @@ public class Pow extends AbstractInterpolation {
      */
     protected final int power;
 
-    public Pow(final int power, @NotNull final String name) {
+    public Pow(int power, @NotNull String name) {
         super(name);
         this.power = power;
     }

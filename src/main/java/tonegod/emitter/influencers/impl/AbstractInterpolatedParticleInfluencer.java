@@ -13,51 +13,14 @@ import tonegod.emitter.interpolation.InterpolationManager;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * The base implementation of the {@link InterpolatedParticleInfluencer}.
  *
  * @author JavaSaBr
  */
-public abstract class AbstractInterpolatedParticleInfluencer extends AbstractParticleInfluencer implements InterpolatedParticleInfluencer {
-
-    @NotNull
-    protected static final Callable<BaseInterpolationData> DATA_FACTORY = new Callable<BaseInterpolationData>() {
-        @Override
-        public BaseInterpolationData call() throws Exception {
-            return new BaseInterpolationData();
-        }
-    };
-
-    protected static class BaseInterpolationData {
-
-        /**
-         * The interpolation.
-         */
-        @NotNull
-        Interpolation interpolation;
-
-        /**
-         * The index.
-         */
-        int index;
-
-        /**
-         * The interval.
-         */
-        float interval;
-
-        /**
-         * The duration.
-         */
-        float duration;
-
-        protected BaseInterpolationData() {
-            this.duration = 1f;
-            this.interpolation = Interpolation.LINEAR;
-        }
-    }
+public abstract class AbstractInterpolatedParticleInfluencer<D> extends AbstractWithDataParticleInfluencer<D>
+    implements InterpolatedParticleInfluencer<D> {
 
     /**
      * The list of interpolations.
@@ -84,19 +47,26 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
         this.interpolations = new SafeArrayList<>(Interpolation.class);
     }
 
+    @Override
+    public boolean isUsedDataObject() {
+        return true;
+    }
+
     /**
      * Update the interpolation.
      *
-     * @param data the influencer's data.
+     * @param data  the influencer's data.
+     * @param steps the list of steps.
      */
-    protected void updateInterpolation(@NotNull final BaseInterpolationData data, @NotNull final List<?> steps) {
+    protected void updateInterpolation(@NotNull BaseInterpolationData data, @NotNull List<?> steps) {
+
         data.index++;
 
         if (data.index >= steps.size()) {
             data.index = 0;
         }
 
-        final SafeArrayList<Interpolation> interpolations = getInterpolations();
+        SafeArrayList<Interpolation> interpolations = getInterpolations();
         data.interpolation = interpolations.get(data.index);
         data.interval -= data.duration;
     }
@@ -111,7 +81,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
      *
      * @param interpolation the interpolation
      */
-    protected final void addInterpolation(@NotNull final Interpolation interpolation) {
+    protected final void addInterpolation(@NotNull Interpolation interpolation) {
         interpolations.add(interpolation);
     }
 
@@ -120,7 +90,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
      *
      * @param index the index
      */
-    protected final void removeInterpolation(final int index) {
+    protected final void removeInterpolation(int index) {
         interpolations.remove(index);
     }
 
@@ -141,12 +111,12 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
      *
      * @param cycle the flag of cycling changing.
      */
-    protected final void setCycle(final boolean cycle) {
+    protected final void setCycle(boolean cycle) {
         this.cycle = cycle;
     }
 
     @Override
-    public final void setFixedDuration(final float fixedDuration) {
+    public final void setFixedDuration(float fixedDuration) {
         if (fixedDuration != 0) {
             this.cycle = true;
             this.fixedDuration = fixedDuration;
@@ -164,7 +134,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
     }
 
     @Override
-    public final @NotNull Interpolation getInterpolation(final int index) throws RuntimeException {
+    public final @NotNull Interpolation getInterpolation(int index) throws RuntimeException {
         if (index < 0 || index >= interpolations.size()) {
             throw new RuntimeException("The index " + index + " isn't correct.");
         }
@@ -172,7 +142,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
     }
 
     @Override
-    public final void updateInterpolation(final @NotNull Interpolation interpolation, final int index) throws RuntimeException {
+    public final void updateInterpolation(@NotNull Interpolation interpolation, int index) throws RuntimeException {
         if (index < 0 || index >= interpolations.size()) {
             throw new RuntimeException("The index " + index + " isn't correct.");
         }
@@ -185,29 +155,29 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
     }
 
     @Override
-    public void write(@NotNull final JmeExporter exporter) throws IOException {
+    public void write(@NotNull JmeExporter exporter) throws IOException {
         super.write(exporter);
 
-        final int[] interpolationIds = new int[interpolations.size()];
+        int[] interpolationIds = new int[interpolations.size()];
 
         for (int i = 0; i < interpolations.size(); i++) {
             interpolationIds[i] = InterpolationManager.getId(interpolations.get(i));
         }
 
-        final OutputCapsule capsule = exporter.getCapsule(this);
+        OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(interpolationIds, "interpolations", null);
         capsule.write(cycle, "cycle", false);
         capsule.write(fixedDuration, "fixedDuration", 0.125f);
     }
 
     @Override
-    public void read(@NotNull final JmeImporter importer) throws IOException {
+    public void read(@NotNull JmeImporter importer) throws IOException {
         super.read(importer);
 
-        final InputCapsule capsule = importer.getCapsule(this);
-        final int[] interpolationIds = capsule.readIntArray("interpolations", null);
+        InputCapsule capsule = importer.getCapsule(this);
+        int[] interpolationIds = capsule.readIntArray("interpolations", null);
 
-        for (final int id : interpolationIds) {
+        for (int id : interpolationIds) {
             interpolations.add(InterpolationManager.getInterpolation(id));
         }
 
@@ -217,7 +187,7 @@ public abstract class AbstractInterpolatedParticleInfluencer extends AbstractPar
 
     @Override
     public @NotNull ParticleInfluencer clone() {
-        final AbstractInterpolatedParticleInfluencer clone = (AbstractInterpolatedParticleInfluencer) super.clone();
+        AbstractInterpolatedParticleInfluencer clone = (AbstractInterpolatedParticleInfluencer) super.clone();
         clone.interpolations = new SafeArrayList<>(Interpolation.class);
         clone.interpolations.addAll(interpolations);
         clone.cycle = cycle;

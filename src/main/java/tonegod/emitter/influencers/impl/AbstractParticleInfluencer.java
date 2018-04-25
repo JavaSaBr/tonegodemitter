@@ -5,6 +5,7 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import org.jetbrains.annotations.NotNull;
+import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.particle.ParticleData;
 
@@ -15,7 +16,7 @@ import java.io.IOException;
  *
  * @author JavaSaBr
  */
-public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
+public abstract class AbstractParticleInfluencer<D> implements ParticleInfluencer<D> {
 
     /**
      * The flag of enabling this influencer.
@@ -32,18 +33,36 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
     }
 
     @Override
-    public void reset(@NotNull final ParticleData particleData) {
+    public @NotNull D newDataObject() {
+        throw new IllegalStateException("This influencer " + this + " doesn't use its own data object.");
     }
 
     @Override
-    public void initialize(@NotNull final ParticleData particleData) {
-
+    public void initialize(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            int dataId
+    ) {
         if (!isInitialized()) {
             firstInitializeImpl(particleData);
             setInitialized(true);
         }
+    }
 
-        initializeImpl(particleData);
+    @Override
+    public void createData(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            int dataId
+    ) {
+    }
+
+    @Override
+    public void storeUsedData(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            int dataId
+    ) {
     }
 
     /**
@@ -51,35 +70,11 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
      *
      * @param particleData the particle data.
      */
-    protected void firstInitializeImpl(@NotNull final ParticleData particleData) {
-    }
-
-    /**
-     * Handle initializing this influencer.
-     *
-     * @param particleData the particle data
-     */
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
+    protected void firstInitializeImpl(@NotNull ParticleData particleData) {
     }
 
     @Override
-    public void update(@NotNull final ParticleData particleData, final float tpf) {
-        if (!isEnabled()) return;
-        updateImpl(particleData, tpf);
-    }
-
-    /**
-     * Handle update a state of this influencer.
-     *
-     * @param particleData the particle data
-     * @param tpf          the tpf
-     */
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
-
-    }
-
-    @Override
-    public final void setEnabled(final boolean enabled) {
+    public final void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -89,6 +84,8 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
     }
 
     /**
+     * Returns true if this influencer is initialized.
+     *
      * @return true if this influencer is initialized.
      */
     private boolean isInitialized() {
@@ -96,28 +93,30 @@ public abstract class AbstractParticleInfluencer implements ParticleInfluencer {
     }
 
     /**
+     * Sets the flag of initializing this influencer.
+     *
      * @param initialized the flag of initializing this influencer.
      */
-    private void setInitialized(final boolean initialized) {
+    private void setInitialized(boolean initialized) {
         this.initialized = initialized;
     }
 
     @Override
-    public void write(@NotNull final JmeExporter exporter) throws IOException {
-        final OutputCapsule capsule = exporter.getCapsule(this);
+    public void write(@NotNull JmeExporter exporter) throws IOException {
+        OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(enabled, "enabled", true);
     }
 
     @Override
-    public void read(@NotNull final JmeImporter importer) throws IOException {
-        final InputCapsule capsule = importer.getCapsule(this);
+    public void read(@NotNull JmeImporter importer) throws IOException {
+        InputCapsule capsule = importer.getCapsule(this);
         enabled = capsule.readBoolean("enabled", true);
     }
 
     @Override
     public @NotNull ParticleInfluencer clone() {
         try {
-            final AbstractParticleInfluencer clone = (AbstractParticleInfluencer) super.clone();
+            AbstractParticleInfluencer clone = (AbstractParticleInfluencer) super.clone();
             clone.enabled = enabled;
             return clone;
         } catch (final CloneNotSupportedException e) {

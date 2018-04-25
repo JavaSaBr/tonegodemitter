@@ -78,8 +78,8 @@ public class InterpolationManager {
      *
      * @param interpolation the interpolation.
      */
-    public static void register(@NotNull final Interpolation interpolation) {
-        final int id = ID_FACTORY.incrementAndGet();
+    public static void register(@NotNull Interpolation interpolation) {
+        int id = ID_FACTORY.incrementAndGet();
         INTER_TO_ID.put(interpolation, id);
         ID_TO_INTER.put(id, interpolation);
         NAME_TO_INTER.put(interpolation.getName(), interpolation);
@@ -101,7 +101,7 @@ public class InterpolationManager {
      * @param name the name.
      * @return the interpolation.
      */
-    public static @NotNull Interpolation getInterpolation(@NotNull final String name) {
+    public static @NotNull Interpolation getInterpolation(@NotNull String name) {
         return requireNonNull(NAME_TO_INTER.get(name), "Unknown interpolation " + name);
     }
 
@@ -111,7 +111,7 @@ public class InterpolationManager {
      * @param interpolation the interpolation.
      * @return its ID.
      */
-    public static int getId(@NotNull final Interpolation interpolation) {
+    public static int getId(@NotNull Interpolation interpolation) {
         return requireNonNull(INTER_TO_ID.get(interpolation), "Unknown interpolation " + interpolation);
     }
 
@@ -121,7 +121,7 @@ public class InterpolationManager {
      * @param id the id.
      * @return the interpolation.
      */
-    public static @NotNull Interpolation getInterpolation(final int id) {
+    public static @NotNull Interpolation getInterpolation(int id) {
         return requireNonNull(ID_TO_INTER.get(id), "Unknown id " + id);
     }
 }

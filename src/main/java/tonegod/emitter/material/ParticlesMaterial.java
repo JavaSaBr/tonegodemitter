@@ -1,7 +1,6 @@
 package tonegod.emitter.material;
 
 import com.jme3.material.Material;
-
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,17 +42,20 @@ public class ParticlesMaterial {
      */
     private final boolean applyLightingTransform;
 
-    public ParticlesMaterial(@NotNull final Material material, @NotNull final String textureParam,
-                             final boolean applyLightingTransform) {
+    public ParticlesMaterial(
+            @NotNull Material material,
+            @NotNull String textureParam,
+            boolean applyLightingTransform
+    ) {
         this.material = material;
         this.textureParam = textureParam;
         this.applyLightingTransform = applyLightingTransform;
     }
 
     @Override
-    public boolean equals(final Object object) {
+    public boolean equals(Object object) {
         if (object == null || getClass() != object.getClass()) return false;
-        final ParticlesMaterial that = (ParticlesMaterial) object;
+        ParticlesMaterial that = (ParticlesMaterial) object;
         return applyLightingTransform == that.applyLightingTransform &&
                 material.equals(that.material) && textureParam.equals(that.textureParam);
     }

@@ -22,9 +22,11 @@ import java.util.Random;
  *
  * @author t0neg0d, JavaSaBr
  */
-public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
+public class RadialVelocityInfluencer extends AbstractWithDataParticleInfluencer<RadialVelocityInfluencer.RadialVelocityData> {
 
-    private static final int TANGENT_FORCE_ID = ParticleData.reserveFloatDataId();
+    protected static class RadialVelocityData {
+        private float tangentForce;
+    }
 
     /**
      * The list of radial pull alignments.
@@ -47,14 +49,14 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
          * @param index the index.
          * @return the radial pull alignment.
          */
-        public static @NotNull RadialPullAlignment valueOf(final int index) {
+        public static @NotNull RadialPullAlignment valueOf(int index) {
             return VALUES[index];
         }
 
         @NotNull
         private final String name;
 
-        RadialPullAlignment(@NotNull final String name) {
+        RadialPullAlignment(@NotNull String name) {
             this.name = name;
         }
 
@@ -93,14 +95,14 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
          * @param index the index.
          * @return the radial pull center.
          */
-        public static @NotNull RadialPullCenter valueOf(final int index) {
+        public static @NotNull RadialPullCenter valueOf(int index) {
             return VALUES[index];
         }
 
         @NotNull
         private final String name;
 
-        RadialPullCenter(@NotNull final String name) {
+        RadialPullCenter(@NotNull String name) {
             this.name = name;
         }
 
@@ -139,14 +141,14 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
          * @param index the index.
          * @return the radial up alignment.
          */
-        public static @NotNull RadialUpAlignment valueOf(final int index) {
+        public static @NotNull RadialUpAlignment valueOf(int index) {
             return VALUES[index];
         }
 
         @NotNull
         private final String name;
 
-        RadialUpAlignment(@NotNull final String name) {
+        RadialUpAlignment(@NotNull String name) {
             this.name = name;
         }
 
@@ -252,46 +254,57 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void updateImpl(@NotNull final ParticleData particleData, final float tpf) {
+    public @NotNull RadialVelocityInfluencer.RadialVelocityData newDataObject() {
+        return new RadialVelocityData();
+    }
 
-        final ParticleEmitterNode emitterNode = particleData.getEmitterNode();
-        final EmitterMesh emitterShape = emitterNode.getEmitterShape();
-        final Quaternion localRotation = emitterNode.getLocalRotation();
+    @Override
+    protected void updateImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull RadialVelocityInfluencer.RadialVelocityData data,
+            float tpf
+    ) {
+
+        EmitterMesh emitterShape = emitterNode.getEmitterShape();
+        Quaternion localRotation = emitterNode.getLocalRotation();
 
         processPullAlignment(particleData, emitterNode, emitterShape);
         processCenter(particleData);
 
         store.subtractLocal(particleData.getPosition())
-                .normalizeLocal()
-                .multLocal(particleData.getInitialLength() * radialPull)
-                .multLocal(tpf);
+            .normalizeLocal()
+            .multLocal(particleData.getInitialLength() * radialPull)
+            .multLocal(tpf);
 
         processUpAlignment(emitterNode, emitterShape);
 
         up.set(store).crossLocal(upStore)
-                .normalizeLocal()
-                .set(localRotation.mult(up, tempStore));
+            .normalizeLocal()
+            .set(localRotation.mult(up, tempStore));
 
         left.set(store).crossLocal(up)
-                .normalizeLocal();
+            .normalizeLocal();
 
         tangent.set(store)
-                .crossLocal(left)
-                .normalizeLocal()
-                .multLocal(particleData.getFloatData(TANGENT_FORCE_ID))
-                .multLocal(tpf);
+            .crossLocal(left)
+            .normalizeLocal()
+            .multLocal(data.tangentForce)
+            .multLocal(tpf);
 
         particleData.velocity.subtractLocal(tangent);
         particleData.velocity.addLocal(store.mult(radialPull, tempStore));
 
-        super.updateImpl(particleData, tpf);
+        super.updateImpl(emitterNode, particleData, data, tpf);
     }
 
     /**
      * Handle up alignment.
      */
-    private void processUpAlignment(@NotNull final ParticleEmitterNode emitterNode,
-                                    @NotNull final EmitterMesh emitterShape) {
+    private void processUpAlignment(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull EmitterMesh emitterShape
+    ) {
 
         switch (getRadialUpAlignment()) {
             case NORMAL: {
@@ -317,7 +330,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     /**
      * Handle pull center.
      */
-    private void processCenter(@NotNull final ParticleData particleData) {
+    private void processCenter(@NotNull ParticleData particleData) {
         switch (getRadialPullCenter()) {
             case ABSOLUTE: {
                 break;
@@ -340,9 +353,11 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     /**
      * Handle pull alignment.
      */
-    private void processPullAlignment(@NotNull final ParticleData particleData,
-                                      @NotNull final ParticleEmitterNode emitterNode,
-                                      @NotNull final EmitterMesh emitterShape) {
+    private void processPullAlignment(
+            @NotNull ParticleData particleData,
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull EmitterMesh emitterShape
+    ) {
 
         switch (getRadialPullAlignment()) {
             case EMISSION_POINT: {
@@ -366,22 +381,26 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    protected void initializeImpl(@NotNull final ParticleData particleData) {
+    protected void initializeImpl(
+            @NotNull ParticleEmitterNode emitterNode,
+            @NotNull ParticleData particleData,
+            @NotNull RadialVelocityInfluencer.RadialVelocityData data
+    ) {
 
         if (!isRandomDirection()) {
-            particleData.initializeFloatData(TANGENT_FORCE_ID, tangentForce);
+            data.tangentForce = tangentForce;
             return;
         }
 
-        final Random random = RandomUtils.getRandom();
+        Random random = RandomUtils.getRandom();
 
         if (random.nextBoolean()) {
-            particleData.initializeFloatData(TANGENT_FORCE_ID, tangentForce);
+            data.tangentForce = tangentForce;
         } else {
-            particleData.initializeFloatData(TANGENT_FORCE_ID, -tangentForce);
+            data.tangentForce = -tangentForce;
         }
 
-        super.initializeImpl(particleData);
+        super.initializeImpl(emitterNode, particleData, data);
     }
 
     /**
@@ -389,7 +408,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      *
      * @param tangentForce the tangent force.
      */
-    public void setTangentForce(final float tangentForce) {
+    public void setTangentForce(float tangentForce) {
         this.tangentForce = tangentForce;
     }
 
@@ -407,7 +426,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      *
      * @param alignment the pullAlignment.
      */
-    public void setRadialPullAlignment(@NotNull final RadialPullAlignment alignment) {
+    public void setRadialPullAlignment(@NotNull RadialPullAlignment alignment) {
         this.pullAlignment = alignment;
     }
 
@@ -427,7 +446,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      *
      * @param center the center.
      */
-    public void setRadialPullCenter(@NotNull final RadialPullCenter center) {
+    public void setRadialPullCenter(@NotNull RadialPullCenter center) {
         this.pullCenter = center;
     }
 
@@ -446,7 +465,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      *
      * @param radialPull the radial pull.
      */
-    public void setRadialPull(final float radialPull) {
+    public void setRadialPull(float radialPull) {
         this.radialPull = radialPull;
     }
 
@@ -464,7 +483,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      *
      * @param upAlignment the up alignment.
      */
-    public void setRadialUpAlignment(@NotNull final RadialUpAlignment upAlignment) {
+    public void setRadialUpAlignment(@NotNull RadialUpAlignment upAlignment) {
         this.upAlignment = upAlignment;
     }
 
@@ -483,7 +502,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
      *
      * @param randomDirection the random direction
      */
-    public void setRandomDirection(final boolean randomDirection) {
+    public void setRandomDirection(boolean randomDirection) {
         this.randomDirection = randomDirection;
     }
 
@@ -497,8 +516,10 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    public void write(@NotNull final JmeExporter ex) throws IOException {
-        final OutputCapsule capsule = ex.getCapsule(this);
+    public void write(@NotNull JmeExporter exporter) throws IOException {
+        super.write(exporter);
+
+        OutputCapsule capsule = exporter.getCapsule(this);
         capsule.write(radialPull, "radialPull", 1.0f);
         capsule.write(tangentForce, "tangentForce", 1.0f);
         capsule.write(pullAlignment.ordinal(), "pullAlignment", RadialPullAlignment.EMISSION_POINT.ordinal());
@@ -507,8 +528,10 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
     }
 
     @Override
-    public void read(@NotNull final JmeImporter importer) throws IOException {
-        final InputCapsule capsule = importer.getCapsule(this);
+    public void read(@NotNull JmeImporter importer) throws IOException {
+        super.read(importer);
+
+        InputCapsule capsule = importer.getCapsule(this);
         radialPull = capsule.readFloat("radialPull", 1.0f);
         tangentForce = capsule.readFloat("tangentForce", 1.0f);
         pullAlignment = RadialPullAlignment.valueOf(capsule.readInt("pullAlignment", capsule.readInt("alignment", RadialPullAlignment.EMISSION_POINT.ordinal())));
@@ -518,7 +541,7 @@ public class RadialVelocityInfluencer extends AbstractParticleInfluencer {
 
     @Override
     public @NotNull ParticleInfluencer clone() {
-        final RadialVelocityInfluencer clone = (RadialVelocityInfluencer) super.clone();
+        RadialVelocityInfluencer clone = (RadialVelocityInfluencer) super.clone();
         clone.setRadialPull(radialPull);
         clone.setTangentForce(tangentForce);
         clone.setRadialPullAlignment(pullAlignment);
