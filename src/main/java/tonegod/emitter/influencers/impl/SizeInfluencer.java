@@ -3,6 +3,7 @@ package tonegod.emitter.influencers.impl;
 import com.jme3.export.*;
 import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
+import com.jme3.util.clone.Cloner;
 import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
@@ -27,17 +28,25 @@ public final class SizeInfluencer extends AbstractInterpolatedParticleInfluencer
          * The start size.
          */
         @NotNull
-        public final Vector3f startSize;
+        public Vector3f startSize;
 
         /**
          * The end size.
          */
         @NotNull
-        public final Vector3f endSize;
+        public Vector3f endSize;
 
         private SizeInfluencerData() {
             this.startSize = new Vector3f(1, 1, 1);
             this.endSize = new Vector3f(0, 0, 0);
+        }
+
+        @Override
+        public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
+            super.cloneFields(cloner, original);
+
+            startSize = cloner.clone(startSize);
+            endSize = cloner.clone(endSize);
         }
     }
 

@@ -6,6 +6,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
+import com.jme3.util.clone.Cloner;
 import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.ParticleEmitterNode;
 
@@ -182,5 +183,11 @@ public abstract class ParticleDataMesh extends Mesh {
      */
     public int getSpriteRows() {
         return imagesY;
+    }
+
+    @Override
+    public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
+        super.cloneFields(cloner, original);
+        emitterNode = cloner.clone(emitterNode);
     }
 }

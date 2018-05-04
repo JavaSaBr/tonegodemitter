@@ -29,6 +29,7 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.MagFilter;
 import com.jme3.texture.Texture.MinFilter;
 import com.jme3.util.SafeArrayList;
+import com.jme3.util.clone.CloneFunction;
 import com.jme3.util.clone.Cloner;
 import com.jme3.util.clone.JmeCloneable;
 import org.jetbrains.annotations.NotNull;
@@ -2493,39 +2494,66 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
     @Override
     public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
-        super.cloneFields(cloner, original);
+        // force cloning mesh
+        CloneFunction<Mesh> meshCloneFunction = cloner.getCloneFunction(Mesh.class);
+        try {
 
-        influencers = cloner.clone(influencers);
+            super.cloneFields(cloner, original);
 
-        for (int i = 0; i < influencers.size(); i++) {
-            influencers.set(i, cloner.clone(influencers.get(i)));
+            influencers = cloner.clone(influencers);
+
+            for (int i = 0; i < influencers.size(); i++) {
+                influencers.set(i, cloner.clone(influencers.get(i)));
+            }
+
+            cloner.setCloneFunction(Mesh.class, null);
+
+            emitterShape = cloner.clone(emitterShape);
+            emitterShapeTestGeometry = null;
+            emitterTestNode = null;
+
+            particles = cloner.clone(particles);
+
+            particleGeometry = cloner.clone(particleGeometry);
+            particleNode = cloner.clone(particleNode);
+
+            particleTestGeometry = null;
+            particleTestNode = null;
+
+            testEmitter = false;
+            testParticles = false;
+
+            if (particleGeometry.getMaterial() != null) {
+                material = particleGeometry.getMaterial();
+            } else {
+                material = cloner.clone(material);
+            }
+
+            if (particleGeometry.getMesh() != null) {
+                particleDataMesh = (ParticleDataMesh) particleGeometry.getMesh();
+            } else {
+                particleDataMesh = cloner.clone(particleDataMesh);
+            }
+
+        } finally {
+            cloner.setCloneFunction(Mesh.class, meshCloneFunction);
         }
 
-        emitterShape = cloner.clone(emitterShape);
-        emitterShapeTestGeometry = null;
-        emitterTestNode = null;
+       // initParticles();
 
-        particles = cloner.clone(particles);
-        particleGeometry = cloner.clone(particleGeometry);
-        particleNode = cloner.clone(particleNode);
+        //ParticleDataMesh dataMesh = getParticleDataMesh();
+        //dataMesh.initialize(this, maxParticles);
+        //dataMesh.setImagesXY(getSpriteColCount(), getSpriteRowCount());
+    }
 
-        particleTestGeometry = null;
-        particleTestNode = null;
+    @Override
+    public ParticleEmitterNode clone() {
+        return (ParticleEmitterNode) super.clone();
+    }
 
-        testEmitter = false;
-        testParticles = false;
-
-        if (particleGeometry.getMaterial() != null) {
-            material = particleGeometry.getMaterial();
-        } else {
-            material = cloner.clone(material);
-        }
-
-        if (particleGeometry.getMesh() != null) {
-            particleDataMesh = (ParticleDataMesh) particleGeometry.getMesh();
-        } else {
-            particleDataMesh = cloner.clone(particleDataMesh);
-        }
+    @Override
+    public ParticleEmitterNode deepClone() {
+        return (ParticleEmitterNode) super.deepClone();
     }
 
     @Override

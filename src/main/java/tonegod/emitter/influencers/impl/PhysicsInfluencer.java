@@ -14,6 +14,8 @@ import com.jme3.renderer.queue.GeometryList;
 import com.jme3.renderer.queue.OpaqueComparator;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
+import com.jme3.util.clone.Cloner;
+import com.jme3.util.clone.JmeCloneable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tonegod.emitter.Messages;
@@ -30,7 +32,7 @@ import java.io.IOException;
  */
 public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<PhysicsInfluencer.PhysicsInfluencerData> {
 
-    protected static class PhysicsInfluencerData {
+    protected static class PhysicsInfluencerData implements JmeCloneable {
 
         /**
          * The flag.
@@ -43,6 +45,40 @@ public class PhysicsInfluencer extends AbstractWithDataParticleInfluencer<Physic
         public float interval;
 
         private PhysicsInfluencerData() {
+        }
+
+        @Override
+        public @NotNull Object jmeClone() {
+            try {
+                return super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            final PhysicsInfluencerData that = (PhysicsInfluencerData) o;
+            if (collision != that.collision) return false;
+            return Float.compare(that.interval, interval) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (collision ? 1 : 0);
+            result = 31 * result + (interval != +0.0f ? Float.floatToIntBits(interval) : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "PhysicsInfluencerData{" + "collision=" + collision + ", interval=" + interval + '}';
         }
     }
 

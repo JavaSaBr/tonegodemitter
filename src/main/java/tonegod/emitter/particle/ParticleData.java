@@ -27,7 +27,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * The color.
      */
     @NotNull
-    public final ColorRGBA color;
+    public ColorRGBA color;
 
     /**
      * The object data map.
@@ -39,55 +39,55 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * The initial position.
      */
     @NotNull
-    public final Vector3f initialPosition;
+    public Vector3f initialPosition;
 
     /**
      * The random offset.
      */
     @NotNull
-    public final Vector3f randomOffset;
+    public Vector3f randomOffset;
 
     /**
      * The particle's size.
      */
     @NotNull
-    public final Vector3f size;
+    public Vector3f size;
 
     /**
      * The particle's velocity.
      */
     @NotNull
-    public final Vector3f velocity;
+    public Vector3f velocity;
 
     /**
      * The reverses particle's velocity.
      */
     @NotNull
-    public final Vector3f reversedVelocity;
+    public Vector3f reversedVelocity;
 
     /**
      * The current particle's position.
      */
     @NotNull
-    public final Vector3f position;
+    public Vector3f position;
 
     /**
      * The rotation angles per axis (in radians).
      */
     @NotNull
-    public final Vector3f angles;
+    public Vector3f angles;
 
     /**
      * The UP vector.
      */
     @NotNull
-    public final Vector3f upVec;
+    public Vector3f upVec;
 
     /**
      * The temp vector.
      */
     @NotNull
-    public final Vector3f tempV3;
+    public Vector3f tempV3;
 
     /**
      * The force at which the particle was emitted
@@ -149,7 +149,7 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      */
     private boolean active;
 
-    public ParticleData(@NotNull ParticleEmitterNode emitterNode) {
+    private ParticleData() {
         this.data = EMPTY_OBJECT_ARRAY;
         this.color = new ColorRGBA(1, 1, 1, 1);
         this.size = new Vector3f(1f, 1f, 1f);
@@ -162,6 +162,10 @@ public final class ParticleData implements Cloneable, JmeCloneable {
         this.angles = new Vector3f();
         this.upVec = new Vector3f(0, 1, 0);
         this.tempV3 = new Vector3f();
+    }
+
+    public ParticleData(@NotNull ParticleEmitterNode emitterNode) {
+        this();
         emitterNode.onCreated(this);
     }
 
@@ -443,13 +447,24 @@ public final class ParticleData implements Cloneable, JmeCloneable {
     public Object jmeClone() {
         try {
             return super.clone();
-        } catch (final CloneNotSupportedException e) {
+        } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void cloneFields(Cloner cloner, Object original) {
+    public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
+        data = data.length > 0 ? cloner.clone(data) : data;
+        color = cloner.clone(color);
+        initialPosition = cloner.clone(initialPosition);
+        randomOffset = cloner.clone(randomOffset);
+        size = cloner.clone(size);
+        velocity = cloner.clone(velocity);
+        reversedVelocity = cloner.clone(reversedVelocity);
+        position = cloner.clone(position);
+        angles = cloner.clone(angles);
+        upVec = cloner.clone(upVec);
+        tempV3 = cloner.clone(tempV3);
     }
 
     /**

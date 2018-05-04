@@ -6,7 +6,10 @@ import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.util.clone.Cloner;
+import com.jme3.util.clone.JmeCloneable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import tonegod.emitter.EmitterMesh;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
@@ -24,8 +27,40 @@ import java.util.Random;
  */
 public class RadialVelocityInfluencer extends AbstractWithDataParticleInfluencer<RadialVelocityInfluencer.RadialVelocityData> {
 
-    protected static class RadialVelocityData {
+    protected static class RadialVelocityData implements JmeCloneable {
+
         private float tangentForce;
+
+        @Override
+        public @NotNull Object jmeClone() {
+            try {
+                return super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
+        }
+
+        @Override
+        public boolean equals(@Nullable Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            final RadialVelocityData that = (RadialVelocityData) o;
+            return Float.compare(that.tangentForce, tangentForce) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return (tangentForce != +0.0f ? Float.floatToIntBits(tangentForce) : 0);
+        }
+
+        @Override
+        public String toString() {
+            return "RadialVelocityData{" + "tangentForce=" + tangentForce + '}';
+        }
     }
 
     /**

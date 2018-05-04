@@ -4,6 +4,7 @@ import com.jme3.export.*;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.util.SafeArrayList;
+import com.jme3.util.clone.Cloner;
 import org.jetbrains.annotations.NotNull;
 import tonegod.emitter.Messages;
 import tonegod.emitter.ParticleEmitterNode;
@@ -28,19 +29,19 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
          * The rotation angle speed per axis (in radians).
          */
         @NotNull
-        public final Vector3f speed;
+        public Vector3f speed;
 
         /**
          * The start rotation speed.
          */
         @NotNull
-        public final Vector3f startSpeed;
+        public Vector3f startSpeed;
 
         /**
          * The end rotation speed.
          */
         @NotNull
-        public final Vector3f endSpeed;
+        public Vector3f endSpeed;
 
         /**
          * The direction each axis' rotation will rotate in
@@ -64,6 +65,16 @@ public final class RotationInfluencer extends AbstractInterpolatedParticleInflue
             this.rotateDirectionX = true;
             this.rotateDirectionY = true;
             this.rotateDirectionZ = true;
+        }
+
+        @Override
+        public void cloneFields(@NotNull Cloner cloner, @NotNull Object original
+        ) {
+            super.cloneFields(cloner, original);
+
+            speed = cloner.clone(speed);
+            startSpeed = cloner.clone(startSpeed);
+            endSpeed = cloner.clone(endSpeed);
         }
     }
 
