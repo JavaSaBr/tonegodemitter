@@ -17,7 +17,7 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 
 group = 'toneg0d'
-version = '3.0.0'
+version = '3.0.1'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7

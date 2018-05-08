@@ -9,6 +9,7 @@ import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.influencers.impl.*;
 import tonegod.emitter.test.util.TestUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -169,8 +170,10 @@ public class ParticleEmitterNodeTest extends SetUpTest {
         TestUtils.attach(cloned);
         TestUtils.move(cloned, new Vector3f(-3, 0, 0));
 
+        var clonedInfluencers = new ArrayList<ParticleInfluencer<?>>(cloned.getInfluencers());
+
         for (int i = 0, max = influencers.size() / 2; i < max; i++) {
-            //TestUtils.tryRemove(cloned, influencers.get(random.nextInt(influencers.size() - 1)));
+            TestUtils.tryRemove(cloned, clonedInfluencers.get(random.nextInt(clonedInfluencers.size() - 1)));
         }
 
         Thread.sleep(15000);
