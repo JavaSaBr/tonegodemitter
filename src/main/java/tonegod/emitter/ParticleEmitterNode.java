@@ -2493,6 +2493,12 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
     @Override
     public void cloneFields(@NotNull Cloner cloner, @NotNull Object original) {
+
+        if (emitterTestNode != null) {
+            detachChild(emitterTestNode);
+        }
+
+        // force cloning mesh
         super.cloneFields(cloner, original);
 
         influencers = cloner.clone(influencers);
@@ -2505,7 +2511,10 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         emitterShapeTestGeometry = null;
         emitterTestNode = null;
 
+        ParticleData[] old = particles;
         particles = cloner.clone(particles);
+
+        ParticleGeometry oldGeometry = particleGeometry;
         particleGeometry = cloner.clone(particleGeometry);
         particleNode = cloner.clone(particleNode);
 
@@ -2526,6 +2535,20 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
         } else {
             particleDataMesh = cloner.clone(particleDataMesh);
         }
+
+        ParticleDataMesh dataMesh = getParticleDataMesh();
+        dataMesh.initialize(this, maxParticles);
+        dataMesh.setImagesXY(getSpriteColCount(), getSpriteRowCount());
+    }
+
+    @Override
+    public ParticleEmitterNode clone() {
+        return (ParticleEmitterNode) super.clone();
+    }
+
+    @Override
+    public ParticleEmitterNode deepClone() {
+        return (ParticleEmitterNode) super.deepClone();
     }
 
     @Override

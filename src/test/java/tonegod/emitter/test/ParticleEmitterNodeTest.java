@@ -1,15 +1,15 @@
 package tonegod.emitter.test;
 
-import com.jme3.app.SimpleApplication;
+import static tonegod.emitter.test.util.TestUtils.createEmitter;
 import com.jme3.math.ColorRGBA;
-import com.jme3.scene.Node;
+import com.jme3.math.Vector3f;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import tonegod.emitter.ParticleEmitterNode;
 import tonegod.emitter.influencers.ParticleInfluencer;
 import tonegod.emitter.influencers.impl.*;
 import tonegod.emitter.test.util.TestUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -19,7 +19,7 @@ public class ParticleEmitterNodeTest extends SetUpTest {
     public void testCreateEmitterNode() throws InterruptedException {
 
         var application = getApplication();
-        var emitter = createEmitter(application);
+        var emitter = createEmitter();
         var rootNode = application.getRootNode();
 
         application.enqueue(() -> rootNode.attachChild(emitter));
@@ -33,7 +33,7 @@ public class ParticleEmitterNodeTest extends SetUpTest {
     public void testAddAllInfluencers() throws InterruptedException {
 
         var application = getApplication();
-        var emitter = createEmitter(application);
+        var emitter = createEmitter();
         var rootNode = application.getRootNode();
 
         application.enqueue(() -> rootNode.attachChild(emitter));
@@ -51,7 +51,7 @@ public class ParticleEmitterNodeTest extends SetUpTest {
     public void testAddAllAndRemoveSomeInfluencers() throws InterruptedException {
 
         var application = getApplication();
-        var emitter = createEmitter(application);
+        var emitter = createEmitter();
         var rootNode = application.getRootNode();
 
         application.enqueue(() -> rootNode.attachChild(emitter));
@@ -76,7 +76,7 @@ public class ParticleEmitterNodeTest extends SetUpTest {
     public void testAddAllAndRemoveSomeAndAddAgainInfluencers() throws InterruptedException {
 
         var application = getApplication();
-        var emitter = createEmitter(application);
+        var emitter = createEmitter();
         var rootNode = application.getRootNode();
 
         application.enqueue(() -> rootNode.attachChild(emitter));
@@ -104,7 +104,7 @@ public class ParticleEmitterNodeTest extends SetUpTest {
 
         var application = getApplication();
 
-        var emitter = createEmitter(application);
+        var emitter = createEmitter();
         var rootNode = application.getRootNode();
 
         application.enqueue(() -> {
@@ -132,17 +132,59 @@ public class ParticleEmitterNodeTest extends SetUpTest {
         rootNode.detachChild(emitter);
     }
 
+    @Test
+    public void testCloneEmitterNode() throws InterruptedException {
+
+        var emitter = createEmitter();
+        createInfluencers().forEach(emitter::addInfluencer);
+
+        var clone = emitter.clone();
+    }
+
+    @Test
+    public void testDeepCloneEmitterNode() throws InterruptedException {
+
+        var emitter = createEmitter();
+        createInfluencers().forEach(emitter::addInfluencer);
+
+        var clone = emitter.deepClone();
+    }
+
+    @Test
+    public void testCloneAndModifyEmitters() throws InterruptedException {
+
+        var original = createEmitter();
+
+        TestUtils.attach(original);
+        TestUtils.move(original, new Vector3f(3, 0, 0));
+
+        Thread.sleep(2000);
+
+        var random = ThreadLocalRandom.current();
+
+        var influencers = createInfluencers();
+        influencers.forEach(influencer -> TestUtils.tryAdd(original, influencer));
+
+        var cloned = TestUtils.tryClone(original);
+
+        TestUtils.attach(cloned);
+        TestUtils.move(cloned, new Vector3f(-3, 0, 0));
+
+        var clonedInfluencers = new ArrayList<ParticleInfluencer<?>>(cloned.getInfluencers());
+
+        for (int i = 0, max = influencers.size() / 2; i < max; i++) {
+            TestUtils.tryRemove(cloned, clonedInfluencers.get(random.nextInt(clonedInfluencers.size() - 1)));
+        }
+
+        Thread.sleep(15000);
+
+        TestUtils.detach(original);
+        TestUtils.detach(cloned);
+    }
+
     private @NotNull List<ParticleInfluencer<?>> createInfluencers() {
         return List.of(new ColorInfluencer(), new SizeInfluencer(0.1F, 0F), new AlphaInfluencer(),
                 new DestinationInfluencer(), new RotationInfluencer(), new PhysicsInfluencer(), new ImpulseInfluencer(),
                 new RadialVelocityInfluencer(), new SpriteInfluencer(), new GravityInfluencer());
-    }
-
-    private @NotNull ParticleEmitterNode createEmitter(@NotNull SimpleApplication application) {
-
-        var emitter = new ParticleEmitterNode(application.getAssetManager());
-        emitter.setEnabled(true);
-
-        return emitter;
     }
 }

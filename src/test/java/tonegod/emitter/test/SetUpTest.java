@@ -41,6 +41,7 @@ public class SetUpTest {
                     final FlyByCamera flyByCamera = getFlyByCamera();
                     flyByCamera.setMoveSpeed(5);
                     flyByCamera.setDragToRotate(true);
+                    flyByCamera.setEnabled(false);
 
                     getInputManager().setCursorVisible(true);
 
