@@ -1,4 +1,4 @@
-# Toneg0d.Emitter 3.0.0 #
+# Toneg0d.Emitter 3.0.2 #
 
 It's a fork of toneg0d.emitter.
 
@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    compile 'toneg0d:emitter:3.0.1'
+    compile 'toneg0d:emitter:3.0.2'
 }
 ```
 
@@ -35,7 +35,7 @@ dependencies {
 <dependency>
     <groupId>toneg0d</groupId>
     <artifactId>emitter</artifactId>
-    <version>3.0.1</version>
+    <version>3.0.2</version>
     <type>pom</type>
 </dependency>
 ```
