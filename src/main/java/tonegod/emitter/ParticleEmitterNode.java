@@ -1408,13 +1408,14 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      *
      * @param index the influencer's index.
      */
-    public void removeInfluencer(int index) {
-
+    public ParticleInfluencer removeInfluencer(int index) {
+        ParticleInfluencer influencer = influencers.get(index);
+        
         if (index < 0) {
             return;
         }
 
-        storeInfluencerData(influencers.get(index), index);
+        storeInfluencerData(influencer, index);
 
         for (int i = index, length = influencers.size(); i < length; i++) {
             moveInfluencerData(i + 1, i);
@@ -1422,6 +1423,8 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
 
         influencers.remove(index);
         requiresUpdate = true;
+        
+        return influencer;
     }
 
     /**
@@ -1529,14 +1532,16 @@ public class ParticleEmitterNode extends Node implements JmeCloneable, Cloneable
      * @param <T>  the influencer's type.
      * @param type the class of the influencer to remove.
      */
-    public <T extends ParticleInfluencer<?>> void removeInfluencer(@NotNull Class<T> type) {
-
+    public <T extends ParticleInfluencer<?>> T removeInfluencer(@NotNull Class<T> type) {
         T influencer = getInfluencer(type);
+        
         if (influencer == null) {
             return;
         }
 
         removeInfluencer(influencer);
+        
+        return influencer;
     }
 
     /**
