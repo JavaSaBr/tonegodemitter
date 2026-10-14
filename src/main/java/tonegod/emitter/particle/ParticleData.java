@@ -437,8 +437,11 @@ public final class ParticleData implements Cloneable, JmeCloneable {
      * @param emitterNode the emitter node.
      */
     public void reset(@NotNull ParticleEmitterNode emitterNode) {
+        boolean wasActive = isActive();
         setActive(false);
-        emitterNode.notifyParticleDeactivated();
+        if (wasActive) {
+            emitterNode.notifyParticleDeactivated();
+        }
         emitterNode.resetInfluencers(this);
         emitterNode.setNextIndex(index);
     }
